@@ -206,6 +206,10 @@ npm run dev:demo      # Next.js observatory
 
 This is an **independent implementation** of the RK-SAVR algorithm described in *Randomized Kolmogorov-Smirnov Analysis of Volatility Roughness* (arXiv:2509.20015v3) by Angelini & Bianchi. The author is not affiliated with the paper's authors. Provided as-is for research and educational use. Please cite the original paper when using this library in academic work.
 
+---
+
+**Screenshots**: launch the observatory locally with `npm run dev:demo`.
+
 ## References
 
 - Angelini & Bianchi (2025). *Randomized Kolmogorov-Smirnov Analysis of Volatility Roughness*. [arXiv:2509.20015v3](https://arxiv.org/abs/2509.20015v3).
