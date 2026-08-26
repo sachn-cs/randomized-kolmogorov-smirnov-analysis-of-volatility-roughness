@@ -43,191 +43,70 @@
 
 
     <section>
-        <article><p align="center">
-  <h1 align="center">RK-SAVR</h1>
-  <p align="center">Randomized Kolmogorov-Smirnov Analysis of Volatility Roughness.</p>
-  <p align="center">A high-performance JavaScript implementation for estimating the Hurst parameter of rough volatility models.</p>
-  <p align="center">
-    <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
-    <a href="https://github.com/sachncs/randomized-kolmogorov-smirnov-analysis-of-volatility-roughness/actions"><img src="https://img.shields.io/github/actions/workflow/status/sachncs/randomized-kolmogorov-smirnov-analysis-of-volatility-roughness/ci.yml?branch=master" alt="CI"></a>
-    <a href="https://www.npmjs.com/package/rksavr"><img src="https://img.shields.io/npm/v/rksavr.svg" alt="npm"></a>
-    <a href="https://nodejs.org/"><img src="https://img.shields.io/badge/node-%3E%3D18.x-brightgreen.svg" alt="Node"></a>
-    <a href="https://github.com/sachncs/randomized-kolmogorov-smirnov-analysis-of-volatility-roughness/stargazers"><img src="https://img.shields.io/github/stars/sachncs/randomized-kolmogorov-smirnov-analysis-of-volatility-roughness.svg" alt="Stars"></a>
-    <a href="https://prettier.io/"><img src="https://img.shields.io/badge/code%20style-prettier-ff69b4.svg" alt="Prettier"></a>
-  </p>
+        <article><h1>hurstify</h1>
+<blockquote>
+<p><strong>The problem.</strong> Estimating the Hurst parameter of rough-volatility processes is hard. Parametric models miss the point, and historical estimators carry estimator bias and slow windows.</p>
+<p><strong>The answer.</strong> hurstify gives you a one-call estimator for <code>H</code> built on the RK-SAVR algorithm — the rescaled, multi-sample, block-permuted Kolmogorov–Smirnov distance developed by Angelini &amp; Bianchi (2025). Zero dependencies, runs anywhere JavaScript runs.</p>
+</blockquote>
+<p align="center">
+  <a href="#installation"><img src="https://img.shields.io/badge/node-26%2B-brightgreen" alt="Node"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
+  <a href="https://github.com/sachncs/hurstify/actions"><img src="https://img.shields.io/github/actions/workflow/status/sachncs/hurstify/ci.yml?branch=master" alt="CI"></a>
+  <a href="https://www.npmjs.com/package/hurstify"><img src="https://img.shields.io/npm/v/hurstify" alt="npm"></a>
+  <a href="https://github.com/sachncs/hurstify/stargazers"><img src="https://img.shields.io/github/stars/sachncs/hurstify" alt="Stars"></a>
 </p>
-<p><strong>rksavr</strong> is a JavaScript implementation of the <strong>RK-SAVR</strong> algorithm
-(Angelini &amp; Bianchi, arXiv:2509.20015v3) for estimating the Hurst
-parameter <code>H</code> of rough volatility models. It compares the empirical
-distributions of rescaled increments at two (or more) scales to recover
-<code>H</code> without ever fitting a parametric model.</p>
-<hr>
 <h2>Features</h2>
 <ul>
-<li><strong>Distributional scaling</strong> — Compares entire rescaled distributions of increments across scales</li>
-<li><strong>Block random permutation</strong> — Decorrelates serial dependence while preserving marginal distributions</li>
-<li><strong>Variance reduction</strong> — Repeated subsampling and averaging with <code>K</code> independent iterations</li>
-<li><strong>Multi-scale analysis</strong> — Vectorized scaling profile across <code>k</code> scales with optional weights</li>
-<li><strong>Pluggable optimizers</strong> — Brent's method, Nelder-Mead, simulated annealing, differential evolution, and adaptive grid search</li>
-<li><strong>Statistical inference</strong> — Asymptotic variance (Prop 2.9), confidence intervals, KS significance testing, Kalman filtering, CUSUM break detection, constancy test, bootstrap CIs</li>
-<li><strong>Synthetic data</strong> — Hosking's-method fBm/fGn, VIX-style and SPX-RV-style log-volatility generators</li>
-<li><strong>Rough-volatility model zoo</strong> — Simulators for rBergomi, rFSV, fOU, and mPRE processes</li>
-<li><strong>H-forecasting</strong> — ARFIMA, Holt-Winters, LSTM-like, and attention-based predictors</li>
-<li><strong>Noise correction</strong> — Preaveraging, realized kernel, log-volatility de-biasing</li>
-<li><strong>Zero runtime dependencies</strong> — Pure JavaScript implementation with no external dependencies</li>
+<li><strong>Distributional scaling</strong> — Compare entire rescaled distributions of increments across scales.</li>
+<li><strong>Block random permutation</strong> — Decorrelate serial dependence while preserving marginal distributions.</li>
+<li><strong>Variance reduction</strong> — Repeated subsampling and averaging across <code>K</code> independent iterations.</li>
+<li><strong>Multi-scale analysis</strong> — Vectorized scaling profile across <code>k</code> scales with optional weights.</li>
+<li><strong>Pluggable optimizers</strong> — Brent's method, Nelder-Mead, simulated annealing, differential evolution, and adaptive grid search.</li>
+<li><strong>Statistical inference</strong> — Asymptotic variance (Prop 2.9), confidence intervals, KS significance testing, Kalman filtering, CUSUM break detection, constancy test, bootstrap CIs.</li>
+<li><strong>Synthetic data</strong> — Hosking-method fBm/fGn, VIX-style and SPX-RV-style log-volatility generators.</li>
+<li><strong>Rough-volatility model zoo</strong> — Simulators for rBergomi, rFSV, fOU, and mPRE processes.</li>
+<li><strong>H-forecasting</strong> — ARFIMA, Holt-Winters, and LSTM-style predictors.</li>
+<li><strong>Noise correction</strong> — Preaveraging, realized kernel, log-volatility de-biasing.</li>
+<li><strong>Zero runtime dependencies</strong> — Pure JavaScript, ESM + CJS + IIFE distributions.</li>
 </ul>
-<hr>
 <h2>Installation</h2>
-<h3>From npm</h3>
-<pre class="prettyprint source lang-bash"><code>npm install rksavr
+<pre class="prettyprint source lang-bash"><code>npm install hurstify
 </code></pre>
-<h3>From source</h3>
-<pre class="prettyprint source lang-bash"><code>git clone https://github.com/sachncs/randomized-kolmogorov-smirnov-analysis-of-volatility-roughness.git
-cd randomized-kolmogorov-smirnov-analysis-of-volatility-roughness
-npm install
-</code></pre>
-<h3>Development dependencies</h3>
-<pre class="prettyprint source lang-bash"><code>npm install --include=dev
-</code></pre>
-<p><strong>Requirements</strong>: Node.js &gt;= 18.x.</p>
-<hr>
+<p>Requires Node.js ≥ 24.</p>
 <h2>Quick Start</h2>
-<h3>Basic estimation</h3>
-<pre class="prettyprint source lang-javascript"><code>import { RKSAVR } from 'rksavr';
+<pre class="prettyprint source lang-javascript"><code>import { RKSAVR, generateFBM } from 'hurstify';
 
-// Initialize estimator
-const rksavr = new RKSAVR({
-  scaleA1: 1,      // Lower scale
-  scaleA2: 50,     // Upper scale
-  sampleSize: 500, // Increments to sample
-  iterations: 16,  // Variance reduction iterations
-});
+// Generate a synthetic rough-volatility path with H = 0.1
+const path = generateFBM(2000, 0.1);
 
-// Your log-volatility data
-const data = [/* ... */];
-
-// Estimate Hurst parameter
-const hEstimate = rksavr.estimate(data);
-console.log(`Estimated H: ${hEstimate}`);
-</code></pre>
-<h3>Block random permutation (paper-faithful)</h3>
-<pre class="prettyprint source lang-javascript"><code>const rksavr = new RKSAVR({
+// Estimate Ĥ in a single call
+const r = new RKSAVR({
   scaleA1: 1,
-  scaleA2: 50,
-  blockSize: 16,   // Block length for random permutation
+  scaleA2: 25,
   sampleSize: 500,
   iterations: 16,
 });
+const H = r.estimateSingle(path);
+console.log(`Ĥ = ${H.toFixed(3)} (true: 0.100)`);
 </code></pre>
-<h3>Rolling window analysis</h3>
-<pre class="prettyprint source lang-javascript"><code>const windowSize = 512;
-const step = 20;
-
-const results = rksavr.rolling(data, windowSize, step, (progress) => {
-  console.log(`Progress: ${(progress * 100).toFixed(1)}%`);
-});
-// results => [{ t: 0, H: 0.12 }, { t: 20, H: 0.14 }, ...]
-</code></pre>
-<h3>Multi-scale analysis</h3>
-<pre class="prettyprint source lang-javascript"><code>const rksavrMulti = new RKSAVR({
+<p>For multi-scale analysis:</p>
+<pre class="prettyprint source lang-javascript"><code>const r = new RKSAVR({
   scales: [1, 2, 5, 10, 20, 50],
   weights: [1.0, 0.8, 0.6, 0.4, 0.2, 0.1],
   sampleSize: 500,
   iterations: 8,
 });
-
-const multiResults = rksavrMulti.rollingMultiScale(
-  data, 512, [1, 2, 5, 10, 20, 50], [1, 0.8, 0.6, 0.4, 0.2, 0.1], 20,
-);
+const H = r.estimateSingle(path);
 </code></pre>
-<h3>Choosing an optimizer</h3>
-<pre class="prettyprint source lang-javascript"><code>const rksavrDe = new RKSAVR({
-  scaleA1: 1,
-  scaleA2: 50,
-  optimizerType: 'de',  // 'brent', 'nelder-mead', 'annealing', 'de', 'ags'
-  iterations: 16,
+<p>For rolling estimation across a long series:</p>
+<pre class="prettyprint source lang-javascript"><code>const windowSize = 512;
+const step = 20;
+const results = r.rolling(path, windowSize, step, (p) => {
+  console.log(`Progress: ${(p * 100).toFixed(1)}%`);
 });
+// results: [{ t: 0, H: 0.12 }, { t: 20, H: 0.14 }, ...]
 </code></pre>
-<h3>Statistical inference</h3>
-<pre class="prettyprint source lang-javascript"><code>import {
-  asymptoticVariance,
-  confidenceInterval,
-  kalmanFilter,
-  cusumTest,
-  constancyTest,
-  bootstrapCI,
-} from 'rksavr';
-
-// Asymptotic variance (Proposition 2.9)
-const varH = asymptoticVariance(1, 50, 500, 500);
-
-// Confidence interval
-const ci = confidenceInterval(0.12, 1, 50, 500, 500, 0.05);
-
-// Kalman-filtered H estimates
-const filtered = kalmanFilter(hHistory, { q: 0.01, r: 0.1 });
-
-// Bootstrap confidence interval
-const bootstrap = bootstrapCI((w) => rksavr.estimate(w), data, 1000, 0.05);
-</code></pre>
-<h3>Rough volatility models</h3>
-<pre class="prettyprint source lang-javascript"><code>import { rBergomi, rFSV, fOU, mPRE } from 'rksavr';
-
-// Generate rough Bergomi paths
-const { paths, times } = rBergomi({
-  nPaths: 100,
-  nSteps: 252,
-  h: 0.1,
-  eta: 2.0,
-  rho: -0.8,
-});
-
-// Generate rFSV volatility
-const { volPath } = rFSV({
-  nSteps: 252, h: 0.1, theta: 2.0, mu: 0.04, nu: 0.5,
-});
-
-// Fractional Ornstein-Uhlenbeck
-const { path } = fOU({
-  nSteps: 252, h: 0.3, theta: 1.0, mu: 0.0, sigma: 1.0,
-});
-
-// MPRE (H varies over time)
-const { path, hPath } = mPRE({
-  nSteps: 252, hMin: 0.05, hMax: 0.95, h0: 0.1,
-});
-</code></pre>
-<h3>H-Forecasting</h3>
-<pre class="prettyprint source lang-javascript"><code>import { arfima, holtWintersForecast, createLSTM } from 'rksavr';
-
-// ARFIMA forecasting
-const forecastFn = arfima({ p: 1, d: 0.3, q: 1, window: 50 });
-const predictedH = forecastFn(hHistory);
-
-// Holt-Winters exponential smoothing
-const nextH = holtWintersForecast(hHistory, 0.3, 0.1);
-
-// LSTM-like model
-const lstm = createLSTM({ hiddenSize: 16 });
-const hidden = lstm.predict(hHistory);
-</code></pre>
-<h3>Noise correction</h3>
-<pre class="prettyprint source lang-javascript"><code>import { preavgReturns, realizedKernel, logVolDebias } from 'rksavr';
-
-// Preaveraging for microstructure noise
-const correctedReturns = preavgReturns(prices, 2);
-
-// Realized kernel volatility
-const rv = realizedKernel(returns, 'bartlett');
-
-// Log-volatility de-biasing
-const debiasedH = logVolDebias(rawHEstimates, sigmaObs, sigmaLatent);
-</code></pre>
-<hr>
 <h2>Configuration</h2>
-<h3>Environment variables</h3>
-<p>No environment variables are required for core library usage. See <code>.env.example</code> for development configuration.</p>
-<h3>RKSAVR options</h3>
 <table>
 <thead>
 <tr>
@@ -254,13 +133,13 @@ const debiasedH = logVolDebias(rawHEstimates, sigmaObs, sigmaLatent);
 <td><code>sampleSize</code></td>
 <td><code>number</code></td>
 <td><code>500</code></td>
-<td>Number of increments to sample per scale</td>
+<td>Increments sampled per scale</td>
 </tr>
 <tr>
 <td><code>iterations</code></td>
 <td><code>number</code></td>
 <td><code>16</code></td>
-<td>Number of <code>K</code> iterations for variance reduction</td>
+<td>Variance-reduction iterations</td>
 </tr>
 <tr>
 <td><code>blockSize</code></td>
@@ -278,13 +157,13 @@ const debiasedH = logVolDebias(rawHEstimates, sigmaObs, sigmaLatent);
 <td><code>hMin</code></td>
 <td><code>number</code></td>
 <td><code>0.01</code></td>
-<td>Minimum Hurst parameter bound</td>
+<td>Lower bound on H</td>
 </tr>
 <tr>
 <td><code>hMax</code></td>
 <td><code>number</code></td>
 <td><code>0.99</code></td>
-<td>Maximum Hurst parameter bound</td>
+<td>Upper bound on H</td>
 </tr>
 <tr>
 <td><code>scales</code></td>
@@ -296,17 +175,17 @@ const debiasedH = logVolDebias(rawHEstimates, sigmaObs, sigmaLatent);
 <td><code>weights</code></td>
 <td><code>Array&lt;number&gt;</code></td>
 <td><code>null</code></td>
-<td>Per-scale weights for the weighted KS objective</td>
+<td>Per-scale weights</td>
 </tr>
 <tr>
 <td><code>sampler</code></td>
 <td><code>function</code></td>
-<td>Floyd's R</td>
-<td>Custom <code>(data, n) =&gt; sample</code> function</td>
+<td>—</td>
+<td>Custom <code>(data, n) =&gt; sample</code></td>
 </tr>
 </tbody>
 </table>
-<h3>Optimizer options</h3>
+<h3>Optimizer selection</h3>
 <table>
 <thead>
 <tr>
@@ -319,12 +198,12 @@ const debiasedH = logVolDebias(rawHEstimates, sigmaObs, sigmaLatent);
 <tr>
 <td>Brent's method</td>
 <td><code>'brent'</code></td>
-<td>1D smooth functions (default)</td>
+<td>Smooth 1D (default)</td>
 </tr>
 <tr>
 <td>Nelder-Mead</td>
 <td><code>'nelder-mead'</code></td>
-<td>Multi-dimensional problems</td>
+<td>Multi-dimensional</td>
 </tr>
 <tr>
 <td>Simulated annealing</td>
@@ -334,206 +213,182 @@ const debiasedH = logVolDebias(rawHEstimates, sigmaObs, sigmaLatent);
 <tr>
 <td>Differential evolution</td>
 <td><code>'de'</code></td>
-<td>Population-based search</td>
+<td>Population-based</td>
 </tr>
 <tr>
 <td>Adaptive grid search</td>
 <td><code>'ags'</code></td>
-<td>Coarse-to-fine refinement</td>
+<td>Coarse-to-fine</td>
 </tr>
 </tbody>
 </table>
-<hr>
-<h2>Project structure</h2>
-<pre class="prettyprint source"><code>rksavr/
-├── lib/                     # Core library
-│   ├── index.js             # Central export hub
-│   ├── rksavr.js            # Main RKSAVR class with multi-scale support
-│   ├── stats.js             # KS distance, block permutation, sampling
-│   ├── optimization/        # Brent, Nelder-Mead, SA, DE, AGS, registry
-│   ├── inference/           # Asymptotic variance, Kalman, CUSUM, bootstrap
-│   │   ├── asymptotic.js    #   - Prop 2.9 variance and confidence interval
-│   │   ├── filtering.js     #   - Kalman filter and constancy test
-│   │   └── math.js          #   - Beasley-Springer-Malkin normal quantile
-│   ├── data/                # Data loading, preprocessing, noise correction
-│   │   ├── loaders.js       #   - CSV / JSON loaders and validators
-│   │   ├── preprocess.js    #   - RV, Parkinson, log-vol, windows
-│   │   ├── synthetic.js     #   - VIX-style / SPX-RV-style generators
-│   │   └── noise.js         #   - Preaveraging, realized kernel, de-bias
-│   ├── models/              # Rough-volatility model zoo
-│   │   ├── rbergomi.js      #   - Bayer-Friz-Gatheral rBergomi
-│   │   ├── rfsv.js          #   - Rough Fractional Stochastic Volatility
-│   │   ├── fou.js           #   - Fractional Ornstein-Uhlenbeck
-│   │   ├── mpre.js          #   - Multifractional Process with Random Exponent
-│   │   ├── forecasting.js   #   - ARFIMA, Holt-Winters, LSTM, attention
-│   │   └── index.js         #   - Model registry
-│   ├── random.js            # Hosking fGn/fBm + Box-Muller + RL kernel
-│   ├── prng.js              # Seeded mulberry32 PRNG
-│   ├── logger.js            # Leveled logger (debug / info / warn / error)
-│   └── fbm.js               # Back-compat shim around random.js
-├── demo/                    # Interactive web demo (Vite + Chart.js)
-├── tests/                   # Test suite (Mocha + Chai, 190 tests)
-├── docs/                    # Generated JSDoc HTML and API.md
-├── .github/                 # CI/CD workflows and templates
-├── scripts/                 # Setup and cleanup helpers
-└── lib/optimization/index.js# Optimizer registry + safe wrappers
-</code></pre>
-<hr>
-<h2>Development</h2>
-<pre class="prettyprint source lang-bash"><code># Install with dev dependencies
-npm install
-
-# Lint
-npm run lint
-npm run lint:fix
-
-# Testing
-npm test
-npm run test:watch
-npm run test:coverage
-
-# Building
-npm run build
-npm run docs
-npm run build:full
-
-# Utilities
-npm run setup
-npm run cleanup
-</code></pre>
-<h3>Running the demo</h3>
-<pre class="prettyprint source lang-bash"><code>npm run dev
-</code></pre>
-<p>Then navigate to <code>http://localhost:5173</code>.</p>
-<h3>Code style</h3>
-<ul>
-<li><strong>Style</strong>: Google JS Style (enforced via ESLint) + Prettier auto-format.</li>
-<li><strong>Line length</strong>: capped by Prettier's default.</li>
-<li><strong>Quotes</strong>: single quotes (Google-style, auto-formatted).</li>
-<li><strong>Documentation</strong>: every public module, class, and function has a JSDoc block that explains <em>why</em> not just <em>what</em>; algorithm/math references included where relevant.</li>
-<li><strong>No semi-private naming</strong> (<code>_foo</code> allowed only for genuinely internal helpers).</li>
-</ul>
-<h3>Commit conventions</h3>
-<p>We use <a href="https://www.conventionalcommits.org/">Conventional Commits</a>:</p>
-<pre class="prettyprint source"><code>feat: add two-scale bootstrap CI module
-fix: handle empty window in rollingMultiScale
-docs: comprehensive JSDoc pass across lib/
-refactor: extract percentile helpers into inference/math.js
-test: add parity tests for cached vs streamed memory
-chore: update jsdoc config
-</code></pre>
-<hr>
-<h2>Methodology</h2>
-<p>Given a stationary window <code>X_0, ..., X_{W-1}</code> of a log-volatility series
-the RK-SAVR estimator proceeds as follows:</p>
-<ol>
-<li><strong>Segmentation</strong> — Slice the series into overlapping windows.</li>
-<li><strong>Increments</strong> — Compute <code>Z_{t,a} = X_{t+a} - X_t</code> at scales <code>a_1</code>
-and <code>a_2</code> (or a multi-scale array).</li>
-<li><strong>Block permutation</strong> — Randomly permute blocks of increments to
-remove temporal correlation while preserving marginal distributions.</li>
-<li><strong>Subsampling</strong> — Draw <code>T</code> increments per scale with Floyd's
-reservoir sampler.</li>
-<li><strong>Rescaling</strong> — Rescale by <code>a^{-H}</code> and treat the rescaled samples
-as identically distributed under the null of self-similarity.</li>
-<li><strong>KS minimization</strong> — Find <code>H in (0, 1)</code> that minimizes the
-two-sample Kolmogorov-Smirnov distance between rescaled samples.</li>
-<li><strong>Variance reduction</strong> — Average over <code>K</code> independent iterations.</li>
-</ol>
-<p>The asymptotic variance of <code>H_hat</code> (Proposition 2.9) is</p>
-<pre class="prettyprint source"><code>Var(H_hat) = (2 * pi * e) / (ln(a2 / a1))^2 * (1/sqrt(n) + 1/sqrt(m))^2
-</code></pre>
-<p>so doubling the sample sizes halves the SE and widening the scale
-ratio shrinks it quadratically.</p>
-<p>See <a href="docs/architecture.md">docs/architecture.md</a> and the generated
-<a href="API.md">API.md</a> for full design rationale, algorithm pseudocode, and
-extension points.</p>
-<hr>
-<h2>Tech stack</h2>
+<h2>API Reference</h2>
 <table>
 <thead>
 <tr>
-<th>Category</th>
-<th>Technology</th>
+<th>Symbol</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>RKSAVR</code></td>
+<td>Main estimator (two-scale and multi-scale)</td>
+</tr>
+<tr>
+<td><code>RKSAVR#estimate(data)</code></td>
+<td>Single-shot <code>H</code> estimate</td>
+</tr>
+<tr>
+<td><code>RKSAVR#estimateSingleWithDiagnostics(data)</code></td>
+<td>Returns <code>H</code>, <code>D</code>, significance, SE, CI</td>
+</tr>
+<tr>
+<td><code>RKSAVR#rolling(data, w, step, onProgress)</code></td>
+<td>Sliding-window <code>H</code> trajectory</td>
+</tr>
+<tr>
+<td><code>RKSAVR#rollingMultiScale(...)</code></td>
+<td>Multi-scale rolling estimates</td>
+</tr>
+<tr>
+<td><code>asymptoticVariance(a1, a2, n, m)</code></td>
+<td>Prop 2.9 variance</td>
+</tr>
+<tr>
+<td><code>confidenceInterval(h, a1, a2, n, m, alpha)</code></td>
+<td>CI for <code>H</code></td>
+</tr>
+<tr>
+<td><code>kalmanFilter(series, opts)</code></td>
+<td>Kalman-smoothed <code>H</code> series</td>
+</tr>
+<tr>
+<td><code>cusumTest(series, opts)</code></td>
+<td>CUSUM structural-break test</td>
+</tr>
+<tr>
+<td><code>constancyTest(series)</code></td>
+<td>Constancy-of-H test</td>
+</tr>
+<tr>
+<td><code>bootstrapCI(estimator, data, B, alpha)</code></td>
+<td>Bootstrap CI</td>
+</tr>
+<tr>
+<td><code>rBergomi / rFSV / fOU / mPRE</code></td>
+<td>Rough-vol path simulators</td>
+</tr>
+<tr>
+<td><code>arfima / holtWintersForecast / createLSTM</code></td>
+<td>H-forecasting</td>
+</tr>
+<tr>
+<td><code>preavgReturns / realizedKernel / logVolDebias</code></td>
+<td>Microstructure-noise correction</td>
+</tr>
+</tbody>
+</table>
+<h2>Methodology</h2>
+<p>Given a stationary window <code>X_0, …, X_{W-1}</code> of a log-volatility series:</p>
+<ol>
+<li><strong>Segmentation</strong> — Slice into overlapping windows.</li>
+<li><strong>Increments</strong> — Compute <code>Z_{t,a} = X_{t+a} − X_t</code> at scales <code>a₁</code> and <code>a₂</code> (or a multi-scale array).</li>
+<li><strong>Block permutation</strong> — Randomly permute blocks to remove temporal correlation, preserving marginals.</li>
+<li><strong>Subsampling</strong> — Draw <code>T</code> increments per scale via Floyd's reservoir sampler.</li>
+<li><strong>Rescaling</strong> — Rescale by <code>a^(−H)</code>; under the null of self-similarity the rescaled samples are i.i.d.</li>
+<li><strong>KS minimization</strong> — Find <code>H ∈ (0, 1)</code> minimizing the two-sample KS distance between rescaled samples.</li>
+<li><strong>Variance reduction</strong> — Average across <code>K</code> iterations.</li>
+</ol>
+<p>The asymptotic variance of <code>Ĥ</code> (Proposition 2.9 in the paper):</p>
+<pre class="prettyprint source"><code>Var(Ĥ) = (2 π e) / (ln(a₂ / a₁))² × (1/√n + 1/√m)²
+</code></pre>
+<p>Doubling the sample sizes halves the SE; widening the scale ratio shrinks it quadratically.</p>
+<h2>Project Structure</h2>
+<pre class="prettyprint source"><code>hurstify/
+├── lib/                       # Core library (zero runtime deps)
+│   ├── index.js               # Public API entry
+│   ├── rksavr.js              # Main estimator class
+│   ├── stats.js               # KS distance, block permutation, sampling
+│   ├── optimization/          # Brent, Nelder-Mead, SA, DE, AGS
+│   ├── inference/             # Asymptotic variance, Kalman, CUSUM
+│   ├── data/                  # Loaders, preprocessing, noise correction
+│   ├── models/                # rBergomi, rFSV, fOU, mPRE
+│   ├── random.js              # Hosking fGn/fBm
+│   ├── prng.js                # Seedable mulberry32 PRNG
+│   └── logger.js              # Leveled logger
+├── demo/                      # Next.js 16 + shadcn/ui observatory
+├── tests/                     # Mocha + Chai test suites
+│   ├── unit/                  #   unit tests
+│   ├── integration/           #   end-to-end tests
+│   └── fixtures/              #   shared test data
+├── .github/                   # CI, issue templates, CODEOWNERS
+└── docs/                      # Generated JSDoc
+</code></pre>
+<h2>Development</h2>
+<pre class="prettyprint source lang-bash"><code>git clone https://github.com/sachncs/hurstify.git
+cd hurstify
+npm install
+npm run lint          # ESLint + Prettier
+npm run test          # 190 tests
+npm run build         # Rollup → dist/
+npm run docs          # JSDoc → docs/ + API.md
+npm run dev:demo      # Next.js observatory
+</code></pre>
+<h2>Tech Stack</h2>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Choice</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>Language</td>
-<td>JavaScript (ES2022+)</td>
+<td>JavaScript (ES2022+) + TypeScript declarations</td>
 </tr>
 <tr>
-<td>Module system</td>
-<td>ES Modules with CommonJS support</td>
+<td>Bundler</td>
+<td>Rollup with Babel 8</td>
 </tr>
 <tr>
-<td>Build tool</td>
-<td>Rollup with Babel</td>
-</tr>
-<tr>
-<td>Test framework</td>
-<td>Mocha + Chai</td>
-</tr>
-<tr>
-<td>Coverage</td>
-<td>c8</td>
+<td>Test</td>
+<td>Mocha + Chai + c8</td>
 </tr>
 <tr>
 <td>Lint</td>
-<td>ESLint (Google style) + Prettier</td>
+<td>ESLint 10 (Google config) + Prettier 3</td>
 </tr>
 <tr>
-<td>Documentation</td>
+<td>Docs</td>
 <td>JSDoc + jsdoc-to-markdown</td>
 </tr>
 <tr>
-<td>CI/CD</td>
-<td>GitHub Actions</td>
-</tr>
-<tr>
 <td>Demo</td>
-<td>Vite + Chart.js + Plotly.js</td>
+<td>Next.js 16 + React 19 + Tailwind 4 + shadcn/ui (new-york)</td>
 </tr>
 </tbody>
 </table>
-<hr>
 <h2>Roadmap</h2>
 <ul>
-<li><strong>v1.0.0</strong> — Current release: core RK-SAVR estimator, multi-scale analysis, statistical inference, model zoo, and forecasting primitives.</li>
-<li><strong>v1.1.0</strong> — TypeScript declarations for API consumers; CLI for batch CSV processing; streaming estimator for online <code>H</code>.</li>
-<li><strong>v1.2.0</strong> — WebSocket demo for real-time visualization; integration with VIX and SPX-RV reference datasets; process-noise estimation for the Kalman filter.</li>
-<li><strong>v2.0.0</strong> — Heteroskedasticity-robust standard errors; adaptive scale selection based on window size.</li>
+<li><strong>v1.0</strong> — Current: core RK-SAVR estimator, multi-scale analysis, statistical inference, model zoo, forecasting.</li>
+<li><strong>v2.0</strong> — Rebrand to <code>hurstify</code>, per-module TypeScript declarations, Next.js 16 + shadcn observatory.</li>
+<li><strong>v2.1</strong> — React Hook Form for advanced parameter sweeps, persistent demo state, dark/light theme toggle.</li>
+<li><strong>v3.0</strong> — Real-time WebSocket demo with streaming estimator; integration with VIX/SPX-RV reference datasets.</li>
 </ul>
-<hr>
-<h2>Contributing</h2>
-<p>Contributions are welcome! See <a href="CONTRIBUTING.md">CONTRIBUTING.md</a> for
-the development setup, branch naming, commit conventions, and the
-pull-request process.</p>
-<h2>Code of Conduct</h2>
-<p>This project adheres to the <a href="CODE_OF_CONDUCT.md">Contributor Covenant</a>.
-By participating you are expected to uphold its terms.</p>
-<h2>Security</h2>
-<p>Report vulnerabilities to the maintainers via GitHub Security Advisories
-— see <a href="SECURITY.md">SECURITY.md</a>. Please do <strong>not</strong> disclose
-security issues through public GitHub issues.</p>
 <h2>License</h2>
-<p><a href="LICENSE">MIT</a>.</p>
-<h2>Disclaimer</h2>
-<p>This is an <strong>independent implementation</strong> of the RK-SAVR algorithm
-described in <em>Randomized Kolmogorov-Smirnov Analysis of Volatility
-Roughness</em> (arXiv:2509.20015v3) by Angelini &amp; Bianchi. The author is
-not affiliated with the paper's authors. This implementation is
-provided <strong>as-is</strong> for research and educational purposes. Please cite
-the original paper when using this library in academic work.</p>
+<p><a href="LICENSE">MIT</a> © 2025–2026 Sachin.</p>
+<p>This is an <strong>independent implementation</strong> of the RK-SAVR algorithm described in <em>Randomized Kolmogorov-Smirnov Analysis of Volatility Roughness</em> (arXiv:2509.20015v3) by Angelini &amp; Bianchi. The author is not affiliated with the paper's authors. Provided as-is for research and educational use. Please cite the original paper when using this library in academic work.</p>
 <h2>References</h2>
 <ul>
-<li>Bianchi, M. (2004). <em>A new distribution-based estimator of the self-similarity parameter</em>.</li>
 <li>Angelini &amp; Bianchi (2025). <em>Randomized Kolmogorov-Smirnov Analysis of Volatility Roughness</em>. <a href="https://arxiv.org/abs/2509.20015v3">arXiv:2509.20015v3</a>.</li>
+<li>Bianchi (2004). <em>A new distribution-based estimator of the self-similarity parameter</em>.</li>
 <li>Bayer, Friz, Gatheral (2016). <em>Roughing it up: Connecting rough volatility with option pricing</em>.</li>
 <li>Gatheral, Jaisson, Rosenbaum (2018). <em>Volatility is Rough</em>.</li>
-<li>Hosking, J. R. M. (1984). <em>Modeling persistence in hydrological time series using fractional differencing</em>. Water Resources Research.</li>
-<li>Mandelbrot, B., &amp; Van Ness, J. W. (1968). <em>Fractional Brownian motions, fractional noises and applications</em>. SIAM Review.</li>
-<li>Brent, R. P. (1971). <em>Algorithms for Minimization without Derivatives</em>.</li>
+<li>Hosking (1984). <em>Modeling persistence in hydrological time series using fractional differencing</em>.</li>
+<li>Mandelbrot &amp; Van Ness (1968). <em>Fractional Brownian motions, fractional noises and applications</em>.</li>
+<li>Brent (1971). <em>Algorithms for Minimization without Derivatives</em>.</li>
 </ul></article>
     </section>
 
@@ -3802,7 +3657,7 @@ fully deterministic.</div>
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Sun Jul 12 2026 16:21:25 GMT+0530 (India Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Wed Aug 26 2026 14:38:49 GMT+0530 (India Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>
