@@ -17,6 +17,10 @@ out/
 tmp/
 temp/
 
+# Next.js
+demo/.next/
+*.tsbuildinfo
+
 # Package artifacts
 *.tgz
 
