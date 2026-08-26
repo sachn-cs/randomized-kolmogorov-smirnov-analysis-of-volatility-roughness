@@ -11,10 +11,10 @@
       "require": "./dist/index.cjs"
     }
   },
-  "homepage": "https://github.com/sachn-cs/randomized-kolmogorov-smirnov-analysis-of-volatility-roughness#readme",
+  "homepage": "https://github.com/sachncs/randomized-kolmogorov-smirnov-analysis-of-volatility-roughness#readme",
   "funding": {
     "type": "github",
-    "url": "https://github.com/sponsors/sachn-cs"
+    "url": "https://github.com/sponsors/sachncs"
   },
   "scripts": {
     "dev": "vite demo",
@@ -50,7 +50,7 @@
   "targets": "> 0.25%, not dead",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/sachn-cs/randomized-kolmogorov-smirnov-analysis-of-volatility-roughness.git"
+    "url": "git+ssh://git@github.com/sachncs/randomized-kolmogorov-smirnov-analysis-of-volatility-roughness.git"
   },
   "keywords": [
     "kolmogorov-smirnov",
@@ -60,10 +60,10 @@
     "volatility",
     "statistics"
   ],
-  "author": "Sachin",
+  "author": "Sachin <sachncs@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/sachn-cs/randomized-kolmogorov-smirnov-analysis-of-volatility-roughness/issues"
+    "url": "https://github.com/sachncs/randomized-kolmogorov-smirnov-analysis-of-volatility-roughness/issues"
   },
   "engines": {
     "node": ">= 18.x"
@@ -80,7 +80,7 @@
     "CHANGELOG.md"
   ],
   "devDependencies": {
-    "@babel/cli": "^7.29.7",
+    "@babel/cli": "^8.0.4",
     "@babel/core": "^7.23.2",
     "@babel/preset-env": "^8.0.2",
     "@babel/register": "^7.22.15",
@@ -91,16 +91,16 @@
     "chai": "^6.2.2",
     "chart.js": "^4.5.1",
     "cross-env": "10.1.0",
-    "eslint": "^10.4.0",
+    "eslint": "^10.9.0",
     "eslint-config-google": "^0.14.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.6",
     "jsdoc": "^4.0.5",
     "jsdoc-to-markdown": "^9.1.3",
-    "mocha": "^11.7.6",
+    "mocha": "^11.8.0",
     "plotly.js-dist-min": "^3.7.0",
-    "prettier": "^3.9.5",
-    "rollup": "^4.61.0",
-    "vite": "^8.0.14"
+    "prettier": "^3.9.6",
+    "rollup": "^4.62.4",
+    "vite": "^8.2.2"
   }
 }
