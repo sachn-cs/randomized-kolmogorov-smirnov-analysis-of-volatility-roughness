@@ -36,7 +36,7 @@ export interface SingleEstimate {
     significant: boolean;
   };
   se?: number;
-  ci?: { lower: number; upper: number };
+  ci?: {lower: number; upper: number};
 }
 
 export interface ProfileResult {
@@ -51,7 +51,7 @@ export declare class Hurstify {
   estimate(data: number[]): number;
   estimateSingle(data: number[]): number;
   estimateSingleWithDiagnostics(data: number[]): SingleEstimate;
-  profile(data: number[], opts?: { scales?: number[] }): ProfileResult;
+  profile(data: number[], opts?: {scales?: number[]}): ProfileResult;
   rolling(
     data: number[],
     windowSize: number,

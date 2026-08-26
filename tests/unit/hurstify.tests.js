@@ -52,7 +52,11 @@ describe('Hurstify', function () {
 
     const optimizers = ['brent', 'nelder-mead', 'annealing', 'ags'];
     for (const type of optimizers) {
-      const estimator = new Hurstify({scaleA1: 1, scaleA2: 50, optimizerType: type});
+      const estimator = new Hurstify({
+        scaleA1: 1,
+        scaleA2: 50,
+        optimizerType: type,
+      });
       const estimate = estimator.estimate(window);
       expect(estimate).to.be.within(
         0,
@@ -128,7 +132,11 @@ describe('Hurstify', function () {
   it('should support block random permutation', function () {
     setSeed(5);
     const fbm = generateFBM(1024, 0.1);
-    const estimator = new Hurstify({blockSize: 16, sampleSize: 200, iterations: 4});
+    const estimator = new Hurstify({
+      blockSize: 16,
+      sampleSize: 200,
+      iterations: 4,
+    });
     const estimate = estimator.estimate(fbm.slice(0, 256));
 
     expect(estimate).to.be.within(0, 1);
@@ -146,7 +154,9 @@ describe('Hurstify', function () {
 
   it('should reject invalid step in rolling', function () {
     const estimator = new Hurstify();
-    expect(() => estimator.rolling([1, 2, 3], 1, 0)).to.throw('step must be > 0');
+    expect(() => estimator.rolling([1, 2, 3], 1, 0)).to.throw(
+      'step must be > 0',
+    );
   });
 
   it('should return diagnostics from estimateSingleWithDiagnostics', function () {
@@ -203,9 +213,9 @@ describe('Hurstify', function () {
 
   it('should reject invalid step in rollingMultiScale', function () {
     const estimator = new Hurstify();
-    expect(() => estimator.rollingMultiScale([1, 2, 3], 1, [1], null, 0)).to.throw(
-      'step must be > 0',
-    );
+    expect(() =>
+      estimator.rollingMultiScale([1, 2, 3], 1, [1], null, 0),
+    ).to.throw('step must be > 0');
   });
 
   it('should estimate batch', function () {

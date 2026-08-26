@@ -136,7 +136,13 @@ export function generateFigure3() {
     iterations: 8,
   });
 
-  const {H, profile} = estimator.rollingMultiScale(path, n, scales, weights, n)[0];
+  const {H, profile} = estimator.rollingMultiScale(
+    path,
+    n,
+    scales,
+    weights,
+    n,
+  )[0];
 
   const data = {
     figure: 3,
