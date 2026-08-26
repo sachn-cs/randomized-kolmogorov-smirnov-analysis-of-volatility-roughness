@@ -82,8 +82,8 @@
   "devDependencies": {
     "@babel/cli": "^8.0.4",
     "@babel/core": "^7.23.2",
-    "@babel/preset-env": "^8.0.2",
-    "@babel/register": "^7.22.15",
+    "@babel/preset-env": "^7.29.7",
+    "@babel/register": "^8.0.1",
     "@eslint/eslintrc": "^3.3.6",
     "@rollup/plugin-babel": "^7.1.0",
     "@rollup/plugin-commonjs": "^29.0.3",
