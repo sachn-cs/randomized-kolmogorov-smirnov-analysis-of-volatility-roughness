@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - hurstify rebrand
+
+### Changed
+- **Brand**: Package renamed from `rksavr` to **`hurstify`**. GitHub repo renamed.
+- **Demo**: Vite + Plotly.js SPA ported to **Next.js 16** with **shadcn/ui** (new-york preset), **Tailwind v4**, and **Recharts**. The interactive observatory now lives at `demo/` and runs from `npm run dev:demo` / `npm run build:demo`.
+- **Toolchain**: Babel bumped to **v8**, ESLint to **10.9.1**, Rollup to **4.63.0**. Node engines floor raised to **>=24** (CI matrix now `[24, 26]`).
+- **Removed**: `vite`, `chart.js`, `plotly.js-dist-min` (legacy demo stack).
+- **Type declarations**: Hand-written `lib/*.d.ts` per module for typed imports from the Next.js demo.
+- **Tests**: Reorganized into `tests/unit/`, `tests/integration/`, `tests/fixtures/`.
+
+### Added
+- **Code-quality gates**: Husky pre-commit, lint-staged on changed files, commitlint enforcing Conventional Commits.
+- **CODEOWNERS** for `lib/` and `demo/` directories.
+- **Open Graph metadata** in the observatory layout for sharing on socials.
+
+### Preserved
+- Public API surface is unchanged: all 190 tests pass under the new name.
+- Rollup builds ESM + CJS + IIFE bundles under the new banner.
+- Algorithm behavior is bit-identical to v1.x — rebrand was cosmetic + ergonomics.
+
 ### Added
 
 #### Production Package Infrastructure
