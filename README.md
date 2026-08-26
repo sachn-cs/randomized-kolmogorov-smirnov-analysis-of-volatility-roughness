@@ -33,7 +33,7 @@
 ### From npm
 
 ```bash
-npm install rksavr
+npm install hurstify
 ```
 
 ### From source
@@ -65,7 +65,7 @@ There is no shipped CLI binary — consume the library directly from a script or
 ### Node.js API
 
 ```javascript
-import { RKSAVR } from 'rksavr';
+import { RKSAVR } from 'hurstify';
 
 const rksavr = new RKSAVR({
   scaleA1: 1,      // Lower scale
@@ -169,7 +169,7 @@ import {
   cusumTest,
   constancyTest,
   bootstrapCI,
-} from 'rksavr';
+} from 'hurstify';
 
 const varH = asymptoticVariance(1, 50, 500, 500);
 const ci = confidenceInterval(0.12, 1, 50, 500, 500, 0.05);
@@ -180,7 +180,7 @@ const bootstrap = bootstrapCI((w) => rksavr.estimate(w), data, 1000, 0.05);
 Rough-volatility model zoo (paths and times):
 
 ```javascript
-import { rBergomi, rFSV, fOU, mPRE } from 'rksavr';
+import { rBergomi, rFSV, fOU, mPRE } from 'hurstify';
 
 const { paths, times } = rBergomi({ nPaths: 100, nSteps: 252, h: 0.1, eta: 2.0, rho: -0.8 });
 const { volPath }     = rFSV({ nSteps: 252, h: 0.1, theta: 2.0, mu: 0.04, nu: 0.5 });
@@ -191,8 +191,8 @@ const { path, hPath } = mPRE({ nSteps: 252, hMin: 0.05, hMax: 0.95, h0: 0.1 });
 H-forecasting and noise correction:
 
 ```javascript
-import { arfima, holtWintersForecast, createLSTM } from 'rksavr';
-import { preavgReturns, realizedKernel, logVolDebias } from 'rksavr';
+import { arfima, holtWintersForecast, createLSTM } from 'hurstify';
+import { preavgReturns, realizedKernel, logVolDebias } from 'hurstify';
 
 const forecastFn = arfima({ p: 1, d: 0.3, q: 1, window: 50 });
 const predictedH = forecastFn(hHistory);
