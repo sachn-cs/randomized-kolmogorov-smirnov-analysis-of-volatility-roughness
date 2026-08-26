@@ -14,6 +14,7 @@
 
 ## Features
 
+- **Observatory** — Interactive Next.js 16 + shadcn/ui app (`npm run dev:demo`) for live H estimation, parameter grid search, and replicated paper figures.
 - **Distributional scaling** — Compare entire rescaled distributions of increments across scales.
 - **Block random permutation** — Decorrelate serial dependence while preserving marginal distributions.
 - **Variance reduction** — Repeated subsampling and averaging across `K` independent iterations.
