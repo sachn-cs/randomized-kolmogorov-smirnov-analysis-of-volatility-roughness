@@ -18,7 +18,7 @@ When reporting a vulnerability, please include:
 
 - A description of the vulnerability and its potential impact
 - Steps to reproduce the issue
-- The version(s) of RK-SAVR affected
+- The version(s) of hurstify affected
 - Any potential mitigations you have identified
 
 ### Response Expectations
@@ -36,7 +36,7 @@ When reporting a vulnerability, please include:
 
 ## Security Best Practices
 
-- Always use the latest version of RK-SAVR.
+- Always use the latest version of hurstify.
 - Review the [CHANGELOG.md](CHANGELOG.md) for security-related updates.
 - When using RK-SAVR in production, ensure your environment is properly secured.
 - Do not expose internal endpoints or debugging interfaces in production.

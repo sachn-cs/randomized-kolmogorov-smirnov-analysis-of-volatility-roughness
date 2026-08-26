@@ -8,7 +8,7 @@ assignees: ''
 
 ## Problem Statement
 
-Describe the problem or limitation you're experiencing. Is this related to the RK-SAVR methodology, performance, or usability?
+Describe the problem or limitation you're experiencing. Is this related to the hurstify methodology, performance, or usability?
 
 ## Proposed Solution
 
@@ -20,7 +20,7 @@ A clear and concise description of any alternative solutions or features you've 
 
 ## Paper Reference
 
-If this feature relates to the RK-SAVR paper (arXiv:2509.20015v3), please reference the relevant section or proposition:
+If this feature relates to hurstify (arXiv:2509.20015v3), please reference the relevant section or proposition:
 
 - [ ] Section 1: Algorithm
 - [ ] Section 2: Statistical Properties
@@ -37,7 +37,7 @@ If you have ideas about how this could be implemented, share them here:
 
 ```javascript
 // Example API design
-import { newFeature } from 'rksavr';
+import { newFeature } from 'hurstify';
 
 const result = newFeature(data, options);
 ```

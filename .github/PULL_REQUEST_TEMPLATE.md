@@ -28,7 +28,7 @@
 
 ## Paper Fidelity
 
-<!-- If this change affects algorithm behavior, describe its relationship to the RK-SAVR paper (arXiv:2509.20015v3) — hurstify is an independent implementation. -->
+<!-- If this change affects algorithm behavior, describe its relationship to hurstify (arXiv:2509.20015v3) — hurstify is an independent implementation. -->
 
 - [ ] Not applicable
 - [ ] Improves fidelity to the paper

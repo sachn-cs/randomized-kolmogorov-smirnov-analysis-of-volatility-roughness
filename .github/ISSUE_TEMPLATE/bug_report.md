@@ -14,7 +14,7 @@ A clear and concise description of the bug.
 
 Steps to reproduce the behavior:
 
-1. Initialize RKSAVR with '...'
+1. Initialize Hurstify with '...'
 2. Call method '...'
 3. Pass data '...'
 4. See error
@@ -32,7 +32,7 @@ What actually happened, including error messages or stack traces.
 If applicable, provide a minimal code sample that reproduces the issue:
 
 ```javascript
-import { RKSAVR } from 'rksavr';
+import { Hurstify } from 'hurstify';
 
 // Your code here
 ```
@@ -41,7 +41,7 @@ import { RKSAVR } from 'rksavr';
 
 - **OS**: [e.g., macOS 14.0, Ubuntu 22.04]
 - **Node.js version**: [e.g., 18.17.0, 20.10.0]
-- **RK-SAVR version**: [e.g., 1.0.0]
+- **hurstify version**: [e.g., 1.0.0]
 - **Package manager**: [e.g., npm 9.8.0, yarn 1.22.0]
 
 ## Data Context
@@ -63,6 +63,6 @@ Add any other context about the problem here. Include references to the paper (a
 ## Checklist
 
 - [ ] I have searched existing issues to avoid duplicates
-- [ ] I have tested with the latest version of RK-SAVR
+- [ ] I have tested with the latest version of hurstify
 - [ ] I have included a minimal reproduction case
 - [ ] I have provided environment details
