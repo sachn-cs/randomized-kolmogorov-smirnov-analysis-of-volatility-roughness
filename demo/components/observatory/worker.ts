@@ -26,25 +26,28 @@ function generatePath(opts: {
   let path: number[];
   switch (opts.model) {
     case 'rBergomi':
-      path = rBergomiPrice({nPaths: 1, nSteps: opts.nSteps, h: opts.h})
-        .prices[0];
+      path = Array.from(
+        rBergomiPrice({nPaths: 1, nSteps: opts.nSteps, h: opts.h}).prices[0],
+      );
       break;
     case 'rFSV':
-      path = rFSVPrice({nSteps: opts.nSteps, h: opts.h}).prices;
+      path = Array.from(rFSVPrice({nSteps: opts.nSteps, h: opts.h}).prices);
       break;
     case 'fOU':
-      path = fOU({nSteps: opts.nSteps, h: opts.h}).path;
+      path = Array.from(fOU({nSteps: opts.nSteps, h: opts.h}).path);
       break;
     case 'mPRE':
-      path = mPRE({
-        nSteps: opts.nSteps,
-        hMin: 0.05,
-        hMax: 0.95,
-        h0: opts.h,
-      }).path;
+      path = Array.from(
+        mPRE({
+          nSteps: opts.nSteps,
+          hMin: 0.05,
+          hMax: 0.95,
+          h0: opts.h,
+        }).path,
+      );
       break;
     default:
-      path = generateFBM(opts.nSteps, opts.h);
+      path = Array.from(generateFBM(opts.nSteps, opts.h));
   }
   resetSeed();
   return path;
@@ -129,7 +132,8 @@ self.onmessage = (e: MessageEvent<WorkerRequest & {id: number}>) => {
                 });
                 const cfg = {
                   ...configBase,
-                  optimizerType: opt,
+                  optimizerType: opt as
+                    'brent' | 'nelder-mead' | 'annealing' | 'de' | 'ags',
                   sampleSize: Math.min(500, w),
                 };
                 const rksavr = new RKSAVR(cfg);
