@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Button } from '@/components/ui/button';
+import {Button} from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -9,8 +9,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import {Input} from '@/components/ui/input';
+import {Label} from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -18,34 +18,34 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { AppShell } from '@/components/observatory/app-shell';
-import { MetricCard } from '@/components/observatory/metric-card';
-import { DiagnosticsTable } from '@/components/observatory/diagnostics-table';
-import { PathChart } from '@/components/observatory/charts/path-chart';
-import { HTrajChart } from '@/components/observatory/charts/h-traj-chart';
-import { fmt } from '@/lib/format';
-import { useWorker } from '@/components/observatory/worker-client';
-import type { WorkerRequest } from '@/lib/worker-protocol';
+import {Slider} from '@/components/ui/slider';
+import {Badge} from '@/components/ui/badge';
+import {Progress} from '@/components/ui/progress';
+import {AppShell} from '@/components/observatory/app-shell';
+import {MetricCard} from '@/components/observatory/metric-card';
+import {DiagnosticsTable} from '@/components/observatory/diagnostics-table';
+import {PathChart} from '@/components/observatory/charts/path-chart';
+import {HTrajChart} from '@/components/observatory/charts/h-traj-chart';
+import {fmt} from '@/lib/format';
+import {useWorker} from '@/components/observatory/worker-client';
+import type {WorkerRequest} from '@/lib/worker-protocol';
 
 type Diagnostics = Parameters<typeof DiagnosticsTable>[0]['diag'];
 
 const MODELS = [
-  { value: 'fBM', label: 'Fractional Brownian Motion' },
-  { value: 'rBergomi', label: 'Rough Bergomi' },
-  { value: 'rFSV', label: 'Rough FSV' },
-  { value: 'fOU', label: 'Fractional OU' },
-  { value: 'mPRE', label: 'MPRE' },
+  {value: 'fBM', label: 'Fractional Brownian Motion'},
+  {value: 'rBergomi', label: 'Rough Bergomi'},
+  {value: 'rFSV', label: 'Rough FSV'},
+  {value: 'fOU', label: 'Fractional OU'},
+  {value: 'mPRE', label: 'MPRE'},
 ];
 
 const OPTIMIZERS = [
-  { value: 'brent', label: 'Brent' },
-  { value: 'nelder-mead', label: 'Nelder-Mead' },
-  { value: 'annealing', label: 'Simulated Annealing' },
-  { value: 'de', label: 'Differential Evolution' },
-  { value: 'ags', label: 'Adaptive Grid Search' },
+  {value: 'brent', label: 'Brent'},
+  {value: 'nelder-mead', label: 'Nelder-Mead'},
+  {value: 'annealing', label: 'Simulated Annealing'},
+  {value: 'de', label: 'Differential Evolution'},
+  {value: 'ags', label: 'Adaptive Grid Search'},
 ];
 
 export default function DashboardPage() {
@@ -64,7 +64,8 @@ export default function DashboardPage() {
 
 export const metadata = {
   title: 'Dashboard',
-  description: 'Real-time Hurst parameter estimation with animated trajectory and diagnostic readouts.',
+  description:
+    'Real-time Hurst parameter estimation with animated trajectory and diagnostic readouts.',
 };
 
 function PageHeader({
@@ -85,36 +86,41 @@ function PageHeader({
 function DashboardView() {
   const worker = useWorker();
 
-  const [model, setModel] = React.useState<WorkerRequest['payload']['model']>('fBM');
+  const [model, setModel] = React.useState<
+    'fBM' | 'rBergomi' | 'rFSV' | 'fOU' | 'mPRE'
+  >('fBM');
   const [trueH, setTrueH] = React.useState(0.1);
   const [nSteps, setNSteps] = React.useState(2000);
   const [windowSize, setWindowSize] = React.useState(500);
   const [sampleSize, setSampleSize] = React.useState(500);
   const [iterations, setIterations] = React.useState(16);
-  const [optimizer, setOptimizer] =
-    React.useState<WorkerRequest['payload'] extends infer P ? P extends { optimizerType?: infer O } ? O : never : never>('brent');
+  const [optimizer, setOptimizer] = React.useState<
+    'brent' | 'nelder-mead' | 'annealing' | 'de' | 'ags'
+  >('brent');
   const [path, setPath] = React.useState<number[]>([]);
-  const [rolling, setRolling] = React.useState<Array<{ t: number; H: number }>>([]);
+  const [rolling, setRolling] = React.useState<Array<{t: number; H: number}>>(
+    [],
+  );
   const [diag, setDiag] = React.useState<Diagnostics>(null);
   const [progress, setProgress] = React.useState(0);
-  const [status, setStatus] = React.useState<'idle' | 'generating' | 'estimating' | 'complete' | 'error'>('idle');
+  const [status, setStatus] = React.useState<
+    'idle' | 'generating' | 'estimating' | 'complete' | 'error'
+  >('idle');
   const [errorMsg, setErrorMsg] = React.useState('');
 
   const runGenerate = React.useCallback(async () => {
     setStatus('generating');
     setErrorMsg('');
     try {
-      const res = await worker.dispatch<{ path: number[] }>(
-        {
-          cmd: 'generate',
-          payload: {
-            model,
-            nSteps,
-            h: trueH,
-            seed: Math.floor(Math.random() * 1e9),
-          },
+      const res = await worker.dispatch<{path: number[]}>({
+        cmd: 'generate',
+        payload: {
+          model,
+          nSteps,
+          h: trueH,
+          seed: Math.floor(Math.random() * 1e9),
         },
-      );
+      });
       setPath(res.path);
       setRolling([]);
       setDiag(null);
@@ -139,10 +145,12 @@ function DashboardView() {
         iterations,
         optimizerType: optimizer,
       };
-      const { results } = await worker.dispatch<{ results: Array<{ t: number; H: number }> }>(
+      const {results} = await worker.dispatch<{
+        results: Array<{t: number; H: number}>;
+      }>(
         {
           cmd: 'rolling',
-          payload: { path, windowSize, step, config },
+          payload: {path, windowSize, step, config},
         },
         setProgress,
       );
@@ -154,9 +162,9 @@ function DashboardView() {
         const last = valid[valid.length - 1];
         const slice = path.slice(last.t, last.t + windowSize);
         if (slice.length === windowSize) {
-          const d = await worker.dispatch<Parameters<typeof DiagnosticsTable>[0]['diag']>(
-            { cmd: 'single', payload: { path: slice, config } },
-          );
+          const d = await worker.dispatch<
+            Parameters<typeof DiagnosticsTable>[0]['diag']
+          >({cmd: 'single', payload: {path: slice, config}});
           setDiag(d);
         }
       }
@@ -175,7 +183,7 @@ function DashboardView() {
   const metrics = React.useMemo(() => {
     const valid = rolling.filter((r) => Number.isFinite(r.H));
     if (valid.length === 0)
-      return { avg: null, bias: null, rmse: null, std: null };
+      return {avg: null, bias: null, rmse: null, std: null};
     const avg = valid.reduce((a, b) => a + b.H, 0) / valid.length;
     return {
       avg,
@@ -201,7 +209,10 @@ function DashboardView() {
         <CardContent className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-2">
             <Label>Model</Label>
-            <Select value={model} onValueChange={(v) => setModel(v as typeof model)}>
+            <Select
+              value={model}
+              onValueChange={(v: string) => setModel(v as typeof model)}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -278,7 +289,7 @@ function DashboardView() {
             <Label>Optimizer</Label>
             <Select
               value={optimizer}
-              onValueChange={(v) => setOptimizer(v as typeof optimizer)}
+              onValueChange={(v: string) => setOptimizer(v as typeof optimizer)}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -297,7 +308,11 @@ function DashboardView() {
 
       <div className="flex flex-wrap items-center gap-3">
         <Button onClick={runGenerate}>Generate Path</Button>
-        <Button variant="secondary" onClick={runEstimation} disabled={!path.length}>
+        <Button
+          variant="secondary"
+          onClick={runEstimation}
+          disabled={!path.length}
+        >
           Run Estimation
         </Button>
         <Badge
@@ -339,11 +354,7 @@ function DashboardView() {
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <MetricCard label="Mean Ĥ" value={fmt(metrics.avg)} />
         <MetricCard label="Bias" value={fmt(metrics.bias)} tone="secondary" />
-        <MetricCard
-          label="RMSE"
-          value={fmt(metrics.rmse)}
-          tone="destructive"
-        />
+        <MetricCard label="RMSE" value={fmt(metrics.rmse)} tone="destructive" />
         <MetricCard label="Std Dev" value={fmt(metrics.std)} />
       </div>
 
