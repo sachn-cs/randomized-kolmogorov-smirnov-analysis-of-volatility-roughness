@@ -10,8 +10,8 @@ import {
   simulatedAnnealing,
   differentialEvolution,
   adaptiveGridSearch,
-  getOptimizerFactory,
-  registerOptimizerFactory,
+  getOptimizer,
+  registerOptimizer,
 } from '../../lib/optimization/index.js';
 
 describe('brentMinimize', function () {
@@ -91,21 +91,21 @@ describe('adaptiveGridSearch', function () {
 
 describe('Optimizer Registry', function () {
   it('retrieves built-in optimizers', function () {
-    expect(getOptimizerFactory('brent')).to.be.a('function');
-    expect(getOptimizerFactory('nelder-mead')).to.be.a('function');
-    expect(getOptimizerFactory('annealing')).to.be.a('function');
-    expect(getOptimizerFactory('de')).to.be.a('function');
-    expect(getOptimizerFactory('ags')).to.be.a('function');
+    expect(getOptimizer('brent')).to.be.a('function');
+    expect(getOptimizer('nelder-mead')).to.be.a('function');
+    expect(getOptimizer('annealing')).to.be.a('function');
+    expect(getOptimizer('de')).to.be.a('function');
+    expect(getOptimizer('ags')).to.be.a('function');
   });
 
   it('returns undefined for unknown optimizer', function () {
-    expect(getOptimizerFactory('unknown')).to.equal(undefined);
+    expect(getOptimizer('unknown')).to.equal(undefined);
   });
 
   it('registers custom optimizer', function () {
     const custom = () => () => 42;
-    registerOptimizerFactory('custom', custom);
-    expect(getOptimizerFactory('custom')).to.equal(custom);
+    registerOptimizer('custom', custom);
+    expect(getOptimizer('custom')).to.equal(custom);
   });
 });
 
