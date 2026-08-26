@@ -1,7 +1,7 @@
 ## Classes
 
 <dl>
-<dt><a href="#RKSAVR">RKSAVR</a></dt>
+<dt><a href="#Hurstify">Hurstify</a></dt>
 <dd><p>Randomized Kolmogorov-Smirnov Analysis of Volatility Roughness estimator.</p>
 <p>The class encapsulates a <em>configurable</em> estimator instance: the scales to
 analyze, the sampler used inside each variance-reduction iteration, the
@@ -11,13 +11,13 @@ the final estimate will be clamped to.</p>
 <ol>
 <li>The constructor stores the configuration and pulls a fresh optimizer
 function from <a href="optimization/registry">optimization/registry</a>. The estimator is
-therefore stateful across calls — each call to <a href="#RKSAVR+estimate">estimate</a>
+therefore stateful across calls — each call to <a href="#Hurstify+estimate">estimate</a>
 draws a new independent PRNG state via <code>prng.js</code>.</li>
-<li><a href="#RKSAVR+estimate">estimate</a> averages <code>iterations</code> independent
-<a href="#RKSAVR+estimateSingle">estimateSingle</a> results for variance reduction.</li>
-<li><a href="#RKSAVR+rolling">rolling</a> and <a href="#RKSAVR+rollingMultiScale">rollingMultiScale</a> are
+<li><a href="#Hurstify+estimate">estimate</a> averages <code>iterations</code> independent
+<a href="#Hurstify+estimateSingle">estimateSingle</a> results for variance reduction.</li>
+<li><a href="#Hurstify+rolling">rolling</a> and <a href="#Hurstify+rollingMultiScale">rollingMultiScale</a> are
 convenience wrappers around a sliding window of these estimates.</li>
-<li><a href="#RKSAVR+estimateBatch">estimateBatch</a> performs non-overlapping window
+<li><a href="#Hurstify+estimateBatch">estimateBatch</a> performs non-overlapping window
 estimation for parallel processing pipelines.</li>
 </ol>
 <p>Thread-safety: the estimator does not share mutable state between its
@@ -26,12 +26,15 @@ PRNG exposed by <a href="prng">prng</a>. Callers that need concurrent estimation
 should serialize the calls (e.g. wrap in an async queue) or seed the
 PRNG with a per-call seed.</p>
 <p>Example:</p>
-<pre><code class="language-javascript">import {RKSAVR} from &#39;rksavr&#39;;
+<pre><code class="language-javascript">import {Hurstify} from &#39;hurstify&#39;;
 
-const estimator = new RKSAVR({scaleA1: 1, scaleA2: 50,
+const estimator = new Hurstify({scaleA1: 1, scaleA2: 50,
                               sampleSize: 500, iterations: 16});
 const H = estimator.estimate(logVolSeriesWindow);
 </code></pre>
+</dd>
+<dt><a href="#Optimizer">Optimizer</a></dt>
+<dd><p>Strategy base class. Subclasses implement <code>minimize</code> polymorphically.</p>
 </dd>
 </dl>
 
@@ -48,6 +51,11 @@ internals.</li>
 <li><code>ERROR</code> (3): unhandled failures during processing.</li>
 <li><code>SILENT</code> (4): disables all logging; convenience for tests.</li>
 </ul>
+</dd>
+<dt><a href="#REGISTRY">REGISTRY</a></dt>
+<dd><p>Names → factory functions producing fresh <code>Optimizer</code> instances.
+A new instance per call ensures no shared mutable state between
+estimators.</p>
 </dd>
 </dl>
 
@@ -181,20 +189,20 @@ overnight gaps.</p>
 </dd>
 <dt><a href="#logTransform">logTransform(rv)</a> ⇒ <code>Array.&lt;number&gt;</code></dt>
 <dd><p>Maps realized variance to the log-volatility series consumed by
-RK-SAVR.</p>
+hurstify.</p>
 <p>The transformation is</p>
 <pre><code>X_t = 0.5 * log(RV_t)
 </code></pre>
 <p>i.e. <code>log(sqrt(RV))</code>. This converts multiplicative variance dynamics
 into a roughly additive (and therefore more stationary) signal, on
-top of which the self-similarity property exploited by RK-SAVR is
+top of which the self-similarity property exploited by the RK-SAVR algorithm is
 expressed.</p>
 </dd>
 <dt><a href="#centerSeries">centerSeries(series)</a> ⇒ <code>Array.&lt;number&gt;</code></dt>
 <dd><p>Subtracts the arithmetic mean from every element.</p>
 <p>Useful as a final step in the preprocessing pipeline when the user
 wants the series to mean-zero (which can stabilize variance-reducing
-permutations inside <code>RKSAVR</code>).</p>
+permutations inside <code>Hurstify</code>).</p>
 </dd>
 <dt><a href="#standardizeSeries">standardizeSeries(series)</a> ⇒ <code>Array.&lt;number&gt;</code></dt>
 <dd><p>Standardizes a time series to zero mean and unit variance.</p>
@@ -212,7 +220,7 @@ want the canonical transformation.</p>
 <dd><p>Splits a series into contiguous training and test arrays.</p>
 <p>The split point is <code>floor(series.length * trainRatio)</code> so the training
 set is the leftmost prefix of the series; this preserves temporal
-ordering, which is what RK-SAVR forecasters and validation scripts
+ordering, which is what hurstify forecasters and validation scripts
 typically need.</p>
 </dd>
 <dt><a href="#createWindows">createWindows(series, windowSize, [step])</a> ⇒ <code>Array.&lt;Array.&lt;number&gt;&gt;</code></dt>
@@ -256,6 +264,43 @@ is a <code>nDays</code> x <code>nIntraday</code> array of prices suitable for fe
 prefix; everything else is stringified verbatim. Empty series
 produces a header-only CSV.</p>
 </dd>
+<dt><a href="#defaultSampler">defaultSampler(data, n)</a> ⇒ <code>Array.&lt;*&gt;</code></dt>
+<dd><p>Default sampler used when the caller does not provide one. It is just a
+thin wrapper around <code>randomSample</code> (Floyd&#39;s reservoir sampling) so the
+variance-reduction iterations get IID draws of increments without
+replacement.</p>
+</dd>
+<dt><a href="#vectorizedKsObjective">vectorizedKsObjective(sortedSamples, scales, H)</a> ⇒ <code>number</code></dt>
+<dd><p>Builds a vectorized KS objective function for multi-scale estimation.</p>
+<p>For <code>K &gt; 2</code> scales the mean KS distance across every unordered scale pair
+is what gets minimized over <code>H</code> (this is the statistic the RK-SAVR paper
+argues for). The implementation assumes the samples have already been
+sorted (sorting dominates the inner loop cost in practice and is hoisted
+to the caller).</p>
+</dd>
+<dt><a href="#computeScalePairDistance">computeScalePairDistance(sortedSamples, scales, i, j, H)</a> ⇒ <code>number</code></dt>
+<dd><p>KS distance between a single rescaled pair of samples.</p>
+<p>Rescales <code>sortedSamples[i]</code> by <code>scales[i]^{-H}</code> and <code>sortedSamples[j]</code> by
+<code>scales[j]^{-H}</code> and walks the two empirical CDFs in lock-step via
+<code>ksDistanceRescaled</code>. Multiplication by a positive scalar preserves the
+ordering, so the inputs are <em>not</em> re-sorted here.</p>
+</dd>
+<dt><a href="#buildScaleProfile">buildScaleProfile(sortedSamples, scales, H)</a> ⇒ <code>Array.&lt;number&gt;</code></dt>
+<dd><p>Builds a flat &quot;profile&quot; of all pairwise KS distances at a fixed <code>H</code>.</p>
+<p>Given <code>K</code> sorted samples, the profile has <code>K * (K - 1) / 2</code> entries
+corresponding to every unordered scale pair. It is useful for diagnostics
+(e.g. plotting the KS distance surface) and is exposed via
+<code>rollingMultiScale</code>.</p>
+</dd>
+<dt><a href="#weightedKsObjective">weightedKsObjective(sortedSamples, scales, weights, H)</a> ⇒ <code>number</code></dt>
+<dd><p>Weighted generalization of <a href="#vectorizedKsObjective">vectorizedKsObjective</a>.</p>
+<p>Allows callers to up-weight finer scales (which are noisier but more
+numerous) or down-weight scales that are highly contaminated by
+microstructure effects. The objective computes a weighted arithmetic mean
+where each pair&#39;s KS distance is weighted by <code>weights[i] * weights[j]</code>.
+The result is normalized so the weights do not change the effective
+magnitude of the objective (only the relative emphasis).</p>
+</dd>
 <dt><a href="#ksCriticalValue">ksCriticalValue(n, m, alpha)</a> ⇒ <code>number</code></dt>
 <dd><p>Two-sample Kolmogorov-Smirnov asymptotic critical value.</p>
 <p>Implements the classical asymptotic formula</p>
@@ -276,7 +321,7 @@ numerical-statistics references.</p>
 </dd>
 <dt><a href="#significanceTest">significanceTest(D, n, m, alpha)</a> ⇒ <code>Object</code></dt>
 <dd><p>Significance test for the minimized KS distance returned by the
-RK-SAVR estimator.</p>
+Hurstify estimator.</p>
 <p>Two views are returned:</p>
 <ul>
 <li><code>pValue</code> from <a href="#ksPvalue">ksPvalue</a>, comparable against any <code>alpha</code>.</li>
@@ -332,7 +377,7 @@ the bounds collapse to <code>pointEstimate</code> so the CI is well-defined.</li
 </ul>
 </dd>
 <dt><a href="#asymptoticVariance">asymptoticVariance(scaleA1, scaleA2, n, m)</a> ⇒ <code>number</code></dt>
-<dd><p>Asymptotic variance of the RK-SAVR estimator.</p>
+<dd><p>Asymptotic variance of the Hurstify estimator.</p>
 <p>Implements</p>
 <pre><code>Var(H_hat) = (2 * pi * e) / (ln(a2/a1))^2 * (1/sqrt(n) + 1/sqrt(m))^2.
 </code></pre>
@@ -642,20 +687,23 @@ and then iterates the standard reflection / expansion / contraction /
 shrink move until either the spread of function values is below <code>tol</code>
 or <code>maxIter</code> iterations have been performed.</p>
 </dd>
-<dt><a href="#safeOptimizer">safeOptimizer(opt)</a> ⇒ <code>function</code></dt>
-<dd><p>Wraps an optimizer so that any thrown error becomes <code>NaN</code> instead of
-propagating. The intent is to keep <code>RKSAVR.estimate</code> resilient: a bad
-iteration should be logged and skipped, not abort the whole batch.</p>
+<dt><a href="#safeOptimizer">safeOptimizer(optimizer)</a> ⇒ <code>function</code></dt>
+<dd><p>Wraps an <code>Optimizer.minimize(...)</code> call so that any thrown error
+becomes <code>NaN</code> instead of propagating. This keeps <code>Hurstify.estimate</code>
+resilient: a bad iteration is logged and skipped, not aborting the
+whole batch.</p>
 </dd>
-<dt><a href="#getOptimizerFactory">getOptimizerFactory(name)</a> ⇒ <code>function</code> | <code>undefined</code></dt>
-<dd><p>Retrieves an optimizer factory by name.</p>
+<dt><a href="#getOptimizer">getOptimizer(name)</a> ⇒ <code><a href="#Optimizer">Optimizer</a></code> | <code>undefined</code></dt>
+<dd><p>Resolves a string key into an <code>Optimizer</code> instance (preferred form).</p>
 </dd>
-<dt><a href="#registerOptimizerFactory">registerOptimizerFactory(name, factory)</a></dt>
-<dd><p>Registers (or overrides) a custom optimizer factory.</p>
-<p>Use this to plug a proprietary or experimental optimizer into the
-registry without modifying the library source. The factory must
-return a function with the standard RK-SAVR signature
-<code>(f, hMin, hMax, [h0]) =&gt; number</code>.</p>
+<dt><a href="#resolveOptimizer">resolveOptimizer(candidate)</a> ⇒ <code><a href="#Optimizer">Optimizer</a></code></dt>
+<dd><p>Resolves a string key or returns the supplied instance unchanged.
+Convenience for estimator construction that accepts both.</p>
+</dd>
+<dt><a href="#registerOptimizer">registerOptimizer(name, factory)</a></dt>
+<dd><p>Registers or overrides a custom <code>Optimizer</code> subclass factory.</p>
+<p>Useful when you want to plug in a proprietary search algorithm
+without modifying the library source.</p>
 </dd>
 <dt><a href="#simulatedAnnealing">simulatedAnnealing(f, x0, opts)</a> ⇒ <code>Object</code></dt>
 <dd><p>Simulated-annealing minimization over an arbitrary-dimensional space.</p>
@@ -749,43 +797,6 @@ re-evaluating the power function per integration step.</p>
 is acceptable for paths up to a few hundred steps; for long simulations
 switch to a circulant-embedding FFT approximation (not implemented here).</p>
 </dd>
-<dt><a href="#defaultSampler">defaultSampler(data, n)</a> ⇒ <code>Array.&lt;*&gt;</code></dt>
-<dd><p>Default sampler used when the caller does not provide one. It is just a
-thin wrapper around <code>randomSample</code> (Floyd&#39;s reservoir sampling) so the
-variance-reduction iterations get IID draws of increments without
-replacement.</p>
-</dd>
-<dt><a href="#vectorizedKsObjective">vectorizedKsObjective(sortedSamples, scales, H)</a> ⇒ <code>number</code></dt>
-<dd><p>Builds a vectorized KS objective function for multi-scale estimation.</p>
-<p>For <code>K &gt; 2</code> scales the mean KS distance across every unordered scale pair
-is what gets minimized over <code>H</code> (this is the statistic the RK-SAVR paper
-argues for). The implementation assumes the samples have already been
-sorted (sorting dominates the inner loop cost in practice and is hoisted
-to the caller).</p>
-</dd>
-<dt><a href="#computeScalePairDistance">computeScalePairDistance(sortedSamples, scales, i, j, H)</a> ⇒ <code>number</code></dt>
-<dd><p>KS distance between a single rescaled pair of samples.</p>
-<p>Rescales <code>sortedSamples[i]</code> by <code>scales[i]^{-H}</code> and <code>sortedSamples[j]</code> by
-<code>scales[j]^{-H}</code> and walks the two empirical CDFs in lock-step via
-<code>ksDistanceRescaled</code>. Multiplication by a positive scalar preserves the
-ordering, so the inputs are <em>not</em> re-sorted here.</p>
-</dd>
-<dt><a href="#buildScaleProfile">buildScaleProfile(sortedSamples, scales, H)</a> ⇒ <code>Array.&lt;number&gt;</code></dt>
-<dd><p>Builds a flat &quot;profile&quot; of all pairwise KS distances at a fixed <code>H</code>.</p>
-<p>Given <code>K</code> sorted samples, the profile has <code>K * (K - 1) / 2</code> entries
-corresponding to every unordered scale pair. It is useful for diagnostics
-(e.g. plotting the KS distance surface) and is exposed via
-<code>rollingMultiScale</code>.</p>
-</dd>
-<dt><a href="#weightedKsObjective">weightedKsObjective(sortedSamples, scales, weights, H)</a> ⇒ <code>number</code></dt>
-<dd><p>Weighted generalization of <a href="#vectorizedKsObjective">vectorizedKsObjective</a>.</p>
-<p>Allows callers to up-weight finer scales (which are noisier but more
-numerous) or down-weight scales that are highly contaminated by
-microstructure effects. The objective computes a weighted arithmetic mean
-where each pair&#39;s KS distance is weighted by <code>weights[i] * weights[j]</code>.
-The result is normalized so the weights do not change the effective
-magnitude of the objective (only the relative emphasis).</p>
-</dd>
 <dt><a href="#ksDistance">ksDistance(sample1, sample2, isSorted)</a> ⇒ <code>number</code></dt>
 <dd><p>Computes the two-sample Kolmogorov-Smirnov distance.</p>
 <p>Algorithm: a linear merged-pointer walk over the sorted order statistics.
@@ -811,7 +822,7 @@ during the merged-pointer walk so no auxiliary allocation is needed.
 Multiplication by a positive scalar is order-preserving, so the
 pre-sorting of the inputs is unaffected by the choice of <code>factorA</code> and
 <code>factorB</code>.</p>
-<p>This is the hot path of the RK-SAVR estimator&#39;s inner loop:
+<p>This is the hot path of the Hurstify estimator&#39;s inner loop:
 <code>O(n + m)</code> per evaluation, no allocations beyond the locals below.</p>
 </dd>
 <dt><a href="#shuffle">shuffle(array)</a> ⇒ <code>Array.&lt;*&gt;</code></dt>
@@ -854,6 +865,29 @@ increments).</p>
 </dd>
 </dl>
 
+<a name="Optimizer"></a>
+
+## Optimizer
+Strategy base class. Subclasses implement `minimize` polymorphically.
+
+**Kind**: global class  
+<a name="Optimizer+minimize"></a>
+
+### optimizer.minimize(objective, lower, upper, initial) ⇒ <code>number</code>
+Minimizes the given objective on the closed interval `[lower, upper]`
+starting from `initial`. Subclasses implement the algorithm-specific
+search.
+
+**Kind**: instance method of [<code>Optimizer</code>](#Optimizer)  
+**Returns**: <code>number</code> - Argmin `h` inside `[lower, upper]`.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| objective | <code>function</code> | Scalar objective function. |
+| lower | <code>number</code> | Lower bound of the search interval. |
+| upper | <code>number</code> | Upper bound of the search interval. |
+| initial | <code>number</code> | Initial guess inside `[lower, upper]`. |
+
 <a name="LogLevel"></a>
 
 ## LogLevel
@@ -865,6 +899,14 @@ Severity levels, numerically ordered from most to least verbose.
 - `WARN` (2): recoverable issues (default cut-off).
 - `ERROR` (3): unhandled failures during processing.
 - `SILENT` (4): disables all logging; convenience for tests.
+
+**Kind**: global constant  
+<a name="REGISTRY"></a>
+
+## REGISTRY
+Names → factory functions producing fresh `Optimizer` instances.
+A new instance per call ensures no shared mutable state between
+estimators.
 
 **Kind**: global constant  
 <a name="parseCSV"></a>
@@ -1089,7 +1131,7 @@ against a trust sample before relying on it for production.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| rawHEstimates | <code>Array.&lt;number&gt;</code> | Raw H estimates from   `RKSAVR.estimate` or `rolling`. |
+| rawHEstimates | <code>Array.&lt;number&gt;</code> | Raw H estimates from   `Hurstify.estimate` or `rolling`. |
 | sigmaObs | <code>number</code> | Standard deviation of the observed log-vol   series. |
 | sigmaLatent | <code>number</code> | Standard deviation of the latent   (denoised) log-vol series. |
 
@@ -1171,7 +1213,7 @@ overnight gaps.
 
 ## logTransform(rv) ⇒ <code>Array.&lt;number&gt;</code>
 Maps realized variance to the log-volatility series consumed by
-RK-SAVR.
+hurstify.
 
 The transformation is
 
@@ -1179,7 +1221,7 @@ The transformation is
 
 i.e. `log(sqrt(RV))`. This converts multiplicative variance dynamics
 into a roughly additive (and therefore more stationary) signal, on
-top of which the self-similarity property exploited by RK-SAVR is
+top of which the self-similarity property exploited by the RK-SAVR algorithm is
 expressed.
 
 **Kind**: global function  
@@ -1201,7 +1243,7 @@ Subtracts the arithmetic mean from every element.
 
 Useful as a final step in the preprocessing pipeline when the user
 wants the series to mean-zero (which can stabilize variance-reducing
-permutations inside `RKSAVR`).
+permutations inside `Hurstify`).
 
 **Kind**: global function  
 **Returns**: <code>Array.&lt;number&gt;</code> - New array of length `series.length` with the
@@ -1259,7 +1301,7 @@ Splits a series into contiguous training and test arrays.
 
 The split point is `floor(series.length * trainRatio)` so the training
 set is the leftmost prefix of the series; this preserves temporal
-ordering, which is what RK-SAVR forecasters and validation scripts
+ordering, which is what hurstify forecasters and validation scripts
 typically need.
 
 **Kind**: global function  
@@ -1413,6 +1455,104 @@ produces a header-only CSV.
 | [dateHeader] | <code>string</code> | Header for the date column (default   `"date"`). |
 | [valueHeader] | <code>string</code> | Header for the value column (default   `"value"`). |
 
+<a name="defaultSampler"></a>
+
+## defaultSampler(data, n) ⇒ <code>Array.&lt;\*&gt;</code>
+Default sampler used when the caller does not provide one. It is just a
+thin wrapper around `randomSample` (Floyd's reservoir sampling) so the
+variance-reduction iterations get IID draws of increments without
+replacement.
+
+**Kind**: global function  
+**Returns**: <code>Array.&lt;\*&gt;</code> - Random sample of `n` elements from `data`.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| data | <code>Array.&lt;\*&gt;</code> | Source data (typically an increment array). |
+| n | <code>number</code> | Sample size to draw. |
+
+<a name="vectorizedKsObjective"></a>
+
+## vectorizedKsObjective(sortedSamples, scales, H) ⇒ <code>number</code>
+Builds a vectorized KS objective function for multi-scale estimation.
+
+For `K > 2` scales the mean KS distance across every unordered scale pair
+is what gets minimized over `H` (this is the statistic the RK-SAVR paper
+argues for). The implementation assumes the samples have already been
+sorted (sorting dominates the inner loop cost in practice and is hoisted
+to the caller).
+
+**Kind**: global function  
+**Returns**: <code>number</code> - Arithmetic mean of the KS distances over all scale pairs.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| sortedSamples | <code>Array.&lt;Float64Array&gt;</code> | Pre-sorted samples at different scales. |
+| scales | <code>Array.&lt;number&gt;</code> | Scale values corresponding to `sortedSamples`. |
+| H | <code>number</code> | Trial Hurst parameter for the objective evaluation. |
+
+<a name="computeScalePairDistance"></a>
+
+## computeScalePairDistance(sortedSamples, scales, i, j, H) ⇒ <code>number</code>
+KS distance between a single rescaled pair of samples.
+
+Rescales `sortedSamples[i]` by `scales[i]^{-H}` and `sortedSamples[j]` by
+`scales[j]^{-H}` and walks the two empirical CDFs in lock-step via
+`ksDistanceRescaled`. Multiplication by a positive scalar preserves the
+ordering, so the inputs are *not* re-sorted here.
+
+**Kind**: global function  
+**Returns**: <code>number</code> - KS distance between the two rescaled samples in `[0, 1]`.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| sortedSamples | <code>Array.&lt;Float64Array&gt;</code> | Pre-sorted samples (per scale). |
+| scales | <code>Array.&lt;number&gt;</code> | Scale values corresponding to `sortedSamples`. |
+| i | <code>number</code> | Index of the first sample. |
+| j | <code>number</code> | Index of the second sample. |
+| H | <code>number</code> | Trial Hurst parameter. |
+
+<a name="buildScaleProfile"></a>
+
+## buildScaleProfile(sortedSamples, scales, H) ⇒ <code>Array.&lt;number&gt;</code>
+Builds a flat "profile" of all pairwise KS distances at a fixed `H`.
+
+Given `K` sorted samples, the profile has `K * (K - 1) / 2` entries
+corresponding to every unordered scale pair. It is useful for diagnostics
+(e.g. plotting the KS distance surface) and is exposed via
+`rollingMultiScale`.
+
+**Kind**: global function  
+**Returns**: <code>Array.&lt;number&gt;</code> - Flat array of pairwise KS distances.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| sortedSamples | <code>Array.&lt;Float64Array&gt;</code> | Pre-sorted samples (per scale). |
+| scales | <code>Array.&lt;number&gt;</code> | Scale values corresponding to `sortedSamples`. |
+| H | <code>number</code> | Hurst parameter at which to evaluate the profile. |
+
+<a name="weightedKsObjective"></a>
+
+## weightedKsObjective(sortedSamples, scales, weights, H) ⇒ <code>number</code>
+Weighted generalization of [vectorizedKsObjective](#vectorizedKsObjective).
+
+Allows callers to up-weight finer scales (which are noisier but more
+numerous) or down-weight scales that are highly contaminated by
+microstructure effects. The objective computes a weighted arithmetic mean
+where each pair's KS distance is weighted by `weights[i] * weights[j]`.
+The result is normalized so the weights do not change the effective
+magnitude of the objective (only the relative emphasis).
+
+**Kind**: global function  
+**Returns**: <code>number</code> - Normalized weighted KS distance in `[0, 1]`.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| sortedSamples | <code>Array.&lt;Float64Array&gt;</code> | Pre-sorted samples. |
+| scales | <code>Array.&lt;number&gt;</code> | Scale values. |
+| weights | <code>Array.&lt;number&gt;</code> | Per-scale weights (positive numbers). |
+| H | <code>number</code> | Trial Hurst parameter. |
+
 <a name="ksCriticalValue"></a>
 
 ## ksCriticalValue(n, m, alpha) ⇒ <code>number</code>
@@ -1467,7 +1607,7 @@ numerical-statistics references.
 
 ## significanceTest(D, n, m, alpha) ⇒ <code>Object</code>
 Significance test for the minimized KS distance returned by the
-RK-SAVR estimator.
+Hurstify estimator.
 
 Two views are returned:
 
@@ -1490,7 +1630,7 @@ estimate with caution.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| D | <code>number</code> | Minimized KS distance from `RKSAVR.estimateSingle`   or `estimateSingleWithDiagnostics`. |
+| D | <code>number</code> | Minimized KS distance from `Hurstify.estimateSingle`   or `estimateSingleWithDiagnostics`. |
 | n | <code>number</code> | Sample size at scale `a_1`. |
 | m | <code>number</code> | Sample size at scale `a_2`. |
 | alpha | <code>number</code> | Significance level (default `0.05`). |
@@ -1585,7 +1725,7 @@ Notes:
 <a name="asymptoticVariance"></a>
 
 ## asymptoticVariance(scaleA1, scaleA2, n, m) ⇒ <code>number</code>
-Asymptotic variance of the RK-SAVR estimator.
+Asymptotic variance of the Hurstify estimator.
 
 Implements
 
@@ -2335,47 +2475,61 @@ or `maxIter` iterations have been performed.
 
 <a name="safeOptimizer"></a>
 
-## safeOptimizer(opt) ⇒ <code>function</code>
-Wraps an optimizer so that any thrown error becomes `NaN` instead of
-propagating. The intent is to keep `RKSAVR.estimate` resilient: a bad
-iteration should be logged and skipped, not abort the whole batch.
+## safeOptimizer(optimizer) ⇒ <code>function</code>
+Wraps an `Optimizer.minimize(...)` call so that any thrown error
+becomes `NaN` instead of propagating. This keeps `Hurstify.estimate`
+resilient: a bad iteration is logged and skipped, not aborting the
+whole batch.
 
 **Kind**: global function  
-**Returns**: <code>function</code> - Wrapped optimizer that returns `NaN` on failure.  
+**Returns**: <code>function</code> - Wrapped
+  minimize that returns `NaN` on failure.  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| opt | <code>function</code> | Optimizer function with the standard RK-SAVR   signature `(f, hMin, hMax, [h0]) -> number`. |
+| optimizer | [<code>Optimizer</code>](#Optimizer) | Optimizer instance. |
 
-<a name="getOptimizerFactory"></a>
+<a name="getOptimizer"></a>
 
-## getOptimizerFactory(name) ⇒ <code>function</code> \| <code>undefined</code>
-Retrieves an optimizer factory by name.
+## getOptimizer(name) ⇒ [<code>Optimizer</code>](#Optimizer) \| <code>undefined</code>
+Resolves a string key into an `Optimizer` instance (preferred form).
 
 **Kind**: global function  
-**Returns**: <code>function</code> \| <code>undefined</code> - The factory, or `undefined` if the name is
-  unknown (in which case `RKSAVR` falls back to `'brent'`).  
+**Returns**: [<code>Optimizer</code>](#Optimizer) \| <code>undefined</code> - The strategy instance, or `undefined`
+  if the key is unknown.  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | name | <code>string</code> | Optimizer identifier. |
 
-<a name="registerOptimizerFactory"></a>
+<a name="resolveOptimizer"></a>
 
-## registerOptimizerFactory(name, factory)
-Registers (or overrides) a custom optimizer factory.
+## resolveOptimizer(candidate) ⇒ [<code>Optimizer</code>](#Optimizer)
+Resolves a string key or returns the supplied instance unchanged.
+Convenience for estimator construction that accepts both.
 
-Use this to plug a proprietary or experimental optimizer into the
-registry without modifying the library source. The factory must
-return a function with the standard RK-SAVR signature
-`(f, hMin, hMax, [h0]) => number`.
+**Kind**: global function  
+**Returns**: [<code>Optimizer</code>](#Optimizer) - The resolved instance (a fresh one if a key was
+  supplied).  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| candidate | <code>string</code> \| [<code>Optimizer</code>](#Optimizer) | Strategy instance or registry key. |
+
+<a name="registerOptimizer"></a>
+
+## registerOptimizer(name, factory)
+Registers or overrides a custom `Optimizer` subclass factory.
+
+Useful when you want to plug in a proprietary search algorithm
+without modifying the library source.
 
 **Kind**: global function  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| name | <code>string</code> | Optimizer identifier (used in   `RKSAVR({optimizerType: name})`). |
-| factory | <code>function</code> | Factory returning the optimizer   function. |
+| name | <code>string</code> | Optimizer identifier. |
+| factory | <code>function</code> | Factory returning a fresh   instance. |
 
 <a name="simulatedAnnealing"></a>
 
@@ -2590,104 +2744,6 @@ switch to a circulant-embedding FFT approximation (not implemented here).
 | kernel | <code>Float64Array</code> | Precomputed kernel of length `>= t`. |
 | t | <code>number</code> | Current time index (exclusive upper bound). |
 
-<a name="defaultSampler"></a>
-
-## defaultSampler(data, n) ⇒ <code>Array.&lt;\*&gt;</code>
-Default sampler used when the caller does not provide one. It is just a
-thin wrapper around `randomSample` (Floyd's reservoir sampling) so the
-variance-reduction iterations get IID draws of increments without
-replacement.
-
-**Kind**: global function  
-**Returns**: <code>Array.&lt;\*&gt;</code> - Random sample of `n` elements from `data`.  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| data | <code>Array.&lt;\*&gt;</code> | Source data (typically an increment array). |
-| n | <code>number</code> | Sample size to draw. |
-
-<a name="vectorizedKsObjective"></a>
-
-## vectorizedKsObjective(sortedSamples, scales, H) ⇒ <code>number</code>
-Builds a vectorized KS objective function for multi-scale estimation.
-
-For `K > 2` scales the mean KS distance across every unordered scale pair
-is what gets minimized over `H` (this is the statistic the RK-SAVR paper
-argues for). The implementation assumes the samples have already been
-sorted (sorting dominates the inner loop cost in practice and is hoisted
-to the caller).
-
-**Kind**: global function  
-**Returns**: <code>number</code> - Arithmetic mean of the KS distances over all scale pairs.  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| sortedSamples | <code>Array.&lt;Float64Array&gt;</code> | Pre-sorted samples at different scales. |
-| scales | <code>Array.&lt;number&gt;</code> | Scale values corresponding to `sortedSamples`. |
-| H | <code>number</code> | Trial Hurst parameter for the objective evaluation. |
-
-<a name="computeScalePairDistance"></a>
-
-## computeScalePairDistance(sortedSamples, scales, i, j, H) ⇒ <code>number</code>
-KS distance between a single rescaled pair of samples.
-
-Rescales `sortedSamples[i]` by `scales[i]^{-H}` and `sortedSamples[j]` by
-`scales[j]^{-H}` and walks the two empirical CDFs in lock-step via
-`ksDistanceRescaled`. Multiplication by a positive scalar preserves the
-ordering, so the inputs are *not* re-sorted here.
-
-**Kind**: global function  
-**Returns**: <code>number</code> - KS distance between the two rescaled samples in `[0, 1]`.  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| sortedSamples | <code>Array.&lt;Float64Array&gt;</code> | Pre-sorted samples (per scale). |
-| scales | <code>Array.&lt;number&gt;</code> | Scale values corresponding to `sortedSamples`. |
-| i | <code>number</code> | Index of the first sample. |
-| j | <code>number</code> | Index of the second sample. |
-| H | <code>number</code> | Trial Hurst parameter. |
-
-<a name="buildScaleProfile"></a>
-
-## buildScaleProfile(sortedSamples, scales, H) ⇒ <code>Array.&lt;number&gt;</code>
-Builds a flat "profile" of all pairwise KS distances at a fixed `H`.
-
-Given `K` sorted samples, the profile has `K * (K - 1) / 2` entries
-corresponding to every unordered scale pair. It is useful for diagnostics
-(e.g. plotting the KS distance surface) and is exposed via
-`rollingMultiScale`.
-
-**Kind**: global function  
-**Returns**: <code>Array.&lt;number&gt;</code> - Flat array of pairwise KS distances.  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| sortedSamples | <code>Array.&lt;Float64Array&gt;</code> | Pre-sorted samples (per scale). |
-| scales | <code>Array.&lt;number&gt;</code> | Scale values corresponding to `sortedSamples`. |
-| H | <code>number</code> | Hurst parameter at which to evaluate the profile. |
-
-<a name="weightedKsObjective"></a>
-
-## weightedKsObjective(sortedSamples, scales, weights, H) ⇒ <code>number</code>
-Weighted generalization of [vectorizedKsObjective](#vectorizedKsObjective).
-
-Allows callers to up-weight finer scales (which are noisier but more
-numerous) or down-weight scales that are highly contaminated by
-microstructure effects. The objective computes a weighted arithmetic mean
-where each pair's KS distance is weighted by `weights[i] * weights[j]`.
-The result is normalized so the weights do not change the effective
-magnitude of the objective (only the relative emphasis).
-
-**Kind**: global function  
-**Returns**: <code>number</code> - Normalized weighted KS distance in `[0, 1]`.  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| sortedSamples | <code>Array.&lt;Float64Array&gt;</code> | Pre-sorted samples. |
-| scales | <code>Array.&lt;number&gt;</code> | Scale values. |
-| weights | <code>Array.&lt;number&gt;</code> | Per-scale weights (positive numbers). |
-| H | <code>number</code> | Trial Hurst parameter. |
-
 <a name="ksDistance"></a>
 
 ## ksDistance(sample1, sample2, isSorted) ⇒ <code>number</code>
@@ -2734,7 +2790,7 @@ Multiplication by a positive scalar is order-preserving, so the
 pre-sorting of the inputs is unaffected by the choice of `factorA` and
 `factorB`.
 
-This is the hot path of the RK-SAVR estimator's inner loop:
+This is the hot path of the Hurstify estimator's inner loop:
 `O(n + m)` per evaluation, no allocations beyond the locals below.
 
 **Kind**: global function  

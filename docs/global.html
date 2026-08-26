@@ -166,6 +166,70 @@
 
 
         
+            
+<h4 class="name" id="REGISTRY"><span class="type-signature">(constant) </span>REGISTRY<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    Names → factory functions producing fresh `Optimizer` instances.
+A new instance per call ensures no shared mutable state between
+estimators.
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="optimization_registry.js.html">optimization/registry.js</a>, <a href="optimization_registry.js.html#line24">line 24</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
     
 
     
@@ -491,7 +555,7 @@ accurate to machine epsilon in nearly all cases.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="optimization_adaptiveGridSearch.js.html">optimization/adaptiveGridSearch.js</a>, <a href="optimization_adaptiveGridSearch.js.html#line43">line 43</a>
+        <a href="optimization_adaptiveGridSearch.js.html">optimization/adaptiveGridSearch.js</a>, <a href="optimization_adaptiveGridSearch.js.html#line44">line 44</a>
     </li></ul></dd>
     
 
@@ -1122,7 +1186,7 @@ fit.
 
 
 <div class="description">
-    Asymptotic variance of the RK-SAVR estimator.
+    Asymptotic variance of the Hurstify estimator.
 
 Implements
 
@@ -2321,7 +2385,7 @@ corresponding to every unordered scale pair. It is useful for diagnostics
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="rksavr.js.html">rksavr.js</a>, <a href="rksavr.js.html#line148">line 148</a>
+        <a href="hurstify.js.html">hurstify.js</a>, <a href="hurstify.js.html#line146">line 146</a>
     </li></ul></dd>
     
 
@@ -2391,7 +2455,7 @@ corresponding to every unordered scale pair. It is useful for diagnostics
 
 Useful as a final step in the preprocessing pipeline when the user
 wants the series to mean-zero (which can stabilize variance-reducing
-permutations inside `RKSAVR`).
+permutations inside `Hurstify`).
 </div>
 
 
@@ -3182,7 +3246,7 @@ ordering, so the inputs are *not* re-sorted here.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="rksavr.js.html">rksavr.js</a>, <a href="rksavr.js.html#line124">line 124</a>
+        <a href="hurstify.js.html">hurstify.js</a>, <a href="hurstify.js.html#line122">line 122</a>
     </li></ul></dd>
     
 
@@ -5334,7 +5398,7 @@ replacement.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="rksavr.js.html">rksavr.js</a>, <a href="rksavr.js.html#line79">line 79</a>
+        <a href="hurstify.js.html">hurstify.js</a>, <a href="hurstify.js.html#line77">line 77</a>
     </li></ul></dd>
     
 
@@ -5990,7 +6054,7 @@ next generation only when its objective is strictly better.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="optimization_differentialEvolution.js.html">optimization/differentialEvolution.js</a>, <a href="optimization_differentialEvolution.js.html#line49">line 49</a>
+        <a href="optimization_differentialEvolution.js.html">optimization/differentialEvolution.js</a>, <a href="optimization_differentialEvolution.js.html#line50">line 50</a>
     </li></ul></dd>
     
 
@@ -9903,7 +9967,7 @@ annualized log-vol mean.
     
 
     
-    <h4 class="name" id="getOptimizerFactory"><span class="type-signature"></span>getOptimizerFactory<span class="signature">(name)</span><span class="type-signature"> &rarr; {function|undefined}</span></h4>
+    <h4 class="name" id="getOptimizer"><span class="type-signature"></span>getOptimizer<span class="signature">(name)</span><span class="type-signature"> &rarr; {<a href="Optimizer.html">Optimizer</a>|undefined}</span></h4>
     
 
     
@@ -9911,7 +9975,7 @@ annualized log-vol mean.
 
 
 <div class="description">
-    Retrieves an optimizer factory by name.
+    Resolves a string key into an `Optimizer` instance (preferred form).
 </div>
 
 
@@ -10004,7 +10068,7 @@ annualized log-vol mean.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="optimization_registry.js.html">optimization/registry.js</a>, <a href="optimization_registry.js.html#line95">line 95</a>
+        <a href="optimization_registry.js.html">optimization/registry.js</a>, <a href="optimization_registry.js.html#line59">line 59</a>
     </li></ul></dd>
     
 
@@ -10033,8 +10097,8 @@ annualized log-vol mean.
 
         
 <div class="param-desc">
-    The factory, or `undefined` if the name is
-  unknown (in which case `RKSAVR` falls back to `'brent'`).
+    The strategy instance, or `undefined`
+  if the key is unknown.
 </div>
 
 
@@ -10045,7 +10109,7 @@ annualized log-vol mean.
     </dt>
     <dd>
         
-<span class="param-type">function</span>
+<span class="param-type"><a href="Optimizer.html">Optimizer</a></span>
 |
 
 <span class="param-type">undefined</span>
@@ -11266,7 +11330,7 @@ Multiplication by a positive scalar is order-preserving, so the
 pre-sorting of the inputs is unaffected by the choice of `factorA` and
 `factorB`.
 
-This is the hot path of the RK-SAVR estimator's inner loop:
+This is the hot path of the Hurstify estimator's inner loop:
 `O(n + m)` per evaluation, no allocations beyond the locals below.
 </div>
 
@@ -11858,7 +11922,7 @@ numerical-statistics references.
 
 <div class="description">
     Maps realized variance to the log-volatility series consumed by
-RK-SAVR.
+hurstify.
 
 The transformation is
 
@@ -11866,7 +11930,7 @@ The transformation is
 
 i.e. `log(sqrt(RV))`. This converts multiplicative variance dynamics
 into a roughly additive (and therefore more stationary) signal, on
-top of which the self-similarity property exploited by RK-SAVR is
+top of which the self-similarity property exploited by the RK-SAVR algorithm is
 expressed.
 </div>
 
@@ -12119,7 +12183,7 @@ against a trust sample before relying on it for production.
             
 
             <td class="description last">Raw H estimates from
-  `RKSAVR.estimate` or `rolling`.</td>
+  `Hurstify.estimate` or `rolling`.</td>
         </tr>
 
     
@@ -17859,7 +17923,7 @@ only — registrations are lost when the module is reloaded.
     
 
     
-    <h4 class="name" id="registerOptimizerFactory"><span class="type-signature"></span>registerOptimizerFactory<span class="signature">(name, factory)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="registerOptimizer"><span class="type-signature"></span>registerOptimizer<span class="signature">(name, factory)</span><span class="type-signature"></span></h4>
     
 
     
@@ -17867,12 +17931,10 @@ only — registrations are lost when the module is reloaded.
 
 
 <div class="description">
-    Registers (or overrides) a custom optimizer factory.
+    Registers or overrides a custom `Optimizer` subclass factory.
 
-Use this to plug a proprietary or experimental optimizer into the
-registry without modifying the library source. The factory must
-return a function with the standard RK-SAVR signature
-`(f, hMin, hMax, [h0]) => number`.
+Useful when you want to plug in a proprietary search algorithm
+without modifying the library source.
 </div>
 
 
@@ -17924,8 +17986,7 @@ return a function with the standard RK-SAVR signature
 
             
 
-            <td class="description last">Optimizer identifier (used in
-  `RKSAVR({optimizerType: name})`).</td>
+            <td class="description last">Optimizer identifier.</td>
         </tr>
 
     
@@ -17948,8 +18009,8 @@ return a function with the standard RK-SAVR signature
 
             
 
-            <td class="description last">Factory returning the optimizer
-  function.</td>
+            <td class="description last">Factory returning a fresh
+  instance.</td>
         </tr>
 
     
@@ -17990,7 +18051,7 @@ return a function with the standard RK-SAVR signature
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="optimization_registry.js.html">optimization/registry.js</a>, <a href="optimization_registry.js.html#line112">line 112</a>
+        <a href="optimization_registry.js.html">optimization/registry.js</a>, <a href="optimization_registry.js.html#line90">line 90</a>
     </li></ul></dd>
     
 
@@ -18117,7 +18178,7 @@ experiment to restore nondeterministic behavior.
     
 
     
-    <h4 class="name" id="safeOptimizer"><span class="type-signature"></span>safeOptimizer<span class="signature">(opt)</span><span class="type-signature"> &rarr; {function}</span></h4>
+    <h4 class="name" id="resolveOptimizer"><span class="type-signature"></span>resolveOptimizer<span class="signature">(candidate)</span><span class="type-signature"> &rarr; {<a href="Optimizer.html">Optimizer</a>}</span></h4>
     
 
     
@@ -18125,9 +18186,8 @@ experiment to restore nondeterministic behavior.
 
 
 <div class="description">
-    Wraps an optimizer so that any thrown error becomes `NaN` instead of
-propagating. The intent is to keep `RKSAVR.estimate` resilient: a bad
-iteration should be logged and skipped, not abort the whole batch.
+    Resolves a string key or returns the supplied instance unchanged.
+Convenience for estimator construction that accepts both.
 </div>
 
 
@@ -18163,13 +18223,16 @@ iteration should be logged and skipped, not abort the whole batch.
 
         <tr>
             
-                <td class="name"><code>opt</code></td>
+                <td class="name"><code>candidate</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">function</span>
+<span class="param-type">string</span>
+|
+
+<span class="param-type"><a href="Optimizer.html">Optimizer</a></span>
 
 
             
@@ -18179,8 +18242,7 @@ iteration should be logged and skipped, not abort the whole batch.
 
             
 
-            <td class="description last">Optimizer function with the standard RK-SAVR
-  signature `(f, hMin, hMax, [h0]) -> number`.</td>
+            <td class="description last">Strategy instance or registry key.</td>
         </tr>
 
     
@@ -18221,7 +18283,7 @@ iteration should be logged and skipped, not abort the whole batch.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="optimization_registry.js.html">optimization/registry.js</a>, <a href="optimization_registry.js.html#line35">line 35</a>
+        <a href="optimization_registry.js.html">optimization/registry.js</a>, <a href="optimization_registry.js.html#line72">line 72</a>
     </li></ul></dd>
     
 
@@ -18250,7 +18312,171 @@ iteration should be logged and skipped, not abort the whole batch.
 
         
 <div class="param-desc">
-    Wrapped optimizer that returns `NaN` on failure.
+    The resolved instance (a fresh one if a key was
+  supplied).
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="Optimizer.html">Optimizer</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="safeOptimizer"><span class="type-signature"></span>safeOptimizer<span class="signature">(optimizer)</span><span class="type-signature"> &rarr; {function}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Wraps an `Optimizer.minimize(...)` call so that any thrown error
+becomes `NaN` instead of propagating. This keeps `Hurstify.estimate`
+resilient: a bad iteration is logged and skipped, not aborting the
+whole batch.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>optimizer</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Optimizer.html">Optimizer</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Optimizer instance.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="optimization_registry.js.html">optimization/registry.js</a>, <a href="optimization_registry.js.html#line42">line 42</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    Wrapped
+  minimize that returns `NaN` on failure.
 </div>
 
 
@@ -19008,7 +19234,7 @@ Complexity: `O(n)` time, `O(n)` extra memory.
 
 <div class="description">
     Significance test for the minimized KS distance returned by the
-RK-SAVR estimator.
+Hurstify estimator.
 
 Two views are returned:
 
@@ -19072,7 +19298,7 @@ estimate with caution.
 
             
 
-            <td class="description last">Minimized KS distance from `RKSAVR.estimateSingle`
+            <td class="description last">Minimized KS distance from `Hurstify.estimateSingle`
   or `estimateSingleWithDiagnostics`.</td>
         </tr>
 
@@ -19618,7 +19844,7 @@ temperature drops below `finalTemp`.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="optimization_simulatedAnnealing.js.html">optimization/simulatedAnnealing.js</a>, <a href="optimization_simulatedAnnealing.js.html#line41">line 41</a>
+        <a href="optimization_simulatedAnnealing.js.html">optimization/simulatedAnnealing.js</a>, <a href="optimization_simulatedAnnealing.js.html#line42">line 42</a>
     </li></ul></dd>
     
 
@@ -20116,7 +20342,7 @@ rather than silently producing `NaN`s.
 
 The split point is `floor(series.length * trainRatio)` so the training
 set is the leftmost prefix of the series; this preserves temporal
-ordering, which is what RK-SAVR forecasters and validation scripts
+ordering, which is what hurstify forecasters and validation scripts
 typically need.
 </div>
 
@@ -20683,7 +20909,7 @@ to the caller).
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="rksavr.js.html">rksavr.js</a>, <a href="rksavr.js.html#line95">line 95</a>
+        <a href="hurstify.js.html">hurstify.js</a>, <a href="hurstify.js.html#line93">line 93</a>
     </li></ul></dd>
     
 
@@ -21067,7 +21293,7 @@ magnitude of the objective (only the relative emphasis).
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="rksavr.js.html">rksavr.js</a>, <a href="rksavr.js.html#line174">line 174</a>
+        <a href="hurstify.js.html">hurstify.js</a>, <a href="hurstify.js.html#line172">line 172</a>
     </li></ul></dd>
     
 
@@ -21135,13 +21361,13 @@ magnitude of the objective (only the relative emphasis).
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="RKSAVR.html">RKSAVR</a></li></ul><h3>Global</h3><ul><li><a href="global.html#LogLevel">LogLevel</a></li><li><a href="global.html#adaptiveGridSearch">adaptiveGridSearch</a></li><li><a href="global.html#aggregateDailyRV">aggregateDailyRV</a></li><li><a href="global.html#arfima">arfima</a></li><li><a href="global.html#asymptoticVariance">asymptoticVariance</a></li><li><a href="global.html#blockPermutation">blockPermutation</a></li><li><a href="global.html#bootstrapCI">bootstrapCI</a></li><li><a href="global.html#brentMinimize">brentMinimize</a></li><li><a href="global.html#buildScaleProfile">buildScaleProfile</a></li><li><a href="global.html#centerSeries">centerSeries</a></li><li><a href="global.html#computeRV">computeRV</a></li><li><a href="global.html#computeRVParkinson">computeRVParkinson</a></li><li><a href="global.html#computeScalePairDistance">computeScalePairDistance</a></li><li><a href="global.html#confidenceInterval">confidenceInterval</a></li><li><a href="global.html#constancyTest">constancyTest</a></li><li><a href="global.html#correlatedGaussian">correlatedGaussian</a></li><li><a href="global.html#createAttentionModel">createAttentionModel</a></li><li><a href="global.html#createLSTM">createLSTM</a></li><li><a href="global.html#createWindows">createWindows</a></li><li><a href="global.html#cusumTest">cusumTest</a></li><li><a href="global.html#debug">debug</a></li><li><a href="global.html#defaultSampler">defaultSampler</a></li><li><a href="global.html#detectBreakpoints">detectBreakpoints</a></li><li><a href="global.html#differentialEvolution">differentialEvolution</a></li><li><a href="global.html#downsample">downsample</a></li><li><a href="global.html#error">error</a></li><li><a href="global.html#exactOU">exactOU</a></li><li><a href="global.html#extractSeries">extractSeries</a></li><li><a href="global.html#fOU">fOU</a></li><li><a href="global.html#fractionalIntegral">fractionalIntegral</a></li><li><a href="global.html#fractionalKernel">fractionalKernel</a></li><li><a href="global.html#generateFBM">generateFBM</a></li><li><a href="global.html#generateFGN">generateFGN</a></li><li><a href="global.html#generateIntradayPrices">generateIntradayPrices</a></li><li><a href="global.html#generateSPXLogVol">generateSPXLogVol</a></li><li><a href="global.html#generateVIXLogVol">generateVIXLogVol</a></li><li><a href="global.html#getLogLevel">getLogLevel</a></li><li><a href="global.html#getModel">getModel</a></li><li><a href="global.html#getOptimizerFactory">getOptimizerFactory</a></li><li><a href="global.html#holtWintersForecast">holtWintersForecast</a></li><li><a href="global.html#info">info</a></li><li><a href="global.html#kalmanFilter">kalmanFilter</a></li><li><a href="global.html#ksCriticalValue">ksCriticalValue</a></li><li><a href="global.html#ksDistance">ksDistance</a></li><li><a href="global.html#ksDistanceRescaled">ksDistanceRescaled</a></li><li><a href="global.html#ksPvalue">ksPvalue</a></li><li><a href="global.html#listModels">listModels</a></li><li><a href="global.html#logTransform">logTransform</a></li><li><a href="global.html#logVolDebias">logVolDebias</a></li><li><a href="global.html#mPRE">mPRE</a></li><li><a href="global.html#mPREExact">mPREExact</a></li><li><a href="global.html#nelderMead">nelderMead</a></li><li><a href="global.html#normalQuantile">normalQuantile</a></li><li><a href="global.html#parseCSV">parseCSV</a></li><li><a href="global.html#parseJSON">parseJSON</a></li><li><a href="global.html#preavgReturns">preavgReturns</a></li><li><a href="global.html#preprocessPipeline">preprocessPipeline</a></li><li><a href="global.html#rBergomi">rBergomi</a></li><li><a href="global.html#rBergomiPrice">rBergomiPrice</a></li><li><a href="global.html#rFSV">rFSV</a></li><li><a href="global.html#rFSVPrice">rFSVPrice</a></li><li><a href="global.html#randn">randn</a></li><li><a href="global.html#randnBatch">randnBatch</a></li><li><a href="global.html#random">random</a></li><li><a href="global.html#randomSample">randomSample</a></li><li><a href="global.html#realizedKernel">realizedKernel</a></li><li><a href="global.html#registerModel">registerModel</a></li><li><a href="global.html#registerOptimizerFactory">registerOptimizerFactory</a></li><li><a href="global.html#resetSeed">resetSeed</a></li><li><a href="global.html#safeOptimizer">safeOptimizer</a></li><li><a href="global.html#seriesToCSV">seriesToCSV</a></li><li><a href="global.html#setLogLevel">setLogLevel</a></li><li><a href="global.html#setSeed">setSeed</a></li><li><a href="global.html#shuffle">shuffle</a></li><li><a href="global.html#significanceTest">significanceTest</a></li><li><a href="global.html#simulatedAnnealing">simulatedAnnealing</a></li><li><a href="global.html#standardError">standardError</a></li><li><a href="global.html#standardizeSeries">standardizeSeries</a></li><li><a href="global.html#trainTestSplit">trainTestSplit</a></li><li><a href="global.html#validateNoGaps">validateNoGaps</a></li><li><a href="global.html#vectorizedKsObjective">vectorizedKsObjective</a></li><li><a href="global.html#warn">warn</a></li><li><a href="global.html#weightedKsObjective">weightedKsObjective</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Hurstify.html">Hurstify</a></li><li><a href="Optimizer.html">Optimizer</a></li></ul><h3>Global</h3><ul><li><a href="global.html#LogLevel">LogLevel</a></li><li><a href="global.html#REGISTRY">REGISTRY</a></li><li><a href="global.html#adaptiveGridSearch">adaptiveGridSearch</a></li><li><a href="global.html#aggregateDailyRV">aggregateDailyRV</a></li><li><a href="global.html#arfima">arfima</a></li><li><a href="global.html#asymptoticVariance">asymptoticVariance</a></li><li><a href="global.html#blockPermutation">blockPermutation</a></li><li><a href="global.html#bootstrapCI">bootstrapCI</a></li><li><a href="global.html#brentMinimize">brentMinimize</a></li><li><a href="global.html#buildScaleProfile">buildScaleProfile</a></li><li><a href="global.html#centerSeries">centerSeries</a></li><li><a href="global.html#computeRV">computeRV</a></li><li><a href="global.html#computeRVParkinson">computeRVParkinson</a></li><li><a href="global.html#computeScalePairDistance">computeScalePairDistance</a></li><li><a href="global.html#confidenceInterval">confidenceInterval</a></li><li><a href="global.html#constancyTest">constancyTest</a></li><li><a href="global.html#correlatedGaussian">correlatedGaussian</a></li><li><a href="global.html#createAttentionModel">createAttentionModel</a></li><li><a href="global.html#createLSTM">createLSTM</a></li><li><a href="global.html#createWindows">createWindows</a></li><li><a href="global.html#cusumTest">cusumTest</a></li><li><a href="global.html#debug">debug</a></li><li><a href="global.html#defaultSampler">defaultSampler</a></li><li><a href="global.html#detectBreakpoints">detectBreakpoints</a></li><li><a href="global.html#differentialEvolution">differentialEvolution</a></li><li><a href="global.html#downsample">downsample</a></li><li><a href="global.html#error">error</a></li><li><a href="global.html#exactOU">exactOU</a></li><li><a href="global.html#extractSeries">extractSeries</a></li><li><a href="global.html#fOU">fOU</a></li><li><a href="global.html#fractionalIntegral">fractionalIntegral</a></li><li><a href="global.html#fractionalKernel">fractionalKernel</a></li><li><a href="global.html#generateFBM">generateFBM</a></li><li><a href="global.html#generateFGN">generateFGN</a></li><li><a href="global.html#generateIntradayPrices">generateIntradayPrices</a></li><li><a href="global.html#generateSPXLogVol">generateSPXLogVol</a></li><li><a href="global.html#generateVIXLogVol">generateVIXLogVol</a></li><li><a href="global.html#getLogLevel">getLogLevel</a></li><li><a href="global.html#getModel">getModel</a></li><li><a href="global.html#getOptimizer">getOptimizer</a></li><li><a href="global.html#holtWintersForecast">holtWintersForecast</a></li><li><a href="global.html#info">info</a></li><li><a href="global.html#kalmanFilter">kalmanFilter</a></li><li><a href="global.html#ksCriticalValue">ksCriticalValue</a></li><li><a href="global.html#ksDistance">ksDistance</a></li><li><a href="global.html#ksDistanceRescaled">ksDistanceRescaled</a></li><li><a href="global.html#ksPvalue">ksPvalue</a></li><li><a href="global.html#listModels">listModels</a></li><li><a href="global.html#logTransform">logTransform</a></li><li><a href="global.html#logVolDebias">logVolDebias</a></li><li><a href="global.html#mPRE">mPRE</a></li><li><a href="global.html#mPREExact">mPREExact</a></li><li><a href="global.html#nelderMead">nelderMead</a></li><li><a href="global.html#normalQuantile">normalQuantile</a></li><li><a href="global.html#parseCSV">parseCSV</a></li><li><a href="global.html#parseJSON">parseJSON</a></li><li><a href="global.html#preavgReturns">preavgReturns</a></li><li><a href="global.html#preprocessPipeline">preprocessPipeline</a></li><li><a href="global.html#rBergomi">rBergomi</a></li><li><a href="global.html#rBergomiPrice">rBergomiPrice</a></li><li><a href="global.html#rFSV">rFSV</a></li><li><a href="global.html#rFSVPrice">rFSVPrice</a></li><li><a href="global.html#randn">randn</a></li><li><a href="global.html#randnBatch">randnBatch</a></li><li><a href="global.html#random">random</a></li><li><a href="global.html#randomSample">randomSample</a></li><li><a href="global.html#realizedKernel">realizedKernel</a></li><li><a href="global.html#registerModel">registerModel</a></li><li><a href="global.html#registerOptimizer">registerOptimizer</a></li><li><a href="global.html#resetSeed">resetSeed</a></li><li><a href="global.html#resolveOptimizer">resolveOptimizer</a></li><li><a href="global.html#safeOptimizer">safeOptimizer</a></li><li><a href="global.html#seriesToCSV">seriesToCSV</a></li><li><a href="global.html#setLogLevel">setLogLevel</a></li><li><a href="global.html#setSeed">setSeed</a></li><li><a href="global.html#shuffle">shuffle</a></li><li><a href="global.html#significanceTest">significanceTest</a></li><li><a href="global.html#simulatedAnnealing">simulatedAnnealing</a></li><li><a href="global.html#standardError">standardError</a></li><li><a href="global.html#standardizeSeries">standardizeSeries</a></li><li><a href="global.html#trainTestSplit">trainTestSplit</a></li><li><a href="global.html#validateNoGaps">validateNoGaps</a></li><li><a href="global.html#vectorizedKsObjective">vectorizedKsObjective</a></li><li><a href="global.html#warn">warn</a></li><li><a href="global.html#weightedKsObjective">weightedKsObjective</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Wed Aug 26 2026 14:44:14 GMT+0530 (India Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Wed Aug 26 2026 15:15:36 GMT+0530 (India Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>
