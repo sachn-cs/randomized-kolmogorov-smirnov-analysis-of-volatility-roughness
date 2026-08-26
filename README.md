@@ -63,7 +63,9 @@ const r = new RKSAVR({
   sampleSize: 500,
   iterations: 8,
 });
-const H = r.estimateSingle(path);
+const multiResults = r.rollingMultiScale(
+  path, 512, [1, 2, 5, 10, 20, 50], [1, 0.8, 0.6, 0.4, 0.2, 0.1], 20,
+);
 ```
 
 For rolling estimation across a long series:
