@@ -19,6 +19,19 @@ export const metadata: Metadata = {
   },
   description:
     'hurstify — randomized Kolmogorov–Smirnov estimator for rough-volatility Hurst parameters. Pure JavaScript, zero dependencies.',
+  openGraph: {
+    title: 'hurstify',
+    description:
+      'Randomized Kolmogorov–Smirnov estimator for rough-volatility Hurst parameters.',
+    type: 'website',
+    images: ['/brand/wordmark.svg'],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'hurstify',
+    description:
+      'Randomized Kolmogorov–Smirnov estimator for rough-volatility Hurst parameters.',
+  },
 };
 
 export default function RootLayout({
