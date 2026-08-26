@@ -1,6 +1,6 @@
 ---
 name: Feature Request
-about: Suggest a new feature or enhancement for RK-SAVR
+about: Suggest a new feature or enhancement for hurstify
 title: '[Feature] '
 labels: enhancement
 assignees: ''
