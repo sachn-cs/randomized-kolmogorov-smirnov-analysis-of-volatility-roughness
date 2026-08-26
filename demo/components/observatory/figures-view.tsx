@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { AppShell } from '@/components/observatory/app-shell';
+import {AppShell} from '@/components/observatory/app-shell';
 import {
   Card,
   CardContent,
@@ -9,15 +9,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs';
+import {Button} from '@/components/ui/button';
+import {Input} from '@/components/ui/input';
+import {Label} from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -25,12 +20,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { RKSAVR, generateFBM, setSeed, resetSeed } from '@/lib/rksavr';
-import { fmt } from '@/lib/format';
-import { HTrajChart } from '@/components/observatory/charts/h-traj-chart';
-import { HeatmapGrid } from '@/components/observatory/charts/heatmap-grid';
-import { BiasVarianceChart } from '@/components/observatory/charts/bias-variance-chart';
-import { FigureExportButton } from '@/components/observatory/charts/figure-export-button';
+import {RKSAVR, generateFBM, setSeed, resetSeed} from '../../../lib/index.js';
+import {fmt} from '@/lib/format';
+import {HTrajChart} from '@/components/observatory/charts/h-traj-chart';
+import {HeatmapGrid} from '@/components/observatory/charts/heatmap-grid';
+import {BiasVarianceChart} from '@/components/observatory/charts/bias-variance-chart';
+import {FigureExportButton} from '@/components/observatory/charts/figure-export-button';
 
 export default function FiguresPage() {
   return (
@@ -51,7 +46,8 @@ export default function FiguresPage() {
 
 export const metadata = {
   title: 'Figures',
-  description: 'Replicated figures from Angelini & Bianchi (2025) with configurable parameters.',
+  description:
+    'Replicated figures from Angelini & Bianchi (2025) with configurable parameters.',
 };
 
 function FiguresView() {
@@ -62,7 +58,9 @@ function FiguresView() {
         <TabsTrigger value="fig-ks-curve">Fig 1: KS Curve</TabsTrigger>
         <TabsTrigger value="fig-multi-scale">Fig 2: Multi-Scale</TabsTrigger>
         <TabsTrigger value="fig-rolling">Fig 3: Rolling</TabsTrigger>
-        <TabsTrigger value="fig-bias-variance">Fig 4: Bias/Variance</TabsTrigger>
+        <TabsTrigger value="fig-bias-variance">
+          Fig 4: Bias/Variance
+        </TabsTrigger>
       </TabsList>
 
       <TabsContent value="fig-ks-curve">
@@ -166,7 +164,7 @@ function Figure1() {
       hs.push(h);
     }
     const minIdx = ds.indexOf(Math.min(...ds));
-    setChartData({ hs, ds, minH: hs[minIdx] });
+    setChartData({hs, ds, minH: hs[minIdx]});
   }, [n, trueH, windowSize, a1, a2, res]);
 
   React.useEffect(render, [render]);
@@ -179,7 +177,9 @@ function Figure1() {
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
-          <CommonFigureInputs {...{ trueH, setTrueH, n, setN, windowSize, setWindowSize }} />
+          <CommonFigureInputs
+            {...{trueH, setTrueH, n, setN, windowSize, setWindowSize}}
+          />
           <div className="space-y-2">
             <Label>H Resolution</Label>
             <Input
@@ -231,7 +231,7 @@ function Figure2() {
   const [scalesText, setScalesText] = React.useState('1, 2, 5, 10, 20, 50');
   const [grid, setGrid] = React.useState<{
     scales: number[];
-    cells: Array<{ i: number; j: number; value: number | null }>;
+    cells: Array<{i: number; j: number; value: number | null}>;
   } | null>(null);
 
   const render = React.useCallback(() => {
@@ -243,9 +243,9 @@ function Figure2() {
     const path = generateFBM(n, trueH);
     resetSeed();
     const slice = path.slice(0, windowSize);
-    const rksavr = new RKSAVR({ scales, sampleSize: Math.min(300, windowSize) });
-    const raw = rksavr._estimateSingleRaw(slice, { scales });
-    const cells: Array<{ i: number; j: number; value: number | null }> = [];
+    const rksavr = new RKSAVR({scales, sampleSize: Math.min(300, windowSize)});
+    const raw = rksavr._estimateSingleRaw(slice, {scales});
+    const cells: Array<{i: number; j: number; value: number | null}> = [];
     for (let i = 0; i < scales.length; i++) {
       for (let j = 0; j < scales.length; j++) {
         let v: number | null = null;
@@ -253,19 +253,14 @@ function Figure2() {
         else if (j < i) {
           const fi = Math.pow(raw.scaleValues[i], -raw.H);
           const fj = Math.pow(raw.scaleValues[j], -raw.H);
-          v = ksRescaled(
-            raw.sortedSamples[i],
-            raw.sortedSamples[j],
-            fi,
-            fj,
-          );
+          v = ksRescaled(raw.sortedSamples[i], raw.sortedSamples[j], fi, fj);
         } else {
           v = null;
         }
-        cells.push({ i, j, value: v });
+        cells.push({i, j, value: v});
       }
     }
-    setGrid({ scales, cells });
+    setGrid({scales, cells});
   }, [n, trueH, windowSize, scalesText]);
 
   React.useEffect(render, [render]);
@@ -280,18 +275,28 @@ function Figure2() {
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-          <CommonFigureInputs {...{ trueH, setTrueH, n, setN, windowSize, setWindowSize }} />
+          <CommonFigureInputs
+            {...{trueH, setTrueH, n, setN, windowSize, setWindowSize}}
+          />
           <div className="space-y-2">
             <Label>Scales (comma)</Label>
-            <Input value={scalesText} onChange={(e) => setScalesText(e.target.value)} />
+            <Input
+              value={scalesText}
+              onChange={(e) => setScalesText(e.target.value)}
+            />
           </div>
         </div>
         <div className="flex gap-2">
           <Button onClick={render}>Re-render</Button>
-          <FigureExportButton targetId="fig2-chart" filename="fig-multi-scale" />
+          <FigureExportButton
+            targetId="fig2-chart"
+            filename="fig-multi-scale"
+          />
         </div>
         <div id="fig2-chart">
-          {grid ? <HeatmapGrid scales={grid.scales} cells={grid.cells} /> : null}
+          {grid ? (
+            <HeatmapGrid scales={grid.scales} cells={grid.cells} />
+          ) : null}
         </div>
       </CardContent>
     </Card>
@@ -304,7 +309,9 @@ function Figure3() {
   const [windowSize, setWindowSize] = React.useState(500);
   const [step, setStep] = React.useState(25);
   const [iterations, setIterations] = React.useState(8);
-  const [rolling, setRolling] = React.useState<Array<{ t: number; H: number }>>([]);
+  const [rolling, setRolling] = React.useState<Array<{t: number; H: number}>>(
+    [],
+  );
 
   const render = React.useCallback(() => {
     setSeed(42);
@@ -332,7 +339,9 @@ function Figure3() {
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
-          <CommonFigureInputs {...{ trueH, setTrueH, n, setN, windowSize, setWindowSize }} />
+          <CommonFigureInputs
+            {...{trueH, setTrueH, n, setN, windowSize, setWindowSize}}
+          />
           <div className="space-y-2">
             <Label>Step</Label>
             <Input
@@ -371,7 +380,7 @@ function Figure4() {
   const [wsText, setWsText] = React.useState('200, 400, 600, 800, 1000');
   const [trials, setTrials] = React.useState(10);
   const [series, setSeries] = React.useState<
-    Array<{ trueH: number; rmseByW: number[]; biasByW: number[] }>
+    Array<{trueH: number; rmseByW: number[]; biasByW: number[]}>
   >([]);
   const [windows, setWindows] = React.useState<number[]>([]);
 
@@ -385,7 +394,8 @@ function Figure4() {
       .map((s) => parseInt(s.trim(), 10))
       .filter((v) => !isNaN(v));
     setWindows(ws);
-    const out: Array<{ trueH: number; rmseByW: number[]; biasByW: number[] }> = [];
+    const out: Array<{trueH: number; rmseByW: number[]; biasByW: number[]}> =
+      [];
     for (const h of hs) {
       const rmseByW: number[] = [];
       const biasByW: number[] = [];
@@ -395,7 +405,7 @@ function Figure4() {
           setSeed(t + 1);
           const path = generateFBM(Math.min(2000, w), h);
           resetSeed();
-          const rksavr = new RKSAVR({ sampleSize: Math.min(300, w) });
+          const rksavr = new RKSAVR({sampleSize: Math.min(300, w)});
           try {
             const H = rksavr.estimateSingle(path.slice(0, w));
             errors.push(H - h);
@@ -415,7 +425,7 @@ function Figure4() {
             : NaN,
         );
       }
-      out.push({ trueH: h, rmseByW, biasByW });
+      out.push({trueH: h, rmseByW, biasByW});
     }
     setSeries(out);
   }, [hsText, wsText, trials]);
@@ -453,7 +463,10 @@ function Figure4() {
         </div>
         <div className="flex gap-2">
           <Button onClick={render}>Re-render</Button>
-          <FigureExportButton targetId="fig4-chart" filename="fig-bias-variance" />
+          <FigureExportButton
+            targetId="fig4-chart"
+            filename="fig-bias-variance"
+          />
         </div>
         <div id="fig4-chart">
           <BiasVarianceChart windows={windows} series={series} />
@@ -463,7 +476,12 @@ function Figure4() {
   );
 }
 
-function ksRescaled(s1: number[], s2: number[], f1: number, f2: number): number {
+function ksRescaled(
+  s1: number[],
+  s2: number[],
+  f1: number,
+  f2: number,
+): number {
   let i = 0;
   let j = 0;
   let d = 0;

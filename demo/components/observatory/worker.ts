@@ -11,7 +11,7 @@ import {
   significanceTest,
   confidenceInterval,
   standardError,
-} from '@/lib/rksavr';
+} from '../../../lib/index.js';
 import type {WorkerRequest, WorkerMessage} from '@/lib/worker-protocol';
 
 declare const self: DedicatedWorkerGlobalScope;
