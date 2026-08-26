@@ -5,7 +5,8 @@
 > **The answer.** hurstify gives you a one-call estimator for `H` built on the RK-SAVR algorithm — the rescaled, multi-sample, block-permuted Kolmogorov–Smirnov distance developed by Angelini & Bianchi (2025). Zero dependencies, runs anywhere JavaScript runs.
 
 <p align="center">
-  <a href="#installation"><img src="https://img.shields.io/badge/node-26%2B-brightgreen" alt="Node"></a>
+  <a href="#installation"><img src="https://img.shields.io/badge/node-26%2B-brightgreen" alt="Node">
+<a href="https://github.com/sachncs/hurstify/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/sachncs/hurstify/ci.yml?branch=master" alt="Build Status"></a></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
   <a href="https://github.com/sachncs/hurstify/actions"><img src="https://img.shields.io/github/actions/workflow/status/sachncs/hurstify/ci.yml?branch=master" alt="CI"></a>
   <a href="https://www.npmjs.com/package/hurstify"><img src="https://img.shields.io/npm/v/hurstify" alt="npm"></a>
