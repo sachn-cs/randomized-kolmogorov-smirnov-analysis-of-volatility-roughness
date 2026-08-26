@@ -82,6 +82,6 @@ export {
   differentialEvolution,
   adaptiveGridSearch,
   safeOptimizer,
-  getOptimizerFactory,
-  registerOptimizerFactory,
+  getOptimizer,
+  registerOptimizer,
 } from './optimization/index.js';
