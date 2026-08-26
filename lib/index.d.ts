@@ -14,7 +14,7 @@ export {
   correlatedGaussian,
   fractionalKernel,
   fractionalIntegral,
-} from './random.js';
+} from './stochastic-generators.js';
 export {setSeed, resetSeed, random} from './prng.js';
 export {
   LogLevel,

@@ -12,7 +12,7 @@ import {
   generateFBM,
   fractionalKernel,
   fractionalIntegral,
-} from '../../lib/random.js';
+} from '../../lib/stochastic-generators.js';
 import {setSeed, resetSeed} from '../../lib/prng.js';
 
 describe('randn', function () {
