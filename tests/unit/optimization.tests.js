@@ -90,22 +90,23 @@ describe('adaptiveGridSearch', function () {
 });
 
 describe('Optimizer Registry', function () {
-  it('retrieves built-in optimizers', function () {
-    expect(getOptimizer('brent')).to.be.a('function');
-    expect(getOptimizer('nelder-mead')).to.be.a('function');
-    expect(getOptimizer('annealing')).to.be.a('function');
-    expect(getOptimizer('de')).to.be.a('function');
-    expect(getOptimizer('ags')).to.be.a('function');
+  it('retrieves built-in optimizers as Optimizer instances', function () {
+    expect(getOptimizer('brent')).to.be.instanceOf(Object);
+    expect(getOptimizer('brent').minimize).to.be.a('function');
+    expect(getOptimizer('nelder-mead').minimize).to.be.a('function');
+    expect(getOptimizer('annealing').minimize).to.be.a('function');
+    expect(getOptimizer('de').minimize).to.be.a('function');
+    expect(getOptimizer('ags').minimize).to.be.a('function');
   });
 
   it('returns undefined for unknown optimizer', function () {
     expect(getOptimizer('unknown')).to.equal(undefined);
   });
 
-  it('registers custom optimizer', function () {
-    const custom = () => () => 42;
+  it('registers custom optimizer subclass factory', function () {
+    const custom = () => ({minimize: () => 42});
     registerOptimizer('custom', custom);
-    expect(getOptimizer('custom')).to.equal(custom);
+    expect(getOptimizer('custom').minimize()).to.equal(42);
   });
 });
 
