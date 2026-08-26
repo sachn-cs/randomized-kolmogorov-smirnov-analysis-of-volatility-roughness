@@ -5,7 +5,7 @@
     <a href="#installation"><img src="https://img.shields.io/badge/node-20%2B-brightgreen" alt="Node"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
     <a href="https://github.com/sachncs/randomized-kolmogorov-smirnov-analysis-of-volatility-roughness/actions"><img src="https://img.shields.io/github/actions/workflow/status/sachncs/randomized-kolmogorov-smirnov-analysis-of-volatility-roughness/ci.yml?branch=master" alt="CI"></a>
-    <a href="https://www.npmjs.com/package/rksavr"><img src="https://img.shields.io/npm/v/rksavr" alt="npm"></a>
+    <a href="https://www.npmjs.com/package/hurstify"><img src="https://img.shields.io/npm/v/hurstify" alt="npm"></a>
     <a href="https://github.com/sachncs/randomized-kolmogorov-smirnov-analysis-of-volatility-roughness/stargazers"><img src="https://img.shields.io/github/stars/sachncs/randomized-kolmogorov-smirnov-analysis-of-volatility-roughness" alt="Stars"></a>
   </p>
 </p>
