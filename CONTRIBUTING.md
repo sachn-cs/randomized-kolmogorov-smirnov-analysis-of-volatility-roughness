@@ -119,7 +119,7 @@ We follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
 feat(stats): add block random permutation method
 fix(inference): correct asymptotic variance formula per Prop 2.9
 docs(readme): add multi-scale analysis usage example
-test(rksavr): add edge case tests for empty windows
+test(hurstify): add edge case tests for empty windows
 chore: update eslint to v10
 ```
 
@@ -127,7 +127,7 @@ chore: update eslint to v10
 
 The scope should be the module or component affected:
 
-- `rksavr` - Main estimator class
+- `hurstify` - Main estimator class
 - `stats` - Statistics utilities
 - `optimization` - Optimizer implementations
 - `inference` - Statistical inference
