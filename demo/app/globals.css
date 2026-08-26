@@ -1,0 +1,52 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: hsl(220 38% 7%);
+  --color-foreground: hsl(220 18% 84%);
+  --color-card: hsl(224 40% 13%);
+  --color-card-foreground: hsl(220 18% 84%);
+  --color-popover: hsl(224 40% 13%);
+  --color-popover-foreground: hsl(220 18% 84%);
+  --color-primary: hsl(35 87% 56%);
+  --color-primary-foreground: hsl(220 38% 7%);
+  --color-secondary: hsl(192 87% 56%);
+  --color-secondary-foreground: hsl(220 38% 7%);
+  --color-muted: hsl(220 22% 22%);
+  --color-muted-foreground: hsl(220 18% 70%);
+  --color-accent: hsl(220 22% 18%);
+  --color-accent-foreground: hsl(220 18% 88%);
+  --color-destructive: hsl(346 78% 48%);
+  --color-destructive-foreground: hsl(0 0% 100%);
+  --color-border: hsl(220 22% 28%);
+  --color-input: hsl(220 22% 18%);
+  --color-ring: hsl(35 87% 56%);
+  --radius: 0.625rem;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: 'Geist', 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: linear-gradient(var(--color-border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-border) 1px, transparent 1px);
+  background-size: 40px 40px;
+  opacity: 0.12;
+  mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%);
+}
