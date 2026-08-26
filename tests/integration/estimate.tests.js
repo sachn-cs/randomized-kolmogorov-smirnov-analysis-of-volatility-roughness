@@ -1,12 +1,12 @@
 import {strict as assert} from 'node:assert';
 import {describe, it} from 'mocha';
-import {RKSAVR, generateFBM} from '../../lib/index.js';
+import {Hurstify, generateFBM} from '../../lib/index.js';
 
 describe('integration: end-to-end Hurst estimate', () => {
   it('recovers known H from a long fBm path within tolerance', () => {
     const trueH = 0.1;
     const path = generateFBM(2000, trueH);
-    const r = new RKSAVR({
+    const r = new Hurstify({
       scaleA1: 1,
       scaleA2: 25,
       sampleSize: 500,
