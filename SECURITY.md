@@ -8,7 +8,7 @@
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability within RK-SAVR, please send an email to the maintainers via [GitHub Issues](https://github.com/sachncs/randomized-kolmogorov-smirnov-analysis-of-volatility-roughness/issues). All security vulnerabilities will be promptly addressed.
+If you discover a security vulnerability within hurstify, please send an email to the maintainers via [GitHub Issues](https://github.com/sachncs/hurstify/issues). All security vulnerabilities will be promptly addressed.
 
 **Please do NOT report security vulnerabilities through public GitHub issues.**
 
