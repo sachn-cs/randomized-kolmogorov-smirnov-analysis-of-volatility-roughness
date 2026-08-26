@@ -1,6 +1,6 @@
 ---
 name: Bug Report
-about: Report a bug to help us improve RK-SAVR
+about: Report a bug to help us improve hurstify
 title: '[Bug] '
 labels: bug
 assignees: ''
