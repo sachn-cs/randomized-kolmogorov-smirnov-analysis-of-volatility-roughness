@@ -115,6 +115,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Basic rolling window estimation.
 - MIT License.
 
-[Unreleased]: https://github.com/sachncs/randomized-kolmogorov-smirnov-analysis-of-volatility-roughness/compare/v1.1.0...HEAD
-[1.1.0]: https://github.com/sachncs/randomized-kolmogorov-smirnov-analysis-of-volatility-roughness/compare/v1.0.0...v1.1.0
-[1.0.0]: https://github.com/sachncs/randomized-kolmogorov-smirnov-analysis-of-volatility-roughness/releases/tag/v1.0.0
+[Unreleased]: https://github.com/sachncs/hurstify/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/sachncs/hurstify/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/sachncs/hurstify/releases/tag/v1.0.0
