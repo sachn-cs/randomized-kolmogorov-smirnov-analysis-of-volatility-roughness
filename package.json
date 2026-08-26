@@ -30,7 +30,8 @@
     "build": "rollup --config rollup.dist.config.js",
     "build:full": "npm run docs && npm run build",
     "setup": "./scripts/setup.sh",
-    "cleanup": "./scripts/cleanup.sh"
+    "cleanup": "./scripts/cleanup.sh",
+    "prepare": "husky"
   },
   "babel": {
     "presets": [
