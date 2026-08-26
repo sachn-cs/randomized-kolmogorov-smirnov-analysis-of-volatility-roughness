@@ -1,6 +1,6 @@
-import { strict as assert } from 'node:assert';
-import { describe, it } from 'mocha';
-import { RKSAVR, generateFBM } from '../../lib/index.js';
+import {strict as assert} from 'node:assert';
+import {describe, it} from 'mocha';
+import {RKSAVR, generateFBM} from '../../lib/index.js';
 
 describe('integration: end-to-end Hurst estimate', () => {
   it('recovers known H from a long fBm path within tolerance', () => {
@@ -13,9 +13,6 @@ describe('integration: end-to-end Hurst estimate', () => {
       iterations: 8,
     });
     const H = r.estimateSingle(path);
-    assert.ok(
-      Math.abs(H - trueH) < 0.1,
-      `H = ${H} too far from true ${trueH}`,
-    );
+    assert.ok(Math.abs(H - trueH) < 0.1, `H = ${H} too far from true ${trueH}`);
   });
 });

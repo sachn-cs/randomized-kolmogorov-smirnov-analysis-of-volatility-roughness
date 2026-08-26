@@ -37,10 +37,7 @@ export declare function validateNoGaps(
   series: number[],
   maxGap?: number,
 ): boolean;
-export declare function downsample(
-  series: number[],
-  factor: number,
-): number[];
+export declare function downsample(series: number[], factor: number): number[];
 export declare function computeRV(returns: number[]): number;
 export declare function computeRVParkinson(
   high: number[],
@@ -60,7 +57,7 @@ export declare function preprocessPipeline(
 export declare function trainTestSplit<T>(
   data: T[],
   ratio: number,
-): { train: T[]; test: T[] };
+): {train: T[]; test: T[]};
 export declare function createWindows(
   series: number[],
   size: number,
@@ -68,10 +65,7 @@ export declare function createWindows(
 ): DataWindow[];
 export declare function generateVIXLogVol(n: number): number[];
 export declare function generateSPXLogVol(n: number): number[];
-export declare function generateIntradayPrices(
-  n: number,
-  h: number,
-): number[];
+export declare function generateIntradayPrices(n: number, h: number): number[];
 export declare function seriesToCSV(
   series: number[],
   fields?: string[],

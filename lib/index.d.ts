@@ -3,14 +3,9 @@
  * Hand-written: tracks the public API in `lib/index.js` exactly.
  */
 
-export { RKSAVR } from './rksavr.js';
-export {
-  ksDistance,
-  shuffle,
-  randomSample,
-  blockPermutation,
-} from './stats.js';
-export type { Increments } from './stats.js';
+export {RKSAVR} from './rksavr.js';
+export {ksDistance, shuffle, randomSample, blockPermutation} from './stats.js';
+export type {Increments} from './stats.js';
 export {
   generateFGN,
   generateFBM,
@@ -20,7 +15,7 @@ export {
   fractionalKernel,
   fractionalIntegral,
 } from './random.js';
-export { setSeed, resetSeed, random } from './prng.js';
+export {setSeed, resetSeed, random} from './prng.js';
 export {
   LogLevel,
   setLogLevel,

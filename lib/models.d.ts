@@ -82,7 +82,9 @@ export interface ArfimaOptions {
   window: number;
 }
 
-export declare function arfima(opts: ArfimaOptions): (series: number[]) => number;
+export declare function arfima(
+  opts: ArfimaOptions,
+): (series: number[]) => number;
 export declare function holtWintersForecast(
   series: number[],
   alpha: number,
@@ -98,9 +100,7 @@ export declare function createLSTM(opts: LstmOptions): {
   predict: (input: number[]) => number;
   train: (data: number[][], labels: number[]) => void;
 };
-export declare function createAttentionModel(opts: {
-  dim: number;
-}): {
+export declare function createAttentionModel(opts: {dim: number}): {
   predict: (input: number[]) => number;
 };
 

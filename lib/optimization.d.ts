@@ -42,30 +42,30 @@ export interface AGSOptions {
 export declare function brentMinimize(
   fn: (x: number) => number,
   opts: BrentOptions,
-): { x: number; fx: number; iterations: number };
+): {x: number; fx: number; iterations: number};
 export declare function nelderMead(
   fn: (xs: number[]) => number,
   opts: NelderMeadOptions,
-): { x: number[]; fx: number; iterations: number };
+): {x: number[]; fx: number; iterations: number};
 export declare function simulatedAnnealing(
   fn: (xs: number[]) => number,
   opts: SimulatedAnnealingOptions,
-): { x: number[]; fx: number; iterations: number };
+): {x: number[]; fx: number; iterations: number};
 export declare function differentialEvolution(
   fn: (xs: number[]) => number,
   opts: DifferentialEvolutionOptions,
-): { x: number[]; fx: number; iterations: number };
+): {x: number[]; fx: number; iterations: number};
 export declare function adaptiveGridSearch(
   fn: (x: number) => number,
   opts: AGSOptions,
-): { x: number; fx: number; iterations: number };
+): {x: number; fx: number; iterations: number};
 
 export declare function safeOptimizer(
   name: string,
 ): (
   fn: (x: number) => number,
   opts: BrentOptions | NelderMeadOptions,
-) => { x: number | number[]; fx: number };
+) => {x: number | number[]; fx: number};
 
 export declare function getOptimizerFactory(name: string): unknown;
 export declare function registerOptimizerFactory(

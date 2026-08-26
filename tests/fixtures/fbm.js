@@ -3,7 +3,7 @@
  * Reusable paths and seeds exercised across test suites.
  */
 
-import { generateFBM, setSeed, resetSeed } from '../../lib/index.js';
+import {generateFBM, setSeed, resetSeed} from '../../lib/index.js';
 
 export function fixtureFBM(n = 1000, h = 0.1) {
   setSeed(42);

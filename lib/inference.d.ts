@@ -57,7 +57,7 @@ export declare function confidenceInterval(
 ): ConfidenceInterval;
 export declare function kalmanFilter(
   series: number[],
-  options: { q: number; r: number },
+  options: {q: number; r: number},
 ): KalmanResult;
 export declare function ksCriticalValue(alpha: number, n: number): number;
 export declare function ksPvalue(d: number, n: number): number;
@@ -69,7 +69,7 @@ export declare function significanceTest(
 ): SignificanceTest;
 export declare function cusumTest(
   series: number[],
-  options?: { threshold?: number },
+  options?: {threshold?: number},
 ): CUSUMResult;
 export declare function detectBreakpoints(series: number[]): number[];
 export declare function constancyTest(series: number[]): ConstancyResult;

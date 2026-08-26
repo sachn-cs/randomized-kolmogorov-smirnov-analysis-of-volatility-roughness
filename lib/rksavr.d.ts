@@ -36,7 +36,7 @@ export interface SingleEstimate {
     significant: boolean;
   };
   se?: number;
-  ci?: { lower: number; upper: number };
+  ci?: {lower: number; upper: number};
 }
 
 export declare class RKSAVR {
