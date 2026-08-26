@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-08-26
+
+### Rebrand: `rksavr` → `hurstify`
+
+This is the v2.0.0 release of the project under its new name: **hurstify**. The
+rebrand is cosmetic + ergonomic — algorithm behavior and public API are unchanged.
+See [MIGRATION.md](MIGRATION.md) for upgrading from v1.x.
+
+**Highlights**
+- New package name on npm: `hurstify`.
+- Demo rewritten as a Next.js 16 + shadcn/ui (new-york) **Observatory**.
+- Per-module TypeScript declarations in `lib/*.d.ts`.
+- Tests reorganized into `tests/{unit,integration,fixtures}`.
+- CI matrix: Node `[24, 26]`. Library Node floor: `>=24`.
+- Bundler upgraded to Babel 8; ESLint to 10.9.1; Rollup to 4.63.0.
+- Husky + lint-staged + commitlint enforce Conventional Commits.
+- CODEOWNERS for `lib/` and `demo/`.
+- 191 tests still passing under the new name.
+
+**Migration**
+```bash
+npm uninstall rksavr
+npm install hurstify
+```
+```diff
+-import { RKSAVR } from 'rksavr';
++import { RKSAVR } from 'hurstify';
+```
+
 ## [2.0.0] - hurstify rebrand
 
 ### Changed
