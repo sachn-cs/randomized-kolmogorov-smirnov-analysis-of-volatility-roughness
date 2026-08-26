@@ -27,7 +27,7 @@ export default [{
   output: {
     file: 'dist/index.iife.js',
     format: 'iife',
-    name: 'RKSAVR',
+    name: 'hurstify',
     sourcemap: true
   },
   plugins: [
