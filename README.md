@@ -39,13 +39,13 @@ Requires Node.js ≥ 24.
 ## Quick Start
 
 ```javascript
-import { RKSAVR, generateFBM } from 'hurstify';
+import { Hurstify, generateFBM } from 'hurstify';
 
 // Generate a synthetic rough-volatility path with H = 0.1
 const path = generateFBM(2000, 0.1);
 
 // Estimate Ĥ in a single call
-const r = new RKSAVR({
+const r = new Hurstify({
   scaleA1: 1,
   scaleA2: 25,
   sampleSize: 500,
@@ -58,7 +58,7 @@ console.log(`Ĥ = ${H.toFixed(3)} (true: 0.100)`);
 For multi-scale analysis:
 
 ```javascript
-const r = new RKSAVR({
+const r = new Hurstify({
   scales: [1, 2, 5, 10, 20, 50],
   weights: [1.0, 0.8, 0.6, 0.4, 0.2, 0.1],
   sampleSize: 500,
@@ -110,11 +110,11 @@ const results = r.rolling(path, windowSize, step, (p) => {
 
 | Symbol | Description |
 |--------|-------------|
-| `RKSAVR` | Main estimator (two-scale and multi-scale) |
-| `RKSAVR#estimate(data)` | Single-shot `H` estimate |
-| `RKSAVR#estimateSingleWithDiagnostics(data)` | Returns `H`, `D`, significance, SE, CI |
-| `RKSAVR#rolling(data, w, step, onProgress)` | Sliding-window `H` trajectory |
-| `RKSAVR#rollingMultiScale(...)` | Multi-scale rolling estimates |
+| `Hurstify` | Main estimator (two-scale and multi-scale) |
+| `Hurstify#estimate(data)` | Single-shot `H` estimate |
+| `Hurstify#estimateSingleWithDiagnostics(data)` | Returns `H`, `D`, significance, SE, CI |
+| `Hurstify#rolling(data, w, step, onProgress)` | Sliding-window `H` trajectory |
+| `Hurstify#rollingMultiScale(...)` | Multi-scale rolling estimates |
 | `asymptoticVariance(a1, a2, n, m)` | Prop 2.9 variance |
 | `confidenceInterval(h, a1, a2, n, m, alpha)` | CI for `H` |
 | `kalmanFilter(series, opts)` | Kalman-smoothed `H` series |
@@ -151,7 +151,7 @@ Doubling the sample sizes halves the SE; widening the scale ratio shrinks it qua
 hurstify/
 ├── lib/                       # Core library (zero runtime deps)
 │   ├── index.js               # Public API entry
-│   ├── rksavr.js              # Main estimator class
+│   ├── hurstify.js            # Main estimator class
 │   ├── stats.js               # KS distance, block permutation, sampling
 │   ├── optimization/          # Brent, Nelder-Mead, SA, DE, AGS
 │   ├── inference/             # Asymptotic variance, Kalman, CUSUM
