@@ -11,7 +11,7 @@
  *   - data/samples/figure-3-profile.json (multi-scale scaling profile)
  */
 
-import {RKSAVR} from '../lib/rksavr.js';
+import {Hurstify} from '../lib/hurstify.js';
 import {generateFBM} from '../lib/fbm.js';
 import {confidenceInterval} from '../lib/inference.js';
 import {setSeed} from '../lib/prng.js';
@@ -31,14 +31,14 @@ export function generateFigure1() {
   const n = 2048;
   const path = generateFBM(n, H0);
 
-  const rksavr = new RKSAVR({
+  const estimator = new Hurstify({
     scaleA1: 1,
     scaleA2: 50,
     sampleSize: 500,
     iterations: 16,
   });
-  const estimate = rksavr.estimate(path);
-  const {minimizedD} = rksavr.estimateSingleWithDiagnostics(path);
+  const estimate = estimator.estimate(path);
+  const {minimizedD} = estimator.estimateSingleWithDiagnostics(path);
 
   const data = {
     figure: 1,
@@ -73,7 +73,7 @@ export function generateFigure2() {
   const step = 20;
   const path = generateFBM(n, H0);
 
-  const rksavr = new RKSAVR({
+  const estimator = new Hurstify({
     scaleA1: 1,
     scaleA2: 50,
     sampleSize: 500,
@@ -81,7 +81,7 @@ export function generateFigure2() {
     blockSize: 16,
   });
 
-  const rolling = rksavr.rolling(path, windowSize, step);
+  const rolling = estimator.rolling(path, windowSize, step);
   const estimates = rolling.filter((r) => r.H !== null);
 
   // Add confidence intervals
@@ -129,14 +129,14 @@ export function generateFigure3() {
   const scales = [1, 2, 5, 10, 20, 50];
   const weights = [1.0, 0.9, 0.7, 0.5, 0.3, 0.1];
 
-  const rksavr = new RKSAVR({
+  const estimator = new Hurstify({
     scales,
     weights,
     sampleSize: 500,
     iterations: 8,
   });
 
-  const {H, profile} = rksavr.rollingMultiScale(path, n, scales, weights, n)[0];
+  const {H, profile} = estimator.rollingMultiScale(path, n, scales, weights, n)[0];
 
   const data = {
     figure: 3,

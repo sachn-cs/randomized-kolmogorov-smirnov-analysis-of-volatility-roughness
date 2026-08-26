@@ -9,7 +9,7 @@
  *   - data/samples/rolling-estimates.json
  */
 
-import {RKSAVR} from '../lib/rksavr.js';
+import {Hurstify} from '../lib/hurstify.js';
 import {generateVIXLogVol, generateSPXLogVol} from '../lib/data/synthetic.js';
 import {setSeed} from '../lib/prng.js';
 import {writeFileSync} from 'fs';
@@ -23,14 +23,14 @@ const __dirname = dirname(__filename);
  * Runs rolling window estimation on a log-volatility series.
  *
  * @param {Array<number>} logVol Log-volatility series.
- * @param {Object} config RKSAVR configuration.
+ * @param {Object} config Hurstify configuration.
  * @param {number} windowSize Window size.
  * @param {number} step Step size.
  * @return {Array<Object>} Rolling estimates.
  */
 export function runRollingExperiment(logVol, config, windowSize, step) {
-  const rksavr = new RKSAVR(config);
-  return rksavr.rolling(logVol, windowSize, step);
+  const estimator = new Hurstify(config);
+  return estimator.rolling(logVol, windowSize, step);
 }
 
 /**

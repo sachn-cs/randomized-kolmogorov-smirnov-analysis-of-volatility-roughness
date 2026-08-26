@@ -9,7 +9,7 @@
  *   - data/samples/constancy-test-results.json
  */
 
-import {RKSAVR} from '../lib/rksavr.js';
+import {Hurstify} from '../lib/hurstify.js';
 import {constancyTest} from '../lib/inference.js';
 import {generateVIXLogVol, generateSPXLogVol} from '../lib/data/synthetic.js';
 import {generateFBM} from '../lib/fbm.js';
@@ -25,7 +25,7 @@ const __dirname = dirname(__filename);
  * Runs constancy test on rolling H estimates.
  *
  * @param {Array<number>} logVol Log-volatility series.
- * @param {Object} config RKSAVR configuration.
+ * @param {Object} config Hurstify configuration.
  * @param {number} windowSize Window size.
  * @param {number} step Step size.
  * @param {Object} kalmanOpts Kalman filter options.
@@ -38,8 +38,8 @@ export function runConstancyExperiment(
   step,
   kalmanOpts = {},
 ) {
-  const rksavr = new RKSAVR(config);
-  const estimates = rksavr
+  const estimator = new Hurstify(config);
+  const estimates = estimator
     .rolling(logVol, windowSize, step)
     .filter((r) => r.H !== null)
     .map((r) => r.H);
