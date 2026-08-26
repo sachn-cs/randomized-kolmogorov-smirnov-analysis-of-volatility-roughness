@@ -12,9 +12,9 @@ import {
   confidenceInterval,
   standardError,
 } from '@/lib/rksavr';
-import type { WorkerRequest, WorkerMessage } from '@/lib/worker-protocol';
+import type {WorkerRequest, WorkerMessage} from '@/lib/worker-protocol';
 
-declare const self: ServiceWorkerGlobalScope;
+declare const self: DedicatedWorkerGlobalScope;
 
 function generatePath(opts: {
   model: string;
@@ -26,13 +26,14 @@ function generatePath(opts: {
   let path: number[];
   switch (opts.model) {
     case 'rBergomi':
-      path = rBergomiPrice({ nPaths: 1, nSteps: opts.nSteps, h: opts.h }).prices[0];
+      path = rBergomiPrice({nPaths: 1, nSteps: opts.nSteps, h: opts.h})
+        .prices[0];
       break;
     case 'rFSV':
-      path = rFSVPrice({ nSteps: opts.nSteps, h: opts.h }).prices;
+      path = rFSVPrice({nSteps: opts.nSteps, h: opts.h}).prices;
       break;
     case 'fOU':
-      path = fOU({ nSteps: opts.nSteps, h: opts.h }).path;
+      path = fOU({nSteps: opts.nSteps, h: opts.h}).path;
       break;
     case 'mPRE':
       path = mPRE({
@@ -49,21 +50,23 @@ function generatePath(opts: {
   return path;
 }
 
-self.onmessage = (e: MessageEvent<WorkerRequest & { id: number }>) => {
-  const { id, cmd, payload } = e.data;
+self.onmessage = (e: MessageEvent<WorkerRequest & {id: number}>) => {
+  const {id, cmd, payload} = e.data;
   try {
     switch (cmd) {
       case 'generate': {
         const path = generatePath(payload);
-        post({ type: 'complete', id, result: { path } });
+        post({type: 'complete', id, result: {path}});
         return;
       }
       case 'single': {
         const rksavr = new RKSAVR(payload.config);
-        const { H, minimizedD } = rksavr.estimateSingleWithDiagnostics(
+        const {H, minimizedD} = rksavr.estimateSingleWithDiagnostics(
           payload.path,
         );
-        const n = (payload.config as Record<string, unknown>).sampleSize as number || 500;
+        const n =
+          ((payload.config as Record<string, unknown>).sampleSize as number) ||
+          500;
         const sig = significanceTest(minimizedD, n, n, 0.05);
         const se = standardError(
           ((payload.config as Record<string, unknown>).scaleA1 as number) || 1,
@@ -72,7 +75,11 @@ self.onmessage = (e: MessageEvent<WorkerRequest & { id: number }>) => {
           n,
         );
         const ci = confidenceInterval(H, se, 0.05);
-        post({ type: 'complete', id, result: { H, minimizedD, significance: sig, se, ci } });
+        post({
+          type: 'complete',
+          id,
+          result: {H, minimizedD, significance: sig, se, ci},
+        });
         return;
       }
       case 'rolling': {
@@ -81,15 +88,20 @@ self.onmessage = (e: MessageEvent<WorkerRequest & { id: number }>) => {
           payload.path,
           payload.windowSize,
           payload.step || 1,
-          (progress: number) =>
-            post({ type: 'progress', id, progress }),
+          (progress: number) => post({type: 'progress', id, progress}),
         );
-        post({ type: 'complete', id, result: { results } });
+        post({type: 'complete', id, result: {results}});
         return;
       }
       case 'explorer': {
-        const { trueHs, windowSizes, optimizers, nTrials, pathLength, configBase } =
-          payload;
+        const {
+          trueHs,
+          windowSizes,
+          optimizers,
+          nTrials,
+          pathLength,
+          configBase,
+        } = payload;
         const results: Array<{
           trueH: number;
           windowSize: number;
@@ -155,11 +167,11 @@ self.onmessage = (e: MessageEvent<WorkerRequest & { id: number }>) => {
             }
           }
         }
-        post({ type: 'complete', id, result: { results } });
+        post({type: 'complete', id, result: {results}});
         return;
       }
       default:
-        post({ type: 'error', id, message: `Unknown command: ${cmd}` });
+        post({type: 'error', id, message: `Unknown command: ${cmd}`});
     }
   } catch (err) {
     post({
