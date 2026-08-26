@@ -41,6 +41,11 @@ export default function ExplorerPage() {
   );
 }
 
+export const metadata = {
+  title: 'Explorer',
+  description: 'Grid search across Hurst values, window sizes, and optimizers.',
+};
+
 function ExplorerView() {
   const worker = useWorker();
   const [hStart, setHStart] = React.useState(0.05);

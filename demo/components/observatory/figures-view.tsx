@@ -49,6 +49,11 @@ export default function FiguresPage() {
   );
 }
 
+export const metadata = {
+  title: 'Figures',
+  description: 'Replicated figures from Angelini & Bianchi (2025) with configurable parameters.',
+};
+
 function FiguresView() {
   const [tab, setTab] = React.useState('fig-ks-curve');
   return (

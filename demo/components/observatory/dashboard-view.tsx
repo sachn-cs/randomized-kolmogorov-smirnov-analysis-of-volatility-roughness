@@ -62,6 +62,11 @@ export default function DashboardPage() {
   );
 }
 
+export const metadata = {
+  title: 'Dashboard',
+  description: 'Real-time Hurst parameter estimation with animated trajectory and diagnostic readouts.',
+};
+
 function PageHeader({
   title,
   description,
