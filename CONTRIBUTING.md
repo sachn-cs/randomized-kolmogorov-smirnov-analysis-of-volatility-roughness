@@ -1,6 +1,8 @@
-# Contributing to RK-SAVR
+# Contributing to hurstify
 
-Thank you for your interest in contributing to RK-SAVR! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to hurstify! This document provides guidelines and instructions for contributing.
+
+> hurstify is the renamed-and-rebranded successor to RK-SAVR. The algorithm and tests are unchanged; the focus of this rebrand was packaging, tooling, and the observatory demo.
 
 ## Table of Contents
 
@@ -23,9 +25,9 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE_OF_CONDU
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) v18 or higher
-- npm or yarn
-- Git
+- [Node.js](https://nodejs.org/) v24 or higher (CI runs on 24 and 26)
+- npm 10 or higher
+- Git 2.40 or higher
 
 ### Setup
 
