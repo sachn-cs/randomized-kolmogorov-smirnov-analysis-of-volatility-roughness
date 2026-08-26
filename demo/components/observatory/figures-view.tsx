@@ -244,7 +244,7 @@ function Figure2() {
     resetSeed();
     const slice = path.slice(0, windowSize);
     const estimator = new Hurstify({scales, sampleSize: Math.min(300, windowSize)});
-    const raw = estimator._estimateSingleRaw(slice, {scales});
+    const raw = estimator.profile(slice, {scales});
     const cells: Array<{i: number; j: number; value: number | null}> = [];
     for (let i = 0; i < scales.length; i++) {
       for (let j = 0; j < scales.length; j++) {
