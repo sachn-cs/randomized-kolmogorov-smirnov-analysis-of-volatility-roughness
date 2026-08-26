@@ -23,8 +23,8 @@ import {
   generateSPXLogVol,
   generateIntradayPrices,
   seriesToCSV,
-} from '../lib/data/index.js';
-import {setSeed, resetSeed} from '../lib/prng.js';
+} from '../../lib/data/index.js';
+import {setSeed, resetSeed} from '../../lib/prng.js';
 
 describe('Data Loaders', function () {
   it('parses simple CSV', function () {

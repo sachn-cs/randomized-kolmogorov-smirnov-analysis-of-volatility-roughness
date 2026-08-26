@@ -16,7 +16,7 @@ import {
   getModel,
   listModels,
   registerModel,
-} from '../lib/models/index.js';
+} from '../../lib/models/index.js';
 
 describe('rBergomi', function () {
   it('generates volatility paths', function () {

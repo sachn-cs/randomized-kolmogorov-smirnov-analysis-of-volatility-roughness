@@ -8,7 +8,7 @@ import {
   preavgReturns,
   realizedKernel,
   logVolDebias,
-} from '../lib/data/noise.js';
+} from '../../lib/data/noise.js';
 
 describe('preavgReturns', function () {
   it('produces noise-robust returns', function () {

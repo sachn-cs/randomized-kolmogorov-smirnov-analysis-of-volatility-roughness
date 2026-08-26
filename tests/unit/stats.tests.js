@@ -10,8 +10,8 @@ import {
   shuffle,
   randomSample,
   blockPermutation,
-} from '../lib/stats.js';
-import {setSeed, resetSeed} from '../lib/prng.js';
+} from '../../lib/stats.js';
+import {setSeed, resetSeed} from '../../lib/prng.js';
 
 describe('ksDistance', function () {
   it('computes zero distance for identical samples', function () {

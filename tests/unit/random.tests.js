@@ -12,8 +12,8 @@ import {
   generateFBM,
   fractionalKernel,
   fractionalIntegral,
-} from '../lib/random.js';
-import {setSeed, resetSeed} from '../lib/prng.js';
+} from '../../lib/random.js';
+import {setSeed, resetSeed} from '../../lib/prng.js';
 
 describe('randn', function () {
   it('produces standard normal variates', function () {

@@ -4,7 +4,7 @@
 
 import {describe, it} from 'mocha';
 import {expect} from 'chai';
-import {setSeed, resetSeed, random} from '../lib/prng.js';
+import {setSeed, resetSeed, random} from '../../lib/prng.js';
 
 describe('PRNG', function () {
   it('produces deterministic output with seed', function () {

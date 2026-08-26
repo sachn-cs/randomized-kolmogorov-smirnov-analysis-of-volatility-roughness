@@ -12,7 +12,7 @@ import {
   info,
   warn,
   error,
-} from '../lib/logger.js';
+} from '../../lib/logger.js';
 
 describe('Logger', function () {
   it('has correct log level values', function () {

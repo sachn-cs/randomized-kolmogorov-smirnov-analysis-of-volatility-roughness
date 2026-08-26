@@ -12,7 +12,7 @@ import {
   adaptiveGridSearch,
   getOptimizerFactory,
   registerOptimizerFactory,
-} from '../lib/optimization/index.js';
+} from '../../lib/optimization/index.js';
 
 describe('brentMinimize', function () {
   it('finds minimum of parabola', function () {

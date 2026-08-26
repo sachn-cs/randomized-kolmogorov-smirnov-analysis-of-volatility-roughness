@@ -6,8 +6,8 @@
 import {describe, it} from 'mocha';
 import {expect} from 'chai';
 
-import {RKSAVR} from '../lib/rksavr.js';
-import {generateFBM} from '../lib/fbm.js';
+import {RKSAVR} from '../../lib/rksavr.js';
+import {generateFBM} from '../../lib/fbm.js';
 import {
   asymptoticVariance,
   confidenceInterval,
@@ -19,15 +19,15 @@ import {
   detectBreakpoints,
   constancyTest,
   bootstrapCI,
-} from '../lib/inference.js';
+} from '../../lib/inference.js';
 
-import {setSeed, resetSeed} from '../lib/prng.js';
+import {setSeed, resetSeed} from '../../lib/prng.js';
 import {
   ksDistance,
   shuffle,
   randomSample,
   blockPermutation,
-} from '../lib/stats.js';
+} from '../../lib/stats.js';
 
 describe('RKSAVR', function () {
   this.timeout(10000);

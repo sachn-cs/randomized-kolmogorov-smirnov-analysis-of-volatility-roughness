@@ -9,7 +9,7 @@ import {
   holtWintersForecast,
   createLSTM,
   createAttentionModel,
-} from '../lib/models/forecasting.js';
+} from '../../lib/models/forecasting.js';
 
 describe('arfima', function () {
   it('produces a forecast function', function () {
