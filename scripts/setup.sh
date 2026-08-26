@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 set -e
 
-echo "Setting up rksavr..."
+echo "Setting up hurstify..."
 
 # Check Node.js version
 node_version=$(node -v | sed 's/v//')
