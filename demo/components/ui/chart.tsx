@@ -115,4 +115,3 @@ function ChartTooltipContent(props: TooltipProps & {className?: string}) {
 }
 
 export {ChartContainer, ChartTooltip, ChartTooltipContent, useChart};
-export type {ChartConfig};
