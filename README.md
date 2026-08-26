@@ -12,7 +12,7 @@
 
 **Randomized Kolmogorov-Smirnov Analysis of Volatility Roughness — a high-performance JavaScript implementation for estimating the Hurst parameter of rough volatility models.**
 
-`rksavr` is a JavaScript implementation of the **RK-SAVR** algorithm (Angelini & Bianchi, arXiv:2509.20015v3) for estimating the Hurst parameter `H` of rough volatility models. It compares the empirical distributions of rescaled increments at two (or more) scales to recover `H` without ever fitting a parametric model.
+`hurstify` is a JavaScript implementation of the **RK-SAVR** algorithm (Angelini & Bianchi, arXiv:2509.20015v3) for estimating the Hurst parameter `H` of rough volatility models. It compares the empirical distributions of rescaled increments at two (or more) scales to recover `H` without ever fitting a parametric model.
 
 ## Features
 
