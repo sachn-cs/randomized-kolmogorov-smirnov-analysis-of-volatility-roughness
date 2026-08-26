@@ -58,4 +58,12 @@ export declare class RKSAVR {
     step?: number,
   ): RollingResult[];
   static getIncrements(data: number[], a: number): number[];
+  _estimateSingleRaw(
+    data: number[],
+    opts: {scales?: number[]},
+  ): {
+    H: number;
+    sortedSamples: number[][];
+    scaleValues: number[];
+  };
 }
