@@ -17,11 +17,8 @@
     "url": "https://github.com/sponsors/sachncs"
   },
   "scripts": {
-    "dev": "vite demo",
-    "build:demo": "vite build demo",
-    "preview": "vite preview demo",
-    "lint": "eslint lib/ tests/ demo/ experiments/ && prettier --check lib/ tests/ demo/ experiments/",
-    "lint:fix": "eslint --fix lib/ tests/ demo/ experiments/ && prettier --write lib/ tests/ demo/ experiments/",
+    "lint": "eslint lib/ tests/ experiments/ && prettier --check lib/ tests/ experiments/",
+    "lint:fix": "eslint --fix lib/ tests/ experiments/ && prettier --write lib/ tests/ experiments/",
     "test": "mocha \"tests/**/*.tests.js\"",
     "test:watch": "npm test -- --watch",
     "test:coverage": "NODE_ENV=test c8 --all --include=lib/* --reporter=html --reporter=text mocha \"tests/**/*.tests.js\"",
