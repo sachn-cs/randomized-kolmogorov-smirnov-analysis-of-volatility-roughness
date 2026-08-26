@@ -3,7 +3,7 @@
  * Hand-written: tracks the public API in `lib/index.js` exactly.
  */
 
-export {RKSAVR} from './rksavr.js';
+export {Hurstify} from './hurstify.js';
 export {ksDistance, shuffle, randomSample, blockPermutation} from './stats.js';
 export type {Increments} from './stats.js';
 export {
