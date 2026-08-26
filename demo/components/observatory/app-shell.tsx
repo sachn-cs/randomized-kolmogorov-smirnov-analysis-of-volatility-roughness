@@ -54,7 +54,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <footer className="mt-auto pt-8">
           <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-muted-foreground">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-secondary shadow-[0_0_6px_var(--color-secondary)]" />
-            System ready
+            Observatory online
           </div>
           <a
             href="https://github.com/sachncs/hurstify"
