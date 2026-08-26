@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 import {
-  RKSAVR,
+  Hurstify,
   generateFBM,
   rBergomiPrice,
   rFSVPrice,
@@ -63,8 +63,8 @@ self.onmessage = (e: MessageEvent<WorkerRequest & {id: number}>) => {
         return;
       }
       case 'single': {
-        const rksavr = new RKSAVR(payload.config);
-        const {H, minimizedD} = rksavr.estimateSingleWithDiagnostics(
+        const estimator = new Hurstify(payload.config);
+        const {H, minimizedD} = estimator.estimateSingleWithDiagnostics(
           payload.path,
         );
         const n =
@@ -86,8 +86,8 @@ self.onmessage = (e: MessageEvent<WorkerRequest & {id: number}>) => {
         return;
       }
       case 'rolling': {
-        const rksavr = new RKSAVR(payload.config);
-        const results = rksavr.rolling(
+        const estimator = new Hurstify(payload.config);
+        const results = estimator.rolling(
           payload.path,
           payload.windowSize,
           payload.step || 1,
@@ -136,10 +136,10 @@ self.onmessage = (e: MessageEvent<WorkerRequest & {id: number}>) => {
                     'brent' | 'nelder-mead' | 'annealing' | 'de' | 'ags',
                   sampleSize: Math.min(500, w),
                 };
-                const rksavr = new RKSAVR(cfg);
+                const estimator = new Hurstify(cfg);
                 const t0 = performance.now();
                 try {
-                  const H = rksavr.estimateSingle(path.slice(0, w));
+                  const H = estimator.estimateSingle(path.slice(0, w));
                   errors.push(H - trueH);
                 } catch {
                   errors.push(NaN);

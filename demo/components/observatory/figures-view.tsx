@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {RKSAVR, generateFBM, setSeed, resetSeed} from '../../../lib/index.js';
+import {Hurstify, generateFBM, setSeed, resetSeed} from '../../../lib/index.js';
 import {fmt} from '@/lib/format';
 import {HTrajChart} from '@/components/observatory/charts/h-traj-chart';
 import {HeatmapGrid} from '@/components/observatory/charts/heatmap-grid';
@@ -151,8 +151,8 @@ function Figure1() {
     const path = generateFBM(n, trueH);
     resetSeed();
     const slice = path.slice(0, windowSize);
-    const inc1 = RKSAVR.getIncrements(slice, a1);
-    const inc2 = RKSAVR.getIncrements(slice, a2);
+    const inc1 = Hurstify.getIncrements(slice, a1);
+    const inc2 = Hurstify.getIncrements(slice, a2);
     const s1 = inc1.slice().sort((a, b) => a - b);
     const s2 = inc2.slice().sort((a, b) => a - b);
     const hs: number[] = [];
@@ -243,8 +243,8 @@ function Figure2() {
     const path = generateFBM(n, trueH);
     resetSeed();
     const slice = path.slice(0, windowSize);
-    const rksavr = new RKSAVR({scales, sampleSize: Math.min(300, windowSize)});
-    const raw = rksavr._estimateSingleRaw(slice, {scales});
+    const estimator = new Hurstify({scales, sampleSize: Math.min(300, windowSize)});
+    const raw = estimator._estimateSingleRaw(slice, {scales});
     const cells: Array<{i: number; j: number; value: number | null}> = [];
     for (let i = 0; i < scales.length; i++) {
       for (let j = 0; j < scales.length; j++) {
@@ -317,13 +317,13 @@ function Figure3() {
     setSeed(42);
     const path = generateFBM(n, trueH);
     resetSeed();
-    const rksavr = new RKSAVR({
+    const estimator = new Hurstify({
       scaleA1: 1,
       scaleA2: 25,
       sampleSize: 500,
       iterations,
     });
-    const results = rksavr.rolling(path, windowSize, step);
+    const results = estimator.rolling(path, windowSize, step);
     setRolling(results.filter((r) => Number.isFinite(r.H)));
   }, [n, trueH, windowSize, step, iterations]);
 
@@ -405,9 +405,9 @@ function Figure4() {
           setSeed(t + 1);
           const path = generateFBM(Math.min(2000, w), h);
           resetSeed();
-          const rksavr = new RKSAVR({sampleSize: Math.min(300, w)});
+          const estimator = new Hurstify({sampleSize: Math.min(300, w)});
           try {
-            const H = rksavr.estimateSingle(path.slice(0, w));
+            const H = estimator.estimateSingle(path.slice(0, w));
             errors.push(H - h);
           } catch {
             errors.push(NaN);
