@@ -50,7 +50,7 @@
   "targets": "> 0.25%, not dead",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/sachncs/randomized-kolmogorov-smirnov-analysis-of-volatility-roughness.git"
+    "url": "git+ssh://git@github.com/sachncs/hurstify.git"
   },
   "keywords": [
     "kolmogorov-smirnov",
