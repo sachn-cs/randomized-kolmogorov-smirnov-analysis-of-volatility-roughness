@@ -28,19 +28,22 @@ export function HTrajChart({
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{top: 8, left: 8, right: 0, bottom: 4}}>
           <CartesianGrid
-            stroke="hsl(220 22% 28% / 0.4)"
+            stroke="var(--color-chart-grid)"
             strokeDasharray="2 4"
           />
-          <XAxis dataKey="t" tick={{fontSize: 10, fill: 'hsl(220 18% 70%)'}} />
+          <XAxis
+            dataKey="t"
+            tick={{fontSize: 10, fill: 'var(--color-chart-axis)'}}
+          />
           <YAxis
             domain={[0, 0.6]}
-            tick={{fontSize: 10, fill: 'hsl(220 18% 70%)'}}
+            tick={{fontSize: 10, fill: 'var(--color-chart-axis)'}}
             width={40}
           />
           <Tooltip
             contentStyle={{
-              background: 'hsl(220 40% 9%)',
-              border: '1px solid hsl(220 22% 28%)',
+              background: 'var(--color-chart-tooltip-bg)',
+              border: '1px solid var(--color-chart-tooltip-border)',
               fontFamily: 'var(--font-geist-mono)',
               fontSize: 12,
             }}
@@ -48,19 +51,19 @@ export function HTrajChart({
           />
           <ReferenceLine
             y={trueH}
-            stroke="hsl(220 18% 70%)"
+            stroke="var(--color-chart-axis)"
             strokeDasharray="4 4"
             label={{
               value: `True H = ${trueH.toFixed(2)}`,
               position: 'insideTopRight',
-              fill: 'hsl(220 18% 70%)',
+              fill: 'var(--color-chart-axis)',
               fontSize: 10,
             }}
           />
           <Line
             type="monotone"
             dataKey="H"
-            stroke="hsl(192 87% 56%)"
+            stroke="var(--color-chart-series-2)"
             strokeWidth={1.5}
             dot={false}
           />

@@ -12,11 +12,11 @@ import {
 } from 'recharts';
 
 const COLORS = [
-  'hsl(35 87% 56%)',
-  'hsl(192 87% 56%)',
-  'hsl(346 78% 48%)',
-  'hsl(220 18% 60%)',
-  'hsl(35 87% 70%)',
+  'var(--color-chart-series-1)',
+  'var(--color-chart-series-2)',
+  'var(--color-chart-series-3)',
+  'var(--color-chart-series-4)',
+  'var(--color-chart-series-5)',
 ];
 
 export function RMSEByHChart({
@@ -47,19 +47,19 @@ export function RMSEByHChart({
       <ResponsiveContainer width="100%" height="100%">
         <LineChart margin={{top: 8, left: 8, right: 0, bottom: 8}}>
           <CartesianGrid
-            stroke="hsl(220 22% 28% / 0.4)"
+            stroke="var(--color-chart-grid)"
             strokeDasharray="2 4"
           />
           <XAxis
             dataKey="trueH"
             type="number"
             domain={['auto', 'auto']}
-            tick={{fontSize: 10, fill: 'hsl(220 18% 70%)'}}
+            tick={{fontSize: 10, fill: 'var(--color-chart-axis)'}}
             label={{
               value: 'True H',
               position: 'insideBottom',
               offset: -2,
-              fill: 'hsl(220 18% 70%)',
+              fill: 'var(--color-chart-axis)',
               fontSize: 11,
             }}
           />
@@ -67,20 +67,20 @@ export function RMSEByHChart({
             type="number"
             scale="log"
             domain={['auto', 'auto']}
-            tick={{fontSize: 10, fill: 'hsl(220 18% 70%)'}}
+            tick={{fontSize: 10, fill: 'var(--color-chart-axis)'}}
             width={48}
             label={{
               value: 'RMSE',
               angle: -90,
               position: 'insideLeft',
-              fill: 'hsl(220 18% 70%)',
+              fill: 'var(--color-chart-axis)',
               fontSize: 11,
             }}
           />
           <Tooltip
             contentStyle={{
-              background: 'hsl(220 40% 9%)',
-              border: '1px solid hsl(220 22% 28%)',
+              background: 'var(--color-chart-tooltip-bg)',
+              border: '1px solid var(--color-chart-tooltip-border)',
               fontFamily: 'var(--font-geist-mono)',
               fontSize: 11,
             }}

@@ -28,8 +28,8 @@ export function HeatmapGrid({
     const t = (v - min) / (max - min || 1);
     if (t < 0.25) return `hsl(220 38% ${20 + (1 - t) * 4}%)`;
     if (t < 0.5) return `hsl(220 47% ${30 + (1 - t) * 10}%)`;
-    if (t < 0.75) return `hsl(192 87% 50%)`;
-    return `hsl(35 87% 56%)`;
+    if (t < 0.75) return 'var(--color-chart-series-2)';
+    return 'var(--color-chart-series-1)';
   };
 
   return (
@@ -76,7 +76,7 @@ export function HeatmapGrid({
       </div>
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <span>{label}</span>
-        <div className="h-2 w-40 rounded bg-gradient-to-r from-[hsl(220_38%_20%)] via-[hsl(192_87%_50%)] to-[hsl(35_87%_56%)]" />
+        <div className="h-2 w-40 rounded bg-gradient-to-r from-[hsl(220_38%_20%)] via-[var(--color-chart-series-2)] to-[var(--color-chart-series-1)]" />
         <span className="font-mono">
           {min.toFixed(2)} → {max.toFixed(2)}
         </span>

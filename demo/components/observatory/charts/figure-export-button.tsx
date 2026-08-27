@@ -15,7 +15,14 @@ export function FigureExportButton({
   const onClick = async () => {
     const node = document.getElementById(targetId);
     if (!node) return;
-    const dataUrl = await toPng(node, {backgroundColor: 'hsl(220 38% 7%)'});
+    // Read the live theme background so the exported PNG matches what the
+    // user sees on screen (dark or light).
+    const bg = getComputedStyle(document.documentElement)
+      .getPropertyValue('--color-chart-export-bg')
+      .trim();
+    const dataUrl = await toPng(node, {
+      backgroundColor: bg || undefined,
+    });
     const link = document.createElement('a');
     link.download = `${filename}.png`;
     link.href = dataUrl;

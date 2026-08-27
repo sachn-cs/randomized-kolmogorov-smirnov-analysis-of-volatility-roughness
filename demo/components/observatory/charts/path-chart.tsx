@@ -11,7 +11,7 @@ import {
 import type {ChartConfig} from '@/components/ui/chart';
 
 const config = {
-  path: {label: 'Path', color: 'hsl(35 87% 56%)'},
+  path: {label: 'Path', color: 'var(--color-chart-series-1)'},
 } satisfies ChartConfig;
 
 export function PathChart({path}: {path: number[]}) {
@@ -28,25 +28,25 @@ export function PathChart({path}: {path: number[]}) {
             <linearGradient id="fillPath" x1="0" y1="0" x2="0" y2="1">
               <stop
                 offset="0%"
-                stopColor={config.path.color}
+                stopColor="var(--color-chart-series-1)"
                 stopOpacity={0.4}
               />
               <stop
                 offset="100%"
-                stopColor={config.path.color}
+                stopColor="var(--color-chart-series-1)"
                 stopOpacity={0}
               />
             </linearGradient>
           </defs>
           <CartesianGrid
-            stroke="hsl(220 22% 28% / 0.4)"
+            stroke="var(--color-chart-grid)"
             strokeDasharray="2 4"
           />
           <XAxis dataKey="i" hide />
           <Tooltip
             contentStyle={{
-              background: 'hsl(220 40% 9%)',
-              border: '1px solid hsl(220 22% 28%)',
+              background: 'var(--color-chart-tooltip-bg)',
+              border: '1px solid var(--color-chart-tooltip-border)',
               fontFamily: 'var(--font-geist-mono)',
               fontSize: 12,
             }}
