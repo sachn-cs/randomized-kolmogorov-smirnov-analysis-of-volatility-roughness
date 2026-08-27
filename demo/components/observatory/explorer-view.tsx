@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import {toast} from 'sonner';
 import {AppShell} from '@/components/observatory/app-shell';
 import {
   Card,
@@ -101,8 +102,11 @@ function ExplorerView() {
       );
       setResults(results);
       setStatus('complete');
-    } catch {
+    } catch (err) {
       setStatus('error');
+      toast.error(
+        `Grid search failed: ${err instanceof Error ? err.message : String(err)}`,
+      );
     } finally {
       setProgress(1);
     }

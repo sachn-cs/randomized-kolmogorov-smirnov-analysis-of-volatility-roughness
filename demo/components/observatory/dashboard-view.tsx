@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import {toast} from 'sonner';
 import {Button} from '@/components/ui/button';
 import {
   Card,
@@ -127,7 +128,9 @@ function DashboardView() {
       setStatus('complete');
     } catch (err) {
       setStatus('error');
-      setErrorMsg(err instanceof Error ? err.message : String(err));
+      const msg = err instanceof Error ? err.message : String(err);
+      setErrorMsg(msg);
+      toast.error(`Path generation failed: ${msg}`);
     }
   }, [worker, model, nSteps, trueH]);
 
@@ -170,7 +173,9 @@ function DashboardView() {
       }
     } catch (err) {
       setStatus('error');
-      setErrorMsg(err instanceof Error ? err.message : String(err));
+      const msg = err instanceof Error ? err.message : String(err);
+      setErrorMsg(msg);
+      toast.error(`Estimation failed: ${msg}`);
     } finally {
       setProgress(1);
     }
