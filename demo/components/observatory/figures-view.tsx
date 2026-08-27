@@ -2,24 +2,15 @@
 
 import * as React from 'react';
 import {AppShell} from '@/components/observatory/app-shell';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs';
+import {PageHeader} from '@/components/observatory/page-header';
+import {SectionCard} from '@/components/observatory/section-card';
+import {EmptyChart} from '@/components/observatory/empty-chart';
+import {StatusBadge} from '@/components/observatory/status-badge';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs';
+import {Download, RefreshCw} from 'lucide-react';
 import {
   Hurstify,
   generateFractionalBrownianMotion,
@@ -27,22 +18,38 @@ import {
   resetRandomSeed,
 } from '../../../lib/index.js';
 import {fmt} from '@/lib/format';
+import {copy} from '@/lib/copy';
 import {HTrajChart} from '@/components/observatory/charts/h-traj-chart';
 import {HeatmapGrid} from '@/components/observatory/charts/heatmap-grid';
 import {BiasVarianceChart} from '@/components/observatory/charts/bias-variance-chart';
-import {FigureExportButton} from '@/components/observatory/charts/figure-export-button';
+import {
+  useExperimentHistory,
+  nextId,
+} from '@/components/observatory/hooks/use-experiment-history';
+
+const FIGURES = [
+  {value: 'fig-ks-curve', label: 'Fig 1 · KS Curve'},
+  {value: 'fig-multi-scale', label: 'Fig 2 · Multi-Scale'},
+  {value: 'fig-rolling', label: 'Fig 3 · Rolling'},
+  {value: 'fig-bias-variance', label: 'Fig 4 · Bias / Variance'},
+] as const;
 
 export default function FiguresPage() {
   return (
-    <AppShell>
-      <div className="space-y-8">
-        <header className="max-w-2xl">
-          <h2 className="font-serif text-3xl">Paper Figures</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Replicated figures from Angelini &amp; Bianchi with configurable
-            parameters and export.
-          </p>
-        </header>
+    <AppShell
+      actions={
+        <>
+          <StatusBadge label="Figures" tone="neutral" />
+          <StatusBadge label="PNG export" tone="neutral" />
+        </>
+      }
+    >
+      <div className="flex flex-col gap-8">
+        <PageHeader
+          eyebrow="Diagnostics"
+          title={copy.figures.title}
+          subtitle={copy.figures.subtitle}
+        />
         <FiguresView />
       </div>
     </AppShell>
@@ -50,22 +57,41 @@ export default function FiguresPage() {
 }
 
 export const metadata = {
-  title: 'Figures',
+  title: 'Figures / Diagnostics',
   description:
     'Replicated figures from Angelini & Bianchi (2025) with configurable parameters.',
 };
 
 function FiguresView() {
-  const [tab, setTab] = React.useState('fig-ks-curve');
+  const [tab, setTab] =
+    React.useState<(typeof FIGURES)[number]['value']>('fig-ks-curve');
+  const {record} = useExperimentHistory();
+
+  React.useEffect(() => {
+    record({
+      kind: 'figure',
+      id: nextId(),
+      at: Date.now(),
+      figure: FIGURES.find((f) => f.value === tab)?.label ?? tab,
+    });
+  }, [tab, record]);
+
   return (
-    <Tabs value={tab} onValueChange={setTab}>
-      <TabsList>
-        <TabsTrigger value="fig-ks-curve">Fig 1: KS Curve</TabsTrigger>
-        <TabsTrigger value="fig-multi-scale">Fig 2: Multi-Scale</TabsTrigger>
-        <TabsTrigger value="fig-rolling">Fig 3: Rolling</TabsTrigger>
-        <TabsTrigger value="fig-bias-variance">
-          Fig 4: Bias/Variance
-        </TabsTrigger>
+    <Tabs
+      value={tab}
+      onValueChange={(v) => setTab(v as (typeof FIGURES)[number]['value'])}
+      className="flex flex-col gap-6"
+    >
+      <TabsList className="flex h-auto w-fit flex-wrap gap-1 bg-muted/40 p-1">
+        {FIGURES.map((f) => (
+          <TabsTrigger
+            key={f.value}
+            value={f.value}
+            className="font-mono text-[11px] uppercase tracking-[0.16em]"
+          >
+            {f.label}
+          </TabsTrigger>
+        ))}
       </TabsList>
 
       <TabsContent value="fig-ks-curve">
@@ -181,63 +207,79 @@ function Figure1() {
   React.useEffect(render, [render]);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Figure 1 — KS Distance vs H</CardTitle>
-        <CardDescription>KS objective D(H) over candidate H.</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
-          <CommonFigureInputs
-            {...{trueH, setTrueH, n, setN, windowSize, setWindowSize}}
-          />
-          <div className="space-y-2">
-            <Label htmlFor="fig2-res">H Resolution</Label>
-            <Input
-              id="fig2-res"
-              aria-label="H resolution"
-              type="number"
-              min={0.001}
-              max={0.05}
-              step={0.001}
-              value={res}
-              onChange={(e) => setRes(parseFloat(e.target.value))}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="fig2-a1">Scale A1</Label>
-            <Input
-              id="fig2-a1"
-              aria-label="Scale A1"
-              type="number"
-              min={1}
-              max={10}
-              value={a1}
-              onChange={(e) => setA1(parseInt(e.target.value, 10))}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="fig2-a2">Scale A2</Label>
-            <Input
-              id="fig2-a2"
-              aria-label="Scale A2"
-              type="number"
-              min={2}
-              max={100}
-              value={a2}
-              onChange={(e) => setA2(parseInt(e.target.value, 10))}
-            />
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={render}>Re-render</Button>
+    <SectionCard
+      eyebrow="Fig 1"
+      title="KS distance vs H"
+      description="KS objective D(H) over candidate H; lower is better."
+      actions={
+        <>
+          <Button onClick={render} size="sm" variant="outline">
+            <RefreshCw className="h-4 w-4" aria-hidden="true" />
+            {copy.figures.actions.rerender}
+          </Button>
           <FigureExportButton targetId="fig1-chart" filename="fig-ks-curve" />
+        </>
+      }
+    >
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+        <CommonFigureInputs
+          {...{trueH, setTrueH, n, setN, windowSize, setWindowSize}}
+        />
+        <div className="space-y-2">
+          <Label htmlFor="fig2-res">H Resolution</Label>
+          <Input
+            id="fig2-res"
+            aria-label="H resolution"
+            type="number"
+            min={0.001}
+            max={0.05}
+            step={0.001}
+            value={res}
+            onChange={(e) => setRes(parseFloat(e.target.value))}
+          />
         </div>
-        <div id="fig1-chart" className="text-sm text-muted-foreground">
-          {chartData && `Ĥ ≈ ${fmt(chartData.minH)}`}
+        <div className="space-y-2">
+          <Label htmlFor="fig2-a1">Scale A1</Label>
+          <Input
+            id="fig2-a1"
+            aria-label="Scale A1"
+            type="number"
+            min={1}
+            max={10}
+            value={a1}
+            onChange={(e) => setA1(parseInt(e.target.value, 10))}
+          />
         </div>
-      </CardContent>
-    </Card>
+        <div className="space-y-2">
+          <Label htmlFor="fig2-a2">Scale A2</Label>
+          <Input
+            id="fig2-a2"
+            aria-label="Scale A2"
+            type="number"
+            min={2}
+            max={100}
+            value={a2}
+            onChange={(e) => setA2(parseInt(e.target.value, 10))}
+          />
+        </div>
+      </div>
+      <div id="fig1-chart" className="mt-6 flex flex-col gap-3">
+        <EmptyChart
+          ready={chartData !== null}
+          emptyTitle={copy.figures.emptyTitle}
+          emptyDescription={copy.figures.emptyDescription}
+          height={320}
+        >
+          <div className="flex items-center justify-between font-mono text-xs text-muted-foreground">
+            <span>KS curve</span>
+            <span className="text-primary">Ĥ ≈ {fmt(chartData?.minH)}</span>
+          </div>
+          <div className="rounded-md border border-border/60 bg-card/40 p-3 text-xs text-muted-foreground">
+            Re-render to update the chart with current parameters.
+          </div>
+        </EmptyChart>
+      </div>
+    </SectionCard>
   );
 }
 
@@ -291,42 +333,50 @@ function Figure2() {
   React.useEffect(render, [render]);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Figure 2 — Multi-Scale Profile</CardTitle>
-        <CardDescription>
-          Pairwise KS distances across scales (lower = more similar).
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-          <CommonFigureInputs
-            {...{trueH, setTrueH, n, setN, windowSize, setWindowSize}}
-          />
-          <div className="space-y-2">
-            <Label htmlFor="fig3-scales">Scales (comma)</Label>
-            <Input
-              id="fig3-scales"
-              aria-label="Multi-scale values (comma-separated)"
-              value={scalesText}
-              onChange={(e) => setScalesText(e.target.value)}
-            />
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={render}>Re-render</Button>
+    <SectionCard
+      eyebrow="Fig 2"
+      title="Multi-scale profile"
+      description="Pairwise KS distances across scales (lower = more similar)."
+      actions={
+        <>
+          <Button onClick={render} size="sm" variant="outline">
+            <RefreshCw className="h-4 w-4" aria-hidden="true" />
+            {copy.figures.actions.rerender}
+          </Button>
           <FigureExportButton
             targetId="fig2-chart"
             filename="fig-multi-scale"
           />
+        </>
+      }
+    >
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <CommonFigureInputs
+          {...{trueH, setTrueH, n, setN, windowSize, setWindowSize}}
+        />
+        <div className="space-y-2">
+          <Label htmlFor="fig3-scales">Scales</Label>
+          <Input
+            id="fig3-scales"
+            aria-label="Multi-scale values (comma-separated)"
+            value={scalesText}
+            onChange={(e) => setScalesText(e.target.value)}
+          />
         </div>
-        <div id="fig2-chart">
+      </div>
+      <div id="fig2-chart" className="mt-6">
+        <EmptyChart
+          ready={grid !== null}
+          emptyTitle={copy.figures.emptyTitle}
+          emptyDescription={copy.figures.emptyDescription}
+          height={360}
+        >
           {grid ? (
             <HeatmapGrid scales={grid.scales} cells={grid.cells} />
           ) : null}
-        </div>
-      </CardContent>
-    </Card>
+        </EmptyChart>
+      </div>
+    </SectionCard>
   );
 }
 
@@ -357,52 +407,60 @@ function Figure3() {
   React.useEffect(render, [render]);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Figure 3 — Rolling Estimation</CardTitle>
-        <CardDescription>
-          Sliding-window estimates on a rough-volatility path.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
-          <CommonFigureInputs
-            {...{trueH, setTrueH, n, setN, windowSize, setWindowSize}}
-          />
-          <div className="space-y-2">
-            <Label htmlFor="fig3-step">Step</Label>
-            <Input
-              id="fig3-step"
-              aria-label="Rolling step size"
-              type="number"
-              min={1}
-              max={500}
-              value={step}
-              onChange={(e) => setStep(parseInt(e.target.value, 10))}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="fig3-iterations">Iterations</Label>
-            <Input
-              id="fig3-iterations"
-              aria-label="Variance-reduction iterations"
-              type="number"
-              min={1}
-              max={64}
-              value={iterations}
-              onChange={(e) => setIterations(parseInt(e.target.value, 10))}
-            />
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={render}>Re-render</Button>
+    <SectionCard
+      eyebrow="Fig 3"
+      title="Rolling estimation"
+      description="Sliding-window estimates on a rough-volatility path."
+      actions={
+        <>
+          <Button onClick={render} size="sm" variant="outline">
+            <RefreshCw className="h-4 w-4" aria-hidden="true" />
+            {copy.figures.actions.rerender}
+          </Button>
           <FigureExportButton targetId="fig3-chart" filename="fig-rolling" />
+        </>
+      }
+    >
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+        <CommonFigureInputs
+          {...{trueH, setTrueH, n, setN, windowSize, setWindowSize}}
+        />
+        <div className="space-y-2">
+          <Label htmlFor="fig3-step">Step</Label>
+          <Input
+            id="fig3-step"
+            aria-label="Rolling step size"
+            type="number"
+            min={1}
+            max={500}
+            value={step}
+            onChange={(e) => setStep(parseInt(e.target.value, 10))}
+          />
         </div>
-        <div id="fig3-chart">
+        <div className="space-y-2">
+          <Label htmlFor="fig3-iterations">Iterations</Label>
+          <Input
+            id="fig3-iterations"
+            aria-label="Variance-reduction iterations"
+            type="number"
+            min={1}
+            max={64}
+            value={iterations}
+            onChange={(e) => setIterations(parseInt(e.target.value, 10))}
+          />
+        </div>
+      </div>
+      <div id="fig3-chart" className="mt-6">
+        <EmptyChart
+          ready={rolling.length > 0}
+          emptyTitle={copy.figures.emptyTitle}
+          emptyDescription={copy.figures.emptyDescription}
+          height={320}
+        >
           <HTrajChart rolling={rolling} trueH={trueH} />
-        </div>
-      </CardContent>
-    </Card>
+        </EmptyChart>
+      </div>
+    </SectionCard>
   );
 }
 
@@ -466,58 +524,102 @@ function Figure4() {
   React.useEffect(render, [render]);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Figure 4 — Bias–Variance Tradeoff</CardTitle>
-        <CardDescription>
-          RMSE (solid) and |Bias| (dashed) per window, per true H.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <div className="space-y-2">
-            <Label htmlFor="fig4-hs">H Values (comma)</Label>
-            <Input
-              id="fig4-hs"
-              aria-label="H values to sweep (comma-separated)"
-              value={hsText}
-              onChange={(e) => setHsText(e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="fig4-ws">Window Sizes (comma)</Label>
-            <Input
-              id="fig4-ws"
-              aria-label="Window sizes to sweep (comma-separated)"
-              value={wsText}
-              onChange={(e) => setWsText(e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="fig4-trials">Trials per Config</Label>
-            <Input
-              id="fig4-trials"
-              aria-label="Trials per config"
-              type="number"
-              min={1}
-              max={50}
-              value={trials}
-              onChange={(e) => setTrials(parseInt(e.target.value, 10))}
-            />
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={render}>Re-render</Button>
+    <SectionCard
+      eyebrow="Fig 4"
+      title="Bias–variance tradeoff"
+      description="RMSE (solid) and |Bias| (dashed) per window, per true H."
+      actions={
+        <>
+          <Button onClick={render} size="sm" variant="outline">
+            <RefreshCw className="h-4 w-4" aria-hidden="true" />
+            {copy.figures.actions.rerender}
+          </Button>
           <FigureExportButton
             targetId="fig4-chart"
             filename="fig-bias-variance"
           />
+        </>
+      }
+    >
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="space-y-2">
+          <Label htmlFor="fig4-hs">H values</Label>
+          <Input
+            id="fig4-hs"
+            aria-label="H values to sweep (comma-separated)"
+            value={hsText}
+            onChange={(e) => setHsText(e.target.value)}
+          />
         </div>
-        <div id="fig4-chart">
+        <div className="space-y-2">
+          <Label htmlFor="fig4-ws">Window sizes</Label>
+          <Input
+            id="fig4-ws"
+            aria-label="Window sizes to sweep (comma-separated)"
+            value={wsText}
+            onChange={(e) => setWsText(e.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="fig4-trials">Trials / config</Label>
+          <Input
+            id="fig4-trials"
+            aria-label="Trials per config"
+            type="number"
+            min={1}
+            max={50}
+            value={trials}
+            onChange={(e) => setTrials(parseInt(e.target.value, 10))}
+          />
+        </div>
+      </div>
+      <div id="fig4-chart" className="mt-6">
+        <EmptyChart
+          ready={series.length > 0}
+          emptyTitle={copy.figures.emptyTitle}
+          emptyDescription={copy.figures.emptyDescription}
+          height={420}
+        >
           <BiasVarianceChart windows={windows} series={series} />
-        </div>
-      </CardContent>
-    </Card>
+        </EmptyChart>
+      </div>
+    </SectionCard>
+  );
+}
+
+function FigureExportButton({
+  targetId,
+  filename,
+}: {
+  targetId: string;
+  filename: string;
+}) {
+  const [busy, setBusy] = React.useState(false);
+  const onClick = async () => {
+    const node = document.getElementById(targetId);
+    if (!node) return;
+    setBusy(true);
+    try {
+      const {toPng} = await import('html-to-image');
+      const bg = getComputedStyle(document.documentElement)
+        .getPropertyValue('--color-chart-export-bg')
+        .trim();
+      const dataUrl = await toPng(node, {
+        backgroundColor: bg || undefined,
+      });
+      const link = document.createElement('a');
+      link.download = `${filename}.png`;
+      link.href = dataUrl;
+      link.click();
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Button onClick={onClick} size="sm" variant="outline" disabled={busy}>
+      <Download className="h-4 w-4" aria-hidden="true" />
+      {copy.figures.actions.export}
+    </Button>
   );
 }
 

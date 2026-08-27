@@ -1,5 +1,3 @@
-import {redirect} from 'next/navigation';
+import OverviewPage from '@/components/observatory/overview-view';
 
-export default function RootPage() {
-  redirect('/dashboard');
-}
+export default OverviewPage;

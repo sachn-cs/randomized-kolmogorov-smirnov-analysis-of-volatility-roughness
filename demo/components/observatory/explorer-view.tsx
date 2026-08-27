@@ -2,40 +2,68 @@
 
 import * as React from 'react';
 import {toast} from 'sonner';
+import {Copy, Play, Workflow} from 'lucide-react';
 import {AppShell} from '@/components/observatory/app-shell';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import {PageHeader} from '@/components/observatory/page-header';
+import {SectionCard} from '@/components/observatory/section-card';
+import {StatTile} from '@/components/observatory/stat-tile';
+import {StatusBadge} from '@/components/observatory/status-badge';
+import {EmptyChart} from '@/components/observatory/empty-chart';
+import {EmptyState} from '@/components/observatory/empty-state';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
 import {Checkbox} from '@/components/ui/checkbox';
-import {Badge} from '@/components/ui/badge';
 import {Progress} from '@/components/ui/progress';
+import {Separator} from '@/components/ui/separator';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {useWorker} from '@/components/observatory/worker-client';
 import {ResultsTable} from '@/components/observatory/results-table';
 import {RMSEByHChart} from '@/components/observatory/charts/rmse-by-h-chart';
 import {OptimizerBar} from '@/components/observatory/charts/optimizer-bar';
+import {fmt} from '@/lib/format';
+import {copy} from '@/lib/copy';
+import {
+  useExperimentHistory,
+  nextId,
+} from '@/components/observatory/hooks/use-experiment-history';
 
 type Result = Parameters<typeof ResultsTable>[0]['results'][number];
 
-const ALL_OPTIMIZERS = ['brent', 'nelder-mead', 'annealing', 'de', 'ags'];
+const ALL_OPTIMIZERS = [
+  {id: 'brent', label: 'Brent'},
+  {id: 'nelder-mead', label: 'Nelder-Mead'},
+  {id: 'annealing', label: 'Annealing'},
+  {id: 'de', label: 'Differential Evolution'},
+  {id: 'ags', label: 'Adaptive Grid Search'},
+] as const;
 
 export default function ExplorerPage() {
   return (
-    <AppShell>
-      <div className="space-y-8">
-        <header className="max-w-2xl">
-          <h2 className="font-serif text-3xl">Parameter Explorer</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Grid search across Hurst values, window sizes, and optimizers with
-            comparative visualization.
-          </p>
-        </header>
+    <AppShell
+      actions={
+        <>
+          <StatusBadge label="Benchmark lab" tone="neutral" />
+          <Button asChild size="sm" variant="outline">
+            <a href="#search-space">
+              <Workflow className="h-4 w-4" aria-hidden="true" />
+              Configure
+            </a>
+          </Button>
+        </>
+      }
+    >
+      <div className="flex flex-col gap-8">
+        <PageHeader
+          eyebrow="Sweeps"
+          title={copy.explorer.title}
+          subtitle={copy.explorer.subtitle}
+        />
         <ExplorerView />
       </div>
     </AppShell>
@@ -43,42 +71,54 @@ export default function ExplorerPage() {
 }
 
 export const metadata = {
-  title: 'Explorer',
+  title: 'Parameter Explorer',
   description: 'Grid search across Hurst values, window sizes, and optimizers.',
 };
 
 function ExplorerView() {
   const worker = useWorker();
+  const {record} = useExperimentHistory();
   const [hStart, setHStart] = React.useState(0.05);
   const [hEnd, setHEnd] = React.useState(0.45);
   const [hStep, setHStep] = React.useState(0.05);
   const [winsText, setWinsText] = React.useState('250, 500, 1000');
   const [trials, setTrials] = React.useState(5);
   const [pathLength, setPathLength] = React.useState(1500);
-  const [selectedOpts, setSelectedOpts] = React.useState<string[]>([
-    ...ALL_OPTIMIZERS,
-  ]);
+  const [selectedOpts, setSelectedOpts] = React.useState<string[]>(
+    ALL_OPTIMIZERS.map((o) => o.id),
+  );
   const [results, setResults] = React.useState<Result[]>([]);
   const [progress, setProgress] = React.useState(0);
-  const [status, setStatus] = React.useState('idle');
+  const [status, setStatus] = React.useState<
+    'idle' | 'running' | 'complete' | 'error'
+  >('idle');
 
-  const toggleOpt = (o: string) => {
+  const toggleOpt = (id: string) => {
     setSelectedOpts((prev) =>
-      prev.includes(o) ? prev.filter((x) => x !== o) : [...prev, o],
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
   };
+
+  const windowSizes = React.useMemo(
+    () =>
+      winsText
+        .split(',')
+        .map((s) => parseInt(s.trim(), 10))
+        .filter((n) => Number.isFinite(n)),
+    [winsText],
+  );
+
+  const trueHs = React.useMemo(() => {
+    const out: number[] = [];
+    for (let h = hStart; h <= hEnd + 1e-9; h += hStep) {
+      out.push(Math.round(h * 100) / 100);
+    }
+    return out;
+  }, [hStart, hEnd, hStep]);
 
   const runGrid = async () => {
     setStatus('running');
     setProgress(0);
-    const trueHs: number[] = [];
-    for (let h = hStart; h <= hEnd + 1e-9; h += hStep) {
-      trueHs.push(Math.round(h * 100) / 100);
-    }
-    const windowSizes = winsText
-      .split(',')
-      .map((s) => parseInt(s.trim(), 10))
-      .filter((n) => !isNaN(n));
 
     try {
       const {results} = await worker.dispatch<{results: Result[]}>(
@@ -102,89 +142,111 @@ function ExplorerView() {
       );
       setResults(results);
       setStatus('complete');
+
+      // Record top optimizer to history.
+      const valid = results.filter((r) => Number.isFinite(r.rmse));
+      if (valid.length > 0) {
+        const top = [...valid].sort((a, b) => a.rmse - b.rmse)[0];
+        record({
+          kind: 'sweep',
+          id: nextId(),
+          at: Date.now(),
+          optimizer: top.optimizer,
+          windowSize: top.windowSize,
+          trueH: top.trueH,
+          rmse: top.rmse,
+          failRate: top.failRate,
+        });
+      }
     } catch (err) {
       setStatus('error');
       toast.error(
-        `Grid search failed: ${err instanceof Error ? err.message : String(err)}`,
+        `Grid search failed: ${
+          err instanceof Error ? err.message : String(err)
+        }`,
       );
     } finally {
       setProgress(1);
     }
   };
 
+  const topConfigs = React.useMemo(() => {
+    const valid = results.filter((r) => Number.isFinite(r.rmse));
+    return [...valid].sort((a, b) => a.rmse - b.rmse).slice(0, 3);
+  }, [results]);
+
   return (
-    <div className="space-y-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>Search Space</CardTitle>
-          <CardDescription>
-            Sweep Hurst values, window sizes, and optimizers.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <div className="space-y-2">
-            <Label>H Range</Label>
-            <div className="flex gap-2">
-              <Input
-                id="explorer-h-start"
-                aria-label="H range start"
-                type="number"
-                min={0.01}
-                max={0.99}
-                step={0.01}
-                value={hStart}
-                onChange={(e) => setHStart(parseFloat(e.target.value))}
-              />
-              <Input
-                id="explorer-h-end"
-                aria-label="H range end"
-                type="number"
-                min={0.01}
-                max={0.99}
-                step={0.01}
-                value={hEnd}
-                onChange={(e) => setHEnd(parseFloat(e.target.value))}
-              />
-              <Input
-                id="explorer-h-step"
-                aria-label="H range step"
-                type="number"
-                min={0.01}
-                max={0.5}
-                step={0.01}
-                value={hStep}
-                onChange={(e) => setHStep(parseFloat(e.target.value))}
-              />
+    <div className="flex flex-col gap-8">
+      <SectionCard
+        eyebrow="Search space"
+        title={copy.explorer.searchSpace}
+        description="Configure the grid and the optimizers to compare."
+      >
+        <div
+          id="search-space"
+          className="grid grid-cols-1 gap-6 lg:grid-cols-3"
+        >
+          <div className="space-y-3">
+            <Label>H range</Label>
+            <div className="grid grid-cols-3 gap-2">
+              <div className="space-y-1">
+                <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Start
+                </span>
+                <Input
+                  aria-label="H range start"
+                  type="number"
+                  min={0.01}
+                  max={0.99}
+                  step={0.01}
+                  value={hStart}
+                  onChange={(e) => setHStart(parseFloat(e.target.value))}
+                />
+              </div>
+              <div className="space-y-1">
+                <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                  End
+                </span>
+                <Input
+                  aria-label="H range end"
+                  type="number"
+                  min={0.01}
+                  max={0.99}
+                  step={0.01}
+                  value={hEnd}
+                  onChange={(e) => setHEnd(parseFloat(e.target.value))}
+                />
+              </div>
+              <div className="space-y-1">
+                <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Step
+                </span>
+                <Input
+                  aria-label="H range step"
+                  type="number"
+                  min={0.01}
+                  max={0.5}
+                  step={0.01}
+                  value={hStep}
+                  onChange={(e) => setHStep(parseFloat(e.target.value))}
+                />
+              </div>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="explorer-wins">
-              Window Sizes (comma-separated)
-            </Label>
+            <Label htmlFor="explorer-wins">Window sizes</Label>
             <Input
               id="explorer-wins"
               aria-label="Window sizes (comma-separated)"
+              placeholder="250, 500, 1000"
               value={winsText}
               onChange={(e) => setWinsText(e.target.value)}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="explorer-trials">Trials / Config</Label>
-            <Input
-              id="explorer-trials"
-              aria-label="Trials per config"
-              type="number"
-              min={1}
-              max={20}
-              value={trials}
-              onChange={(e) => setTrials(parseInt(e.target.value, 10))}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="explorer-pathlen">Path Length</Label>
+            <Label htmlFor="explorer-pathlen">Path length</Label>
             <Input
               id="explorer-pathlen"
               aria-label="Path length"
@@ -197,76 +259,237 @@ function ExplorerView() {
             />
           </div>
 
-          <div className="space-y-2 lg:col-span-2">
+          <div className="space-y-2">
+            <Label htmlFor="explorer-trials">Trials / config</Label>
+            <Input
+              id="explorer-trials"
+              aria-label="Trials per config"
+              type="number"
+              min={1}
+              max={20}
+              value={trials}
+              onChange={(e) => setTrials(parseInt(e.target.value, 10))}
+            />
+          </div>
+
+          <div className="space-y-3 lg:col-span-2">
             <Label>Optimizers</Label>
             <div className="flex flex-wrap gap-4">
               {ALL_OPTIMIZERS.map((o) => (
                 <label
-                  key={o}
-                  className="flex items-center gap-2 text-xs text-muted-foreground"
+                  key={o.id}
+                  className="flex cursor-pointer items-center gap-2 rounded-md border border-border/60 bg-card/40 px-3 py-2 text-xs transition-colors hover:border-primary/40"
                 >
                   <Checkbox
-                    checked={selectedOpts.includes(o)}
-                    onCheckedChange={() => toggleOpt(o)}
+                    checked={selectedOpts.includes(o.id)}
+                    onCheckedChange={() => toggleOpt(o.id)}
                   />
-                  {o}
+                  <span className="font-medium">{o.label}</span>
                 </label>
               ))}
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <Button onClick={runGrid} disabled={status === 'running'}>
-          {status === 'running' ? 'Running...' : 'Run Grid Search'}
-        </Button>
-        <Badge
-          variant={
-            status === 'error'
-              ? 'destructive'
-              : status === 'complete'
-                ? 'default'
-                : 'secondary'
-          }
+        <Separator className="my-6" />
+
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusBadge
+              label={status === 'idle' ? 'Ready' : status}
+              tone={
+                status === 'running'
+                  ? 'live'
+                  : status === 'error'
+                    ? 'destructive'
+                    : status === 'complete'
+                      ? 'success'
+                      : 'neutral'
+              }
+              pulse={status === 'running'}
+            />
+            <span className="font-mono text-xs text-muted-foreground">
+              {trueHs.length} H values × {windowSizes.length} windows ×{' '}
+              {selectedOpts.length} optimizers × {trials} trials ={' '}
+              <span className="text-foreground">
+                {trueHs.length *
+                  windowSizes.length *
+                  selectedOpts.length *
+                  trials}
+              </span>{' '}
+              runs
+            </span>
+          </div>
+          <Button
+            onClick={runGrid}
+            disabled={
+              status === 'running' ||
+              selectedOpts.length === 0 ||
+              windowSizes.length === 0
+            }
+            size="sm"
+          >
+            <Play className="h-4 w-4" aria-hidden="true" />
+            {copy.explorer.actions.run}
+          </Button>
+        </div>
+
+        {progress > 0 && progress < 1 ? (
+          <Progress value={progress * 100} className="mt-4 h-1.5" />
+        ) : null}
+      </SectionCard>
+
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+        <SectionCard
+          eyebrow="RMSE × H"
+          title="RMSE per H"
+          description="Each line is a window size; lower is better."
         >
-          {status}
-        </Badge>
-      </div>
-
-      {progress > 0 && progress < 1 ? (
-        <Progress value={progress * 100} />
-      ) : null}
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>RMSE per H</CardTitle>
-            <CardDescription>H × Window Size</CardDescription>
-          </CardHeader>
-          <CardContent>
+          <EmptyChart
+            ready={results.length > 0}
+            emptyTitle={copy.explorer.emptyTitle}
+            emptyDescription={copy.explorer.emptyDescription}
+          >
             <RMSEByHChart results={results} />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Optimizer Comparison</CardTitle>
-            <CardDescription>Mean RMSE per Optimizer</CardDescription>
-          </CardHeader>
-          <CardContent>
+          </EmptyChart>
+        </SectionCard>
+
+        <SectionCard
+          eyebrow="Optimizers"
+          title="Optimizer comparison"
+          description="Mean RMSE aggregated across the grid."
+        >
+          <EmptyChart
+            ready={results.length > 0}
+            emptyTitle={copy.explorer.emptyTitle}
+            emptyDescription={copy.explorer.emptyDescription}
+          >
             <OptimizerBar results={results} />
-          </CardContent>
-        </Card>
+          </EmptyChart>
+        </SectionCard>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Results</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResultsTable results={results} />
-        </CardContent>
-      </Card>
+      <SectionCard
+        eyebrow="Top configurations"
+        title={copy.explorer.bestConfigurations}
+        description="Top three configurations by RMSE."
+        actions={
+          topConfigs.length > 0 ? (
+            <Button asChild size="sm" variant="outline">
+              <a href="#results-table">View all results</a>
+            </Button>
+          ) : null
+        }
+      >
+        {topConfigs.length === 0 ? (
+          <EmptyState
+            icon={<Workflow className="h-4 w-4" aria-hidden="true" />}
+            title={copy.explorer.emptyTitle}
+            description={copy.explorer.emptyDescription}
+          />
+        ) : (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            {topConfigs.map((r, i) => (
+              <div
+                key={`${r.optimizer}-${r.windowSize}-${r.trueH}`}
+                className="relative flex flex-col gap-4 rounded-lg border border-border/70 bg-card/60 p-4 shadow-card"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+                    Rank #{i + 1}
+                  </span>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-7 px-2">
+                        <Copy className="h-3 w-3" aria-hidden="true" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() =>
+                          navigator.clipboard
+                            ?.writeText(
+                              JSON.stringify(
+                                {
+                                  optimizer: r.optimizer,
+                                  windowSize: r.windowSize,
+                                  trueH: r.trueH,
+                                  rmse: r.rmse,
+                                  bias: r.bias,
+                                  failRate: r.failRate,
+                                  avgTime: r.avgTime,
+                                },
+                                null,
+                                2,
+                              ),
+                            )
+                            .then(() => toast.success('Configuration copied'))
+                        }
+                      >
+                        Copy as JSON
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+                <StatTile
+                  label={copy.metrics.rmse}
+                  value={fmt(r.rmse, 4)}
+                  tone="primary"
+                  emphasis={i === 0}
+                />
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <div className="font-mono uppercase tracking-wider text-muted-foreground">
+                      Optimizer
+                    </div>
+                    <div className="font-mono">{r.optimizer}</div>
+                  </div>
+                  <div>
+                    <div className="font-mono uppercase tracking-wider text-muted-foreground">
+                      Window
+                    </div>
+                    <div className="font-mono tabular-nums">{r.windowSize}</div>
+                  </div>
+                  <div>
+                    <div className="font-mono uppercase tracking-wider text-muted-foreground">
+                      True H
+                    </div>
+                    <div className="font-mono tabular-nums">
+                      {fmt(r.trueH, 2)}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="font-mono uppercase tracking-wider text-muted-foreground">
+                      Bias
+                    </div>
+                    <div className="font-mono tabular-nums">
+                      {fmt(r.bias, 4)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </SectionCard>
+
+      <SectionCard
+        eyebrow="All results"
+        title="Results"
+        description="Per-configuration RMSE, bias, fail rate, and average runtime."
+      >
+        <div id="results-table">
+          {results.length > 0 ? (
+            <ResultsTable results={results} />
+          ) : (
+            <EmptyState
+              icon={<Workflow className="h-4 w-4" aria-hidden="true" />}
+              title={copy.explorer.emptyTitle}
+              description={copy.explorer.emptyDescription}
+            />
+          )}
+        </div>
+      </SectionCard>
     </div>
   );
 }
