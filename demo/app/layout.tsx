@@ -1,4 +1,4 @@
-import type {Metadata} from 'next';
+import type {Metadata, Viewport} from 'next';
 import {Geist, Instrument_Serif} from 'next/font/google';
 import './globals.css';
 import {ThemeProvider} from '@/components/theme-provider';
@@ -24,10 +24,6 @@ export const metadata: Metadata = {
     'hurstify — randomized Kolmogorov–Smirnov estimator for rough-volatility Hurst parameters. Pure JavaScript, zero dependencies.',
   applicationName: 'hurstify',
   metadataBase: new URL(siteUrl),
-  themeColor: [
-    {media: '(prefers-color-scheme: light)', color: '#f0a030'},
-    {media: '(prefers-color-scheme: dark)', color: '#0a0e17'},
-  ],
   other: {
     // Tells the browser to use light/dark UA colors (scrollbars,
     // form controls) so they match the user's manual theme choice
@@ -47,6 +43,13 @@ export const metadata: Metadata = {
     description:
       'Randomized Kolmogorov–Smirnov estimator for rough-volatility Hurst parameters.',
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    {media: '(prefers-color-scheme: light)', color: '#f0a030'},
+    {media: '(prefers-color-scheme: dark)', color: '#0a0e17'},
+  ],
 };
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
