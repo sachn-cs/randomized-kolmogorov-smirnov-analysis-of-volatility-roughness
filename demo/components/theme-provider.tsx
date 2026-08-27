@@ -17,17 +17,17 @@ const ThemeContext = React.createContext<ThemeContextValue | undefined>(
 
 /**
  * Reads the persisted theme from localStorage (if available) and
- * synchronizes the `dark` class on `<html>` to match. Falls back to
- * `dark` (the historical default) when running on the server or when
- * localStorage is unavailable.
+ * synchronizes the `dark` class on `<html>` to match. The default is
+ * `light` to match the warm-beige Claude aesthetic; falls back to
+ * `light` on the server (SSR) so the first paint is consistent.
  */
 function readPersistedTheme(): Theme {
-  if (typeof window === 'undefined') return 'dark';
+  if (typeof window === 'undefined') return 'light';
   try {
     const v = window.localStorage.getItem(STORAGE_KEY);
-    return v === 'light' || v === 'dark' ? v : 'dark';
+    return v === 'light' || v === 'dark' ? v : 'light';
   } catch {
-    return 'dark';
+    return 'light';
   }
 }
 
@@ -42,7 +42,7 @@ function applyTheme(theme: Theme) {
 }
 
 export function ThemeProvider({children}: {children: React.ReactNode}) {
-  const [theme, setThemeState] = React.useState<Theme>('dark');
+  const [theme, setThemeState] = React.useState<Theme>('light');
 
   React.useEffect(() => {
     const persisted = readPersistedTheme();
@@ -66,7 +66,7 @@ export function ThemeProvider({children}: {children: React.ReactNode}) {
 
   const value = React.useMemo(
     () => ({theme, setTheme, toggleTheme}),
-    [theme, setTheme, toggleTheme],
+    [theme, setTheme],
   );
 
   return (

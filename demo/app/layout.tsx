@@ -47,8 +47,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    {media: '(prefers-color-scheme: light)', color: '#f0a030'},
-    {media: '(prefers-color-scheme: dark)', color: '#0a0e17'},
+    {media: '(prefers-color-scheme: light)', color: '#f3ecdf'},
+    {media: '(prefers-color-scheme: dark)', color: '#1a140f'},
   ],
 };
 
@@ -56,12 +56,9 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
     <html
       lang="en"
-      // `dark` class is added/removed by ThemeProvider on the client.
-      // Server can't read localStorage; ThemeProvider hydrates the
-      // class on mount. We default to `dark` for SSR so first paint
-      // matches the historical look; ThemeProvider flips it client-side
-      // when the persisted preference is `light`.
-      className={`dark ${geistSans.variable} ${instrumentSerif.variable}`}
+      // ThemeProvider hydrates the class on mount. Default to light
+      // for SSR so first paint matches the warm-beige aesthetic.
+      className={`${geistSans.variable} ${instrumentSerif.variable}`}
       suppressHydrationWarning
     >
       <body>

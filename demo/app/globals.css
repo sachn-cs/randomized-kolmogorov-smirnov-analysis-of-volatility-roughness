@@ -4,104 +4,117 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Hurstify palette — single accent (cyan), disciplined slate ramp.
- * Amber is gone; crimson is reserved for destructive / error states only.
- * Light mode is a cooler slate so the brand reads the same in both themes.
+ * Hurstify palette — Anthropic-style warm beige / deep brown.
+ *
+ * Two themes, identical philosophy: warm neutrals, a single restrained
+ * accent (rust on light, warm amber on dark), and hairline borders.
+ * No cyan, no slate-blue cast — the surface always reads as paper.
  */
 :root {
-  --color-background: hsl(220 24% 97%);
-  --color-foreground: hsl(220 32% 14%);
-  --color-card: hsl(0 0% 100%);
-  --color-card-foreground: hsl(220 32% 14%);
-  --color-popover: hsl(0 0% 100%);
-  --color-popover-foreground: hsl(220 32% 14%);
-  --color-primary: hsl(190 92% 38%);
-  --color-primary-foreground: hsl(220 24% 97%);
-  --color-secondary: hsl(220 16% 92%);
-  --color-secondary-foreground: hsl(220 32% 18%);
-  --color-muted: hsl(220 16% 94%);
-  --color-muted-foreground: hsl(220 14% 40%);
-  --color-accent: hsl(190 80% 96%);
-  --color-accent-foreground: hsl(190 92% 22%);
-  --color-destructive: hsl(346 78% 48%);
-  --color-destructive-foreground: hsl(0 0% 100%);
-  --color-success: hsl(160 70% 38%);
-  --color-success-foreground: hsl(0 0% 100%);
-  --color-warning: hsl(38 92% 48%);
-  --color-warning-foreground: hsl(0 0% 100%);
-  --color-border: hsl(220 18% 86%);
-  --color-input: hsl(220 18% 92%);
-  --color-ring: hsl(190 92% 38%);
+  /* Surfaces — warm cream ramp. */
+  --color-background: hsl(38 28% 95%);
+  --color-foreground: hsl(24 18% 10%);
+  --color-card: hsl(40 38% 98%);
+  --color-card-foreground: hsl(24 18% 10%);
+  --color-popover: hsl(40 38% 99%);
+  --color-popover-foreground: hsl(24 18% 10%);
 
+  /* Brand / interactive — warm rust. */
+  --color-primary: hsl(18 58% 36%);
+  --color-primary-foreground: hsl(40 40% 98%);
+  --color-secondary: hsl(36 24% 89%);
+  --color-secondary-foreground: hsl(24 18% 14%);
+  --color-muted: hsl(38 22% 90%);
+  --color-muted-foreground: hsl(24 10% 38%);
+  --color-accent: hsl(36 28% 86%);
+  --color-accent-foreground: hsl(24 18% 12%);
+
+  /* Status. Red is reserved for destructive. */
+  --color-destructive: hsl(0 62% 42%);
+  --color-destructive-foreground: hsl(40 40% 98%);
+  --color-success: hsl(140 32% 32%);
+  --color-success-foreground: hsl(40 40% 98%);
+  --color-warning: hsl(34 78% 42%);
+  --color-warning-foreground: hsl(40 40% 98%);
+
+  /* Lines & focus rings. */
+  --color-border: hsl(34 18% 80%);
+  --color-input: hsl(34 18% 84%);
+  --color-ring: hsl(18 58% 36%);
+
+  /* Soft, paper-like elevation. */
   --shadow-card:
-    0 1px 0 hsl(220 32% 14% / 0.04), 0 1px 2px hsl(220 32% 14% / 0.04),
-    0 4px 12px hsl(220 32% 14% / 0.04);
+    0 1px 0 hsl(30 18% 20% / 0.04), 0 1px 2px hsl(30 18% 20% / 0.04);
   --shadow-pop:
-    0 1px 0 hsl(220 32% 14% / 0.06), 0 4px 16px hsl(220 32% 14% / 0.06),
-    0 24px 48px hsl(220 32% 14% / 0.08);
+    0 1px 0 hsl(30 18% 20% / 0.06), 0 6px 18px hsl(30 18% 20% / 0.06),
+    0 24px 48px hsl(30 18% 20% / 0.06);
   --shadow-glow:
-    0 0 0 1px hsl(190 92% 38% / 0.18), 0 0 24px hsl(190 92% 55% / 0.18);
-  --shadow-inset: inset 0 0 0 1px hsl(220 18% 86% / 0.6);
+    0 0 0 1px hsl(18 58% 36% / 0.16), 0 0 24px hsl(18 58% 40% / 0.14);
+  --shadow-inset: inset 0 0 0 1px hsl(34 18% 80% / 0.6);
 
-  /* Chart-specific tokens (light mode). */
-  --color-chart-grid: hsl(220 18% 80% / 0.6);
-  --color-chart-axis: hsl(220 22% 28%);
-  --color-chart-tooltip-bg: hsl(0 0% 100%);
-  --color-chart-tooltip-border: hsl(220 18% 82%);
-  --color-chart-export-bg: hsl(220 24% 97%);
-  --color-chart-series-1: hsl(190 92% 42%);
-  --color-chart-series-2: hsl(220 32% 38%);
-  --color-chart-series-3: hsl(346 78% 50%);
-  --color-chart-series-4: hsl(160 60% 40%);
-  --color-chart-series-5: hsl(220 18% 50%);
+  /* Chart tokens (light mode). */
+  --color-chart-grid: hsl(34 18% 78% / 0.7);
+  --color-chart-axis: hsl(24 16% 22%);
+  --color-chart-tooltip-bg: hsl(40 40% 99%);
+  --color-chart-tooltip-border: hsl(34 18% 78%);
+  --color-chart-export-bg: hsl(38 28% 95%);
+  --color-chart-series-1: hsl(18 58% 36%);
+  --color-chart-series-2: hsl(24 30% 20%);
+  --color-chart-series-3: hsl(34 78% 42%);
+  --color-chart-series-4: hsl(140 28% 32%);
+  --color-chart-series-5: hsl(220 14% 38%);
 }
 
 .dark {
-  --color-background: hsl(220 36% 6%);
-  --color-foreground: hsl(220 14% 88%);
-  --color-card: hsl(222 32% 9%);
-  --color-card-foreground: hsl(220 14% 88%);
-  --color-popover: hsl(222 32% 9%);
-  --color-popover-foreground: hsl(220 14% 88%);
-  --color-primary: hsl(190 92% 58%);
-  --color-primary-foreground: hsl(220 36% 6%);
-  --color-secondary: hsl(220 18% 16%);
-  --color-secondary-foreground: hsl(220 14% 88%);
-  --color-muted: hsl(220 18% 14%);
-  --color-muted-foreground: hsl(220 12% 64%);
-  --color-accent: hsl(190 60% 16%);
-  --color-accent-foreground: hsl(190 92% 78%);
-  --color-destructive: hsl(346 78% 56%);
-  --color-destructive-foreground: hsl(0 0% 100%);
-  --color-success: hsl(160 60% 50%);
-  --color-success-foreground: hsl(220 36% 6%);
-  --color-warning: hsl(38 92% 58%);
-  --color-warning-foreground: hsl(220 36% 6%);
-  --color-border: hsl(220 18% 20%);
-  --color-input: hsl(220 18% 14%);
-  --color-ring: hsl(190 92% 58%);
+  /* Surfaces — deep warm umber ramp. */
+  --color-background: hsl(24 14% 7%);
+  --color-foreground: hsl(38 22% 90%);
+  --color-card: hsl(24 12% 11%);
+  --color-card-foreground: hsl(38 22% 90%);
+  --color-popover: hsl(24 12% 13%);
+  --color-popover-foreground: hsl(38 22% 90%);
 
-  --shadow-card:
-    0 1px 0 hsl(0 0% 0% / 0.4), 0 1px 2px hsl(0 0% 0% / 0.3),
-    0 8px 24px hsl(0 0% 0% / 0.32);
+  /* Brand / interactive — warm amber on dark. */
+  --color-primary: hsl(28 78% 60%);
+  --color-primary-foreground: hsl(24 14% 8%);
+  --color-secondary: hsl(24 10% 16%);
+  --color-secondary-foreground: hsl(38 22% 90%);
+  --color-muted: hsl(24 10% 14%);
+  --color-muted-foreground: hsl(36 12% 64%);
+  --color-accent: hsl(24 10% 18%);
+  --color-accent-foreground: hsl(38 22% 92%);
+
+  /* Status. */
+  --color-destructive: hsl(0 62% 56%);
+  --color-destructive-foreground: hsl(40 40% 98%);
+  --color-success: hsl(140 38% 56%);
+  --color-success-foreground: hsl(24 14% 8%);
+  --color-warning: hsl(34 78% 58%);
+  --color-warning-foreground: hsl(24 14% 8%);
+
+  --color-border: hsl(24 10% 20%);
+  --color-input: hsl(24 10% 16%);
+  --color-ring: hsl(28 78% 60%);
+
+  --shadow-card: 0 1px 0 hsl(0 0% 0% / 0.35), 0 1px 2px hsl(0 0% 0% / 0.3);
   --shadow-pop:
-    0 1px 0 hsl(0 0% 0% / 0.5), 0 4px 16px hsl(0 0% 0% / 0.4),
-    0 24px 48px hsl(0 0% 0% / 0.45);
+    0 1px 0 hsl(0 0% 0% / 0.45), 0 6px 18px hsl(0 0% 0% / 0.4),
+    0 24px 48px hsl(0 0% 0% / 0.4);
   --shadow-glow:
-    0 0 0 1px hsl(190 92% 58% / 0.28), 0 0 28px hsl(190 92% 55% / 0.18);
-  --shadow-inset: inset 0 0 0 1px hsl(220 18% 20% / 0.6);
+    0 0 0 1px hsl(28 78% 60% / 0.28), 0 0 28px hsl(28 78% 55% / 0.18);
+  --shadow-inset: inset 0 0 0 1px hsl(24 10% 20% / 0.6);
 
-  /* Chart-specific tokens (dark mode). */
-  --color-chart-grid: hsl(220 18% 22% / 0.6);
-  --color-chart-axis: hsl(220 14% 64%);
-  --color-chart-tooltip-bg: hsl(222 36% 8%);
-  --color-chart-tooltip-border: hsl(220 18% 20%);
-  --color-chart-export-bg: hsl(220 36% 6%);
-  --color-chart-series-1: hsl(190 92% 58%);
-  --color-chart-series-2: hsl(220 14% 64%);
-  --color-chart-series-3: hsl(346 78% 60%);
-  --color-chart-series-4: hsl(160 60% 55%);
-  --color-chart-series-5: hsl(220 14% 50%);
+  /* Chart tokens (dark mode). */
+  --color-chart-grid: hsl(24 10% 22% / 0.7);
+  --color-chart-axis: hsl(38 14% 70%);
+  --color-chart-tooltip-bg: hsl(24 12% 13%);
+  --color-chart-tooltip-border: hsl(24 10% 22%);
+  --color-chart-export-bg: hsl(24 14% 7%);
+  --color-chart-series-1: hsl(28 78% 60%);
+  --color-chart-series-2: hsl(38 22% 78%);
+  --color-chart-series-3: hsl(34 78% 58%);
+  --color-chart-series-4: hsl(140 38% 60%);
+  --color-chart-series-5: hsl(220 14% 60%);
 }
 
 @theme inline {
@@ -138,7 +151,14 @@
   --color-chart-series-3: var(--color-chart-series-3);
   --color-chart-series-4: var(--color-chart-series-4);
   --color-chart-series-5: var(--color-chart-series-5);
-  --radius: 0.625rem;
+  --radius: 0.5rem;
+
+  --font-sans: 'Geist', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-serif:
+    'Instrument Serif', 'Iowan Old Style', 'Apple Garamond', Georgia, serif;
+  --font-mono:
+    'Geist Mono', 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo,
+    monospace;
 }
 
 * {
@@ -149,12 +169,7 @@ html,
 body {
   background-color: var(--color-background);
   color: var(--color-foreground);
-  font-family:
-    'Geist',
-    'Inter',
-    system-ui,
-    -apple-system,
-    sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -165,12 +180,27 @@ body::before {
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  background-image:
-    linear-gradient(var(--color-border) 1px, transparent 1px),
-    linear-gradient(90deg, var(--color-border) 1px, transparent 1px);
-  background-size: 48px 48px;
-  opacity: 0.05;
-  mask-image: radial-gradient(ellipse at 30% 0%, black 0%, transparent 70%);
+  /* Subtle warm grain — radial vignette of paper texture. */
+  background-image: radial-gradient(
+    ellipse at 30% 0%,
+    hsl(34 28% 88% / 0.6) 0%,
+    transparent 70%
+  );
+  opacity: 0.5;
+}
+.dark body::before {
+  background-image: radial-gradient(
+    ellipse at 30% 0%,
+    hsl(28 30% 14%) 0%,
+    transparent 70%
+  );
+  opacity: 0.8;
+}
+
+.typography-serif {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  letter-spacing: -0.01em;
 }
 
 .tabular-nums {
@@ -193,24 +223,27 @@ body::before {
   box-shadow: var(--shadow-inset);
 }
 
-/* Subtle scrollbars everywhere. */
+/* Thin, warm scrollbars. */
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--color-border) transparent;
 }
 *::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 *::-webkit-scrollbar-track {
   background: transparent;
 }
 *::-webkit-scrollbar-thumb {
   background-color: var(--color-border);
-  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+  border-radius: 999px;
 }
 *::-webkit-scrollbar-thumb:hover {
   background-color: var(--color-muted-foreground);
+  background-clip: content-box;
 }
 
 @keyframes accordion-down {
