@@ -7,8 +7,10 @@ import {expect} from 'chai';
 import {
   RoughBergomiModel,
   RoughFsvModel,
-  FractionalOuModel,
-  MultifractionalPreModel,
+  EulerMaruyamaFractionalOuModel,
+  ExactFractionalOuModel,
+  LocalHolderMultifractionalPreModel,
+  ExactMultifractionalPreModel,
   getModel,
   listModels,
   registerModel,
@@ -44,7 +46,7 @@ describe('RoughFsvModel', function () {
     const result = model.simulate({nSteps: 100, h: 0.1});
     expect(result.paths).to.have.lengthOf(1);
     expect(result.paths[0]).to.have.lengthOf(101);
-    expect(result.times).to.have.lengthOf(101);
+    expect(result.times).to.lengthOf(101);
     expect(result.paths[0].every((v) => Number.isFinite(v))).to.equal(true);
   });
 
@@ -58,8 +60,8 @@ describe('RoughFsvModel', function () {
   });
 });
 
-describe('FractionalOuModel', function () {
-  const model = new FractionalOuModel();
+describe('EulerMaruyamaFractionalOuModel', function () {
+  const model = new EulerMaruyamaFractionalOuModel();
 
   it('generates OU path at H=0.5', function () {
     const result = model.simulate({nSteps: 100, h: 0.5});
@@ -68,21 +70,27 @@ describe('FractionalOuModel', function () {
     expect(result.paths[0].every((v) => Number.isFinite(v))).to.equal(true);
   });
 
-  it('generates exact OU path', function () {
-    const result = model.simulate({
-      nSteps: 100,
-      h: 0.3,
-      discretization: 'exact',
-    });
+  it('generates fractional OU path', function () {
+    const result = model.simulate({nSteps: 100, h: 0.3});
     expect(result.paths[0]).to.have.lengthOf(101);
     expect(result.times).to.have.lengthOf(101);
   });
 });
 
-describe('MultifractionalPreModel', function () {
-  const model = new MultifractionalPreModel();
+describe('ExactFractionalOuModel', function () {
+  const model = new ExactFractionalOuModel();
 
-  it('generates MPRE path with local-holder discretization', function () {
+  it('generates exact OU path', function () {
+    const result = model.simulate({nSteps: 100, h: 0.3});
+    expect(result.paths[0]).to.have.lengthOf(101);
+    expect(result.times).to.have.lengthOf(101);
+  });
+});
+
+describe('LocalHolderMultifractionalPreModel', function () {
+  const model = new LocalHolderMultifractionalPreModel();
+
+  it('generates MPRE path', function () {
     const result = model.simulate({
       nSteps: 100,
       hMin: 0.05,
@@ -92,6 +100,10 @@ describe('MultifractionalPreModel', function () {
     expect(result.paths[0]).to.have.lengthOf(101);
     expect(result.times).to.have.lengthOf(101);
   });
+});
+
+describe('ExactMultifractionalPreModel', function () {
+  const model = new ExactMultifractionalPreModel();
 
   it('generates exact MPRE path', function () {
     const result = model.simulate({
@@ -99,20 +111,32 @@ describe('MultifractionalPreModel', function () {
       hMin: 0.05,
       hMax: 0.95,
       h0: 0.1,
-      discretization: 'exact',
     });
     expect(result.paths[0]).to.have.lengthOf(51);
-    expect(result.times).to.have.lengthOf(51);
+    expect(result.times).to.lengthOf(51);
   });
 });
 
 describe('Model Registry', function () {
-  it('lists built-in models', function () {
+  it('lists built-in models including the exact variants', function () {
     const models = listModels();
     expect(models).to.include('rBergomi');
     expect(models).to.include('rFSV');
     expect(models).to.include('fOU');
+    expect(models).to.include('fOU-exact');
     expect(models).to.include('mPRE');
+    expect(models).to.include('mPRE-exact');
+  });
+
+  it('default fOU resolves to Euler, exact resolves to exact', function () {
+    expect(getModel('fOU')).to.be.instanceOf(EulerMaruyamaFractionalOuModel);
+    expect(getModel('fOU-exact')).to.be.instanceOf(ExactFractionalOuModel);
+    expect(getModel('mPRE')).to.be.instanceOf(
+      LocalHolderMultifractionalPreModel,
+    );
+    expect(getModel('mPRE-exact')).to.be.instanceOf(
+      ExactMultifractionalPreModel,
+    );
   });
 
   it('retrieves models', function () {

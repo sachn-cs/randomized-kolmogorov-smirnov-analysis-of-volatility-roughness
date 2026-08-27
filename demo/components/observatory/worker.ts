@@ -4,8 +4,8 @@ import {
   generateFractionalBrownianMotion,
   RoughBergomiModel,
   RoughFsvModel,
-  FractionalOuModel,
-  MultifractionalPreModel,
+  EulerMaruyamaFractionalOuModel,
+  LocalHolderMultifractionalPreModel,
   KsSignificanceTest,
   setRandomSeed,
   resetRandomSeed,
@@ -18,8 +18,8 @@ declare const self: DedicatedWorkerGlobalScope;
 
 const rBergomiModel = new RoughBergomiModel();
 const rFsvModel = new RoughFsvModel();
-const fOuModel = new FractionalOuModel();
-const mpreModel = new MultifractionalPreModel();
+const fOuModel = new EulerMaruyamaFractionalOuModel();
+const mpreModel = new LocalHolderMultifractionalPreModel();
 const ksSignificance = new KsSignificanceTest();
 
 /**

@@ -130,7 +130,11 @@ export interface FractionalOuOptions {
   discretization?: 'euler-maruyama' | 'exact';
 }
 
-export declare class FractionalOuModel extends StochasticModel {}
+export declare abstract class FractionalOuModel extends StochasticModel {}
+
+export declare class EulerMaruyamaFractionalOuModel extends FractionalOuModel {}
+
+export declare class ExactFractionalOuModel extends FractionalOuModel {}
 
 export interface MultifractionalPreOptions {
   nSteps?: number;
@@ -139,7 +143,6 @@ export interface MultifractionalPreOptions {
   hMax?: number;
   h0?: number;
   x0?: number;
-  discretization?: 'local-holder' | 'exact';
   hProcess?: {
     theta?: number;
     mu?: number;
@@ -147,7 +150,11 @@ export interface MultifractionalPreOptions {
   };
 }
 
-export declare class MultifractionalPreModel extends StochasticModel {}
+export declare abstract class MultifractionalPreModel extends StochasticModel {}
+
+export declare class LocalHolderMultifractionalPreModel extends MultifractionalPreModel {}
+
+export declare class ExactMultifractionalPreModel extends MultifractionalPreModel {}
 
 export declare abstract class Forecaster {
   abstract predict(history: number[]): number;
