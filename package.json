@@ -26,7 +26,7 @@
     "test": "mocha \"tests/**/*.tests.js\"",
     "test:watch": "npm test -- --watch",
     "test:coverage": "NODE_ENV=test c8 --all --include=lib/* --reporter=html --reporter=text mocha \"tests/**/*.tests.js\"",
-    "docs": "jsdoc --readme README.md ./lib -r -d ./docs && jsdoc2md './lib/**/*.js' > ./API.md",
+    "docs": "jsdoc2md './lib/**/*.js' > ./API.md",
     "build": "rollup --config rollup.dist.config.js",
     "build:full": "npm run docs && npm run build",
     "setup": "./scripts/setup.sh",
