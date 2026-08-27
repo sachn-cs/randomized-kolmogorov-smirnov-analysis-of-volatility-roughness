@@ -30,40 +30,26 @@
     
         <h2><span class="attribs"><span class="type-signature"></span></span>Hurstify<span class="signature">(config)</span><span class="type-signature"></span></h2>
         
-            <div class="class-description">Randomized Kolmogorov-Smirnov Analysis of Volatility Roughness estimator.
+            <div class="class-description">Randomized Kolmogorov-Smirnov Analysis of Volatility Roughness
+estimator.
 
-The class encapsulates a *configurable* estimator instance: the scales to
-analyze, the sampler used inside each variance-reduction iteration, the
-1D optimizer that minimizes the KS distance surface, and the safe bounds
-the final estimate will be clamped to.
+Wraps the configuration (scales, sample size, sampler, optimizer, KS
+objective, h bounds) and exposes the same public API as v1.x — but
+every pluggable concern now lives behind a strategy.
 
 Lifecycle:
-  1. The constructor stores the configuration and pulls a fresh optimizer
-     function from optimization/registry. The estimator is
-     therefore stateful across calls — each call to <a href="Hurstify.html#estimate">Hurstify#estimate</a>
-     draws a new independent PRNG state via `prng.js`.
+  1. The constructor stores the configuration and resolves the
+     sampler / KS-objective / optimizer strategies once. The estimator
+     is therefore stateful across calls — each call to
+     <a href="Hurstify.html#estimate">Hurstify#estimate</a> draws a fresh independent PRNG state
+     via `prng.js`.
   2. <a href="Hurstify.html#estimate">Hurstify#estimate</a> averages `iterations` independent
      <a href="Hurstify.html#estimateSingle">Hurstify#estimateSingle</a> results for variance reduction.
-  3. <a href="Hurstify.html#rolling">Hurstify#rolling</a> and <a href="Hurstify.html#rollingMultiScale">Hurstify#rollingMultiScale</a> are
-     convenience wrappers around a sliding window of these estimates.
+  3. <a href="Hurstify.html#rolling">Hurstify#rolling</a> and <a href="Hurstify.html#rollingMultiScale">Hurstify#rollingMultiScale</a>
+     are convenience wrappers around a sliding window of these
+     estimates.
   4. <a href="Hurstify.html#estimateBatch">Hurstify#estimateBatch</a> performs non-overlapping window
-     estimation for parallel processing pipelines.
-
-Thread-safety: the estimator does not share mutable state between its
-methods (no internal counters) but it does rely on the *global* seeded
-PRNG exposed by prng. Callers that need concurrent estimation
-should serialize the calls (e.g. wrap in an async queue) or seed the
-PRNG with a per-call seed.
-
-Example:
-
-```javascript
-import {Hurstify} from 'hurstify';
-
-const estimator = new Hurstify({scaleA1: 1, scaleA2: 50,
-                              sampleSize: 500, iterations: 16});
-const H = estimator.estimate(logVolSeriesWindow);
-```</div>
+     estimation for parallel processing pipelines.</div>
         
     
 </header>
@@ -89,9 +75,10 @@ const H = estimator.estimate(logVolSeriesWindow);
     Builds a Hurstify estimator with the given configuration.
 
 All parameters are optional; sensible defaults match the paper's
-recommended settings for daily equity log-volatility. Pass an explicit
-`iterations: 1` to disable variance reduction and a non-null
-`blockSize` to enable paper-faithful block random permutation.
+recommended settings for daily equity log-volatility. Pass an
+explicit `iterations: 1` to disable variance reduction and a
+non-null `blockSize` to enable paper-faithful block random
+permutation.
 </div>
 
 
@@ -195,7 +182,8 @@ recommended settings for daily equity log-volatility. Pass an explicit
 
             
 
-            <td class="description last">Lower scale `a_1` used when `scales` is not provided (default 1).</td>
+            <td class="description last">Lower scale `a_1` used when `scales`
+  is not provided (default 1).</td>
         </tr>
 
     
@@ -226,7 +214,8 @@ recommended settings for daily equity log-volatility. Pass an explicit
 
             
 
-            <td class="description last">Upper scale `a_2` used when `scales` is not provided (default 50).</td>
+            <td class="description last">Upper scale `a_2` used when `scales`
+  is not provided (default 50).</td>
         </tr>
 
     
@@ -259,7 +248,8 @@ recommended settings for daily equity log-volatility. Pass an explicit
 
             
 
-            <td class="description last">Multi-scale analysis array; overrides `scaleA1`/`scaleA2`.</td>
+            <td class="description last">Multi-scale analysis array;
+  overrides `scaleA1` / `scaleA2`.</td>
         </tr>
 
     
@@ -290,7 +280,8 @@ recommended settings for daily equity log-volatility. Pass an explicit
 
             
 
-            <td class="description last">Number of increments drawn per scale (default 500).</td>
+            <td class="description last">Number of increments drawn per
+  scale (default 500).</td>
         </tr>
 
     
@@ -321,7 +312,8 @@ recommended settings for daily equity log-volatility. Pass an explicit
 
             
 
-            <td class="description last">Variance-reduction iterations averaged by `estimate()` (default 16).</td>
+            <td class="description last">Variance-reduction iterations
+  averaged by `estimate()` (default 16).</td>
         </tr>
 
     
@@ -334,7 +326,7 @@ recommended settings for daily equity log-volatility. Pass an explicit
             <td class="type">
             
                 
-<span class="param-type">function</span>
+<span class="param-type"><a href="Sampler.html">Sampler</a></span>
 
 
             
@@ -342,6 +334,8 @@ recommended settings for daily equity log-volatility. Pass an explicit
 
             
                 <td class="attributes">
+                
+                    &lt;optional><br>
                 
 
                 
@@ -352,7 +346,45 @@ recommended settings for daily equity log-volatility. Pass an explicit
 
             
 
-            <td class="description last">Custom sampler `(data, n) => sample`. Defaults to Floyd's reservoir sampler.</td>
+            <td class="description last">Custom `Sampler` strategy. Defaults
+  to a `BlockPermutationSampler` when `blockSize > 0`, else a
+  `ReservoirSampler`.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>objective</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="KsObjective.html">KsObjective</a></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">Custom `KsObjective` strategy.
+  Defaults to `WeightedMultiScaleKsObjective` when `weights` is set
+  with `scales.length > 2`, else `MultiScaleKsObjective` for plain
+  multi-scale, else `PairwiseKsObjective`.</td>
         </tr>
 
     
@@ -385,7 +417,8 @@ recommended settings for daily equity log-volatility. Pass an explicit
 
             
 
-            <td class="description last">Per-scale weights used by the multi-scale weighted objective.</td>
+            <td class="description last">Per-scale weights used by the
+  multi-scale weighted objective.</td>
         </tr>
 
     
@@ -416,7 +449,9 @@ recommended settings for daily equity log-volatility. Pass an explicit
 
             
 
-            <td class="description last">Key from the optimizer registry: `'brent' | 'nelder-mead' | 'annealing' | 'de' | 'ags'`. Defaults to `'brent'`.</td>
+            <td class="description last">Key from the optimizer
+  registry: `'brent' | 'nelder-mead' | 'annealing' | 'de' | 'ags'`.
+  Defaults to `'brent'`.</td>
         </tr>
 
     
@@ -449,7 +484,9 @@ recommended settings for daily equity log-volatility. Pass an explicit
 
             
 
-            <td class="description last">Block length for block random permutation. `null`/missing disables permutation and falls back to plain sampling.</td>
+            <td class="description last">Block length for block random
+  permutation. `null` / missing disables permutation and falls back
+  to plain sampling.</td>
         </tr>
 
     
@@ -482,7 +519,8 @@ recommended settings for daily equity log-volatility. Pass an explicit
 
             
 
-            <td class="description last">Lower bound clamp applied to the returned `H` (default 0.01).</td>
+            <td class="description last">Lower bound clamp applied to the
+  returned `H` (default 0.01).</td>
         </tr>
 
     
@@ -515,7 +553,8 @@ recommended settings for daily equity log-volatility. Pass an explicit
 
             
 
-            <td class="description last">Upper bound clamp applied to the returned `H` (default 0.99).</td>
+            <td class="description last">Upper bound clamp applied to the
+  returned `H` (default 0.99).</td>
         </tr>
 
     
@@ -563,7 +602,7 @@ recommended settings for daily equity log-volatility. Pass an explicit
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hurstify.js.html">hurstify.js</a>, <a href="hurstify.js.html#line227">line 227</a>
+        <a href="hurstify.js.html">hurstify.js</a>, <a href="hurstify.js.html#line77">line 77</a>
     </li></ul></dd>
     
 
@@ -573,7 +612,9 @@ recommended settings for daily equity log-volatility. Pass an explicit
     <dt class="tag-see">See:</dt>
     <dd class="tag-see">
         <ul>
-            <li>./stats.js</li>
+            <li>./strategies/sampler.js</li>
+        
+            <li>./strategies/ks-objective.js</li>
         
             <li>./optimization/registry.js</li>
         </ul>
@@ -635,7 +676,7 @@ recommended settings for daily equity log-volatility. Pass an explicit
     
 
     
-    <h4 class="name" id="estimate"><span class="type-signature"></span>estimate<span class="signature">(window, opts)</span><span class="type-signature"> &rarr; {number}</span></h4>
+    <h4 class="name" id="estimate"><span class="type-signature"></span>estimate<span class="signature">(window, opts<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {number}</span></h4>
     
 
     
@@ -644,11 +685,8 @@ recommended settings for daily equity log-volatility. Pass an explicit
 
 <div class="description">
     Variance-reduced estimate: averages `iterations` independent
-single-shot estimates. Returns the mean of the successful iterations
-and logs the failed ones through the leveled logger.
-
-If every iteration fails (extremely unlikely for healthy inputs) the
-method throws so callers are not silently handed back `0` or `NaN`.
+single-shot estimates. Returns the mean of the successful
+iterations and logs the failed ones through the leveled logger.
 </div>
 
 
@@ -671,6 +709,8 @@ method throws so callers are not silently handed back `0` or `NaN`.
 
         <th>Type</th>
 
+        
+        <th>Attributes</th>
         
 
         
@@ -697,6 +737,14 @@ method throws so callers are not silently handed back `0` or `NaN`.
             </td>
 
             
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
 
             
 
@@ -720,10 +768,20 @@ method throws so callers are not silently handed back `0` or `NaN`.
             </td>
 
             
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
 
             
 
-            <td class="description last">Per-call overrides (see constructor).
+            <td class="description last">Per-call overrides.
                 <h6>Properties</h6>
                 
 
@@ -777,7 +835,8 @@ method throws so callers are not silently handed back `0` or `NaN`.
 
             
 
-            <td class="description last">Override the configured `iterations`.</td>
+            <td class="description last">Override the configured
+  `iterations`.</td>
         </tr>
 
     
@@ -825,7 +884,7 @@ method throws so callers are not silently handed back `0` or `NaN`.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hurstify.js.html">hurstify.js</a>, <a href="hurstify.js.html#line507">line 507</a>
+        <a href="hurstify.js.html">hurstify.js</a>, <a href="hurstify.js.html#line445">line 445</a>
     </li></ul></dd>
     
 
@@ -855,7 +914,8 @@ method throws so callers are not silently handed back `0` or `NaN`.
 <dl>
     <dt>
         <div class="param-desc">
-        When `iterations <= 0` or all iterations fail.
+        When `iterations <= 0` or all iterations
+  fail.
         </div>
     </dt>
     <dd></dd>
@@ -866,7 +926,7 @@ method throws so callers are not silently handed back `0` or `NaN`.
             </dt>
             <dd>
                 
-<span class="param-type">Error</span>
+<span class="param-type"><a href="HurstifyError.html">HurstifyError</a></span>
 
 
             </dd>
@@ -922,12 +982,10 @@ method throws so callers are not silently handed back `0` or `NaN`.
 <div class="description">
     Batch estimation across an array of non-overlapping windows.
 
-Each window is processed independently via <a href="Hurstify.html#estimateSingle">Hurstify#estimateSingle</a>
-(no variance reduction — variance reduction is left to the caller for
-fine-grained control over per-window effort). Errors are captured into
-the returned objects instead of thrown, which makes this method the
-preferred entry point for parallel pipelines built on top of the
-library.
+Each window is processed independently via
+<a href="Hurstify.html#estimateSingle">Hurstify#estimateSingle</a> (no variance reduction — variance
+reduction is left to the caller for fine-grained control over
+per-window effort).
 </div>
 
 
@@ -1020,7 +1078,7 @@ library.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hurstify.js.html">hurstify.js</a>, <a href="hurstify.js.html#line643">line 643</a>
+        <a href="hurstify.js.html">hurstify.js</a>, <a href="hurstify.js.html#line580">line 580</a>
     </li></ul></dd>
     
 
@@ -1049,8 +1107,8 @@ library.
 
         
 <div class="param-desc">
-    Per-window
-  estimates with an `error` field set when estimation failed.
+    Per-window estimates
+  with an `error` field set when estimation failed.
 </div>
 
 
@@ -1079,7 +1137,7 @@ library.
     
 
     
-    <h4 class="name" id="estimateSingle"><span class="type-signature"></span>estimateSingle<span class="signature">(window, opts)</span><span class="type-signature"> &rarr; {number}</span></h4>
+    <h4 class="name" id="estimateSingle"><span class="type-signature"></span>estimateSingle<span class="signature">(window, opts<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {number}</span></h4>
     
 
     
@@ -1111,6 +1169,8 @@ library.
         <th>Type</th>
 
         
+        <th>Attributes</th>
+        
 
         
 
@@ -1136,6 +1196,14 @@ library.
             </td>
 
             
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
 
             
 
@@ -1158,6 +1226,16 @@ library.
             
             </td>
 
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
             
 
             
@@ -1203,7 +1281,7 @@ library.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hurstify.js.html">hurstify.js</a>, <a href="hurstify.js.html#line456">line 456</a>
+        <a href="hurstify.js.html">hurstify.js</a>, <a href="hurstify.js.html#line399">line 399</a>
     </li></ul></dd>
     
 
@@ -1233,7 +1311,8 @@ library.
 <dl>
     <dt>
         <div class="param-desc">
-        When the window is empty or the optimizer fails.
+        When the window is empty or the optimizer
+  fails.
         </div>
     </dt>
     <dd></dd>
@@ -1244,7 +1323,7 @@ library.
             </dt>
             <dd>
                 
-<span class="param-type">Error</span>
+<span class="param-type"><a href="HurstifyError.html">HurstifyError</a></span>
 
 
             </dd>
@@ -1290,7 +1369,7 @@ library.
     
 
     
-    <h4 class="name" id="estimateSingleWithDiagnostics"><span class="type-signature"></span>estimateSingleWithDiagnostics<span class="signature">(window, opts)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+    <h4 class="name" id="estimateSingleWithDiagnostics"><span class="type-signature"></span>estimateSingleWithDiagnostics<span class="signature">(window, opts<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {Object}</span></h4>
     
 
     
@@ -1298,11 +1377,8 @@ library.
 
 
 <div class="description">
-    Single-shot `H` estimate that also reports the minimized KS distance.
-
-The minimized `D` is a useful proxy for goodness-of-fit: a small value
-means the rescaled samples are nearly identically distributed, which is
-exactly what we expect under the null of self-similarity at the true `H`.
+    Single-shot `H` estimate that also reports the minimized KS
+distance.
 </div>
 
 
@@ -1325,6 +1401,8 @@ exactly what we expect under the null of self-similarity at the true `H`.
 
         <th>Type</th>
 
+        
+        <th>Attributes</th>
         
 
         
@@ -1351,6 +1429,14 @@ exactly what we expect under the null of self-similarity at the true `H`.
             </td>
 
             
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
 
             
 
@@ -1373,6 +1459,16 @@ exactly what we expect under the null of self-similarity at the true `H`.
             
             </td>
 
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
             
 
             
@@ -1418,7 +1514,7 @@ exactly what we expect under the null of self-similarity at the true `H`.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hurstify.js.html">hurstify.js</a>, <a href="hurstify.js.html#line488">line 488</a>
+        <a href="hurstify.js.html">hurstify.js</a>, <a href="hurstify.js.html#line427">line 427</a>
     </li></ul></dd>
     
 
@@ -1447,7 +1543,8 @@ exactly what we expect under the null of self-similarity at the true `H`.
 
         
 <div class="param-desc">
-    Estimate with  and .
+    Estimate + minimized KS
+  distance.
 </div>
 
 
@@ -1487,9 +1584,6 @@ exactly what we expect under the null of self-similarity at the true `H`.
     Public one-shot profile: same optimization as `estimateSingle` but
 also returns the prepared sorted samples and active scale vector,
 useful for building pairwise KS profiles and significance tests.
-
-This is the public replacement for the previously semi-private
-`_estimateSingleRaw`. It does **not** mutate any estimator state.
 </div>
 
 
@@ -1625,7 +1719,7 @@ This is the public replacement for the previously semi-private
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hurstify.js.html">hurstify.js</a>, <a href="hurstify.js.html#line473">line 473</a>
+        <a href="hurstify.js.html">hurstify.js</a>, <a href="hurstify.js.html#line414">line 414</a>
     </li></ul></dd>
     
 
@@ -1654,8 +1748,8 @@ This is the public replacement for the previously semi-private
 
         
 <div class="param-desc">
-    Estimation profile containing `H`, `minimizedD`,
-  `sortedSamples`, and `scaleValues`.
+    Estimation
+  profile.
 </div>
 
 
@@ -1697,10 +1791,6 @@ This is the public replacement for the previously semi-private
 For each anchor `t` the method slices `series[t : t + windowSize]`
 and runs `estimate()` on the slice. Failures are captured into the
 result as `{t, H: null, error}` instead of aborting the loop.
-
-Performance: each call to `estimate()` re-uses the configured
-variance-reduction iterations; consider shrinking `iterations` for
-monitoring workloads.
 </div>
 
 
@@ -1814,7 +1904,8 @@ monitoring workloads.
                 </td>
             
 
-            <td class="description last">Stride between consecutive windows (default 1).</td>
+            <td class="description last">Stride between consecutive windows (default
+  `1`).</td>
         </tr>
 
     
@@ -1841,8 +1932,8 @@ monitoring workloads.
                 </td>
             
 
-            <td class="description last">Optional progress callback
-  receiving the ratio of completed windows in `[0, 1]`.</td>
+            <td class="description last">Optional progress
+  callback receiving the ratio of completed windows in `[0, 1]`.</td>
         </tr>
 
     
@@ -1883,7 +1974,7 @@ monitoring workloads.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hurstify.js.html">hurstify.js</a>, <a href="hurstify.js.html#line549">line 549</a>
+        <a href="hurstify.js.html">hurstify.js</a>, <a href="hurstify.js.html#line485">line 485</a>
     </li></ul></dd>
     
 
@@ -1924,7 +2015,7 @@ monitoring workloads.
             </dt>
             <dd>
                 
-<span class="param-type">Error</span>
+<span class="param-type"><a href="HurstifyError.html">HurstifyError</a></span>
 
 
             </dd>
@@ -1942,7 +2033,7 @@ monitoring workloads.
         
 <div class="param-desc">
     Rolling
-  estimates. Empty when the series is shorter than the window.
+  estimates.
 </div>
 
 
@@ -1979,13 +2070,13 @@ monitoring workloads.
 
 
 <div class="description">
-    Multi-scale rolling estimation that exposes the KS profile per window.
+    Multi-scale rolling estimation that exposes the KS profile per
+window.
 
 For each anchor `t` the method performs a **one-shot** multi-scale
-estimate (no variance reduction — this method favors throughput over
-stability) and additionally returns the flat `profile` of pairwise KS
-distances at the optimal `H`. The profile is a
-`|scales| * (|scales| - 1) / 2` array suitable for diagnostic plotting.
+estimate (no variance reduction — this method favors throughput
+over stability) and additionally returns the flat `profile` of
+pairwise KS distances at the optimal `H`.
 </div>
 
 
@@ -2123,8 +2214,8 @@ distances at the optimal `H`. The profile is a
                 </td>
             
 
-            <td class="description last">Multi-scale analysis array used for both
-  estimation and profile computation.</td>
+            <td class="description last">Multi-scale analysis array used for
+  both estimation and profile computation.</td>
         </tr>
 
     
@@ -2201,7 +2292,8 @@ distances at the optimal `H`. The profile is a
                 </td>
             
 
-            <td class="description last">Stride between consecutive windows (default 1).</td>
+            <td class="description last">Stride between consecutive windows (default
+  `1`).</td>
         </tr>
 
     
@@ -2236,7 +2328,8 @@ distances at the optimal `H`. The profile is a
                 </td>
             
 
-            <td class="description last">Optional progress callback.</td>
+            <td class="description last">Optional progress
+  callback.</td>
         </tr>
 
     
@@ -2277,7 +2370,7 @@ distances at the optimal `H`. The profile is a
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hurstify.js.html">hurstify.js</a>, <a href="hurstify.js.html#line597">line 597</a>
+        <a href="hurstify.js.html">hurstify.js</a>, <a href="hurstify.js.html#line531">line 531</a>
     </li></ul></dd>
     
 
@@ -2318,7 +2411,7 @@ distances at the optimal `H`. The profile is a
             </dt>
             <dd>
                 
-<span class="param-type">Error</span>
+<span class="param-type"><a href="HurstifyError.html">HurstifyError</a></span>
 
 
             </dd>
@@ -2335,8 +2428,7 @@ distances at the optimal `H`. The profile is a
 
         
 <div class="param-desc">
-    Rolling estimates with KS profiles. Empty when the
-  series is shorter than the window.
+    Rolling estimates with KS profiles.
 </div>
 
 
@@ -2365,6 +2457,95 @@ distances at the optimal `H`. The profile is a
     
 
     
+    <h4 class="name" id="validateConfig"><span class="type-signature"></span>validateConfig<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Validates the constructor configuration; throws a <a href="HurstifyError.html">HurstifyError</a>
+with a precise error code on the first failure.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="hurstify.js.html">hurstify.js</a>, <a href="hurstify.js.html#line188">line 188</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
     <h4 class="name" id=".getIncrements"><span class="type-signature">(static) </span>getIncrements<span class="signature">(series, scale)</span><span class="type-signature"> &rarr; {Float64Array}</span></h4>
     
 
@@ -2375,10 +2556,9 @@ distances at the optimal `H`. The profile is a
 <div class="description">
     Computes the increments of a series at a single scale.
 
-For each index `i` returns `series[i + scale] - series[i]`. The result
-has length `series.length - scale`. Inputs may be a regular array or a
-`Float64Array`. The implementation is allocation-friendly: the output
-is always a `Float64Array`.
+For each index `i` returns `series[i + scale] - series[i]`. The
+result has length `series.length - scale`. Inputs may be a regular
+array or a `Float64Array`. The output is always a `Float64Array`.
 
 Complexity: O(n).
 </div>
@@ -2435,7 +2615,8 @@ Complexity: O(n).
 
             
 
-            <td class="description last">Input series in chronological order.</td>
+            <td class="description last">Input series in
+  chronological order.</td>
         </tr>
 
     
@@ -2499,7 +2680,7 @@ Complexity: O(n).
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hurstify.js.html">hurstify.js</a>, <a href="hurstify.js.html#line313">line 313</a>
+        <a href="hurstify.js.html">hurstify.js</a>, <a href="hurstify.js.html#line252">line 252</a>
     </li></ul></dd>
     
 
@@ -2528,7 +2709,8 @@ Complexity: O(n).
 
         
 <div class="param-desc">
-    Increment array of length `series.length - scale`.
+    Increment array of length `series.length -
+  scale`.
 </div>
 
 
@@ -2565,13 +2747,8 @@ Complexity: O(n).
 
 
 <div class="description">
-    Precomputes the increments for **every requested scale** in a single
-logical pass. Each scale's increment array is independent so callers can
-keep them cached for sliding-window applications.
-
-Note: the current implementation loops once per scale because the
-inner index depends on the scale itself; the constant factor is small.
-Complexity: O(|scales| * n).
+    Precomputes the increments for **every requested scale** in a
+single logical pass.
 </div>
 
 
@@ -2690,7 +2867,7 @@ Complexity: O(|scales| * n).
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hurstify.js.html">hurstify.js</a>, <a href="hurstify.js.html#line335">line 335</a>
+        <a href="hurstify.js.html">hurstify.js</a>, <a href="hurstify.js.html#line270">line 270</a>
     </li></ul></dd>
     
 
@@ -2719,7 +2896,8 @@ Complexity: O(|scales| * n).
 
         
 <div class="param-desc">
-    Map from scale to its increment array.
+    Map from scale to its increment
+  array.
 </div>
 
 
@@ -2810,8 +2988,7 @@ modifying the library source.
 
             
 
-            <td class="description last">Optimizer identifier (used as
-  `config.optimizerType`).</td>
+            <td class="description last">Optimizer identifier.</td>
         </tr>
 
     
@@ -2823,19 +3000,13 @@ modifying the library source.
 
             <td class="type">
             
-                
-<span class="param-type">function</span>
-
-
-            
             </td>
 
             
 
             
 
-            <td class="description last">A function returning a
-  fresh `Optimizer` instance.</td>
+            <td class="description last"></td>
         </tr>
 
     
@@ -2876,7 +3047,7 @@ modifying the library source.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hurstify.js.html">hurstify.js</a>, <a href="hurstify.js.html#line282">line 282</a>
+        <a href="hurstify.js.html">hurstify.js</a>, <a href="hurstify.js.html#line180">line 180</a>
     </li></ul></dd>
     
 
@@ -2922,13 +3093,13 @@ modifying the library source.
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Hurstify.html">Hurstify</a></li><li><a href="Optimizer.html">Optimizer</a></li></ul><h3>Global</h3><ul><li><a href="global.html#LogLevel">LogLevel</a></li><li><a href="global.html#REGISTRY">REGISTRY</a></li><li><a href="global.html#adaptiveGridSearch">adaptiveGridSearch</a></li><li><a href="global.html#aggregateDailyRV">aggregateDailyRV</a></li><li><a href="global.html#arfima">arfima</a></li><li><a href="global.html#asymptoticVariance">asymptoticVariance</a></li><li><a href="global.html#blockPermutation">blockPermutation</a></li><li><a href="global.html#bootstrapCI">bootstrapCI</a></li><li><a href="global.html#brentMinimize">brentMinimize</a></li><li><a href="global.html#buildScaleProfile">buildScaleProfile</a></li><li><a href="global.html#centerSeries">centerSeries</a></li><li><a href="global.html#computeRV">computeRV</a></li><li><a href="global.html#computeRVParkinson">computeRVParkinson</a></li><li><a href="global.html#computeScalePairDistance">computeScalePairDistance</a></li><li><a href="global.html#confidenceInterval">confidenceInterval</a></li><li><a href="global.html#constancyTest">constancyTest</a></li><li><a href="global.html#correlatedGaussian">correlatedGaussian</a></li><li><a href="global.html#createAttentionModel">createAttentionModel</a></li><li><a href="global.html#createLSTM">createLSTM</a></li><li><a href="global.html#createWindows">createWindows</a></li><li><a href="global.html#cusumTest">cusumTest</a></li><li><a href="global.html#debug">debug</a></li><li><a href="global.html#defaultSampler">defaultSampler</a></li><li><a href="global.html#detectBreakpoints">detectBreakpoints</a></li><li><a href="global.html#differentialEvolution">differentialEvolution</a></li><li><a href="global.html#downsample">downsample</a></li><li><a href="global.html#error">error</a></li><li><a href="global.html#exactOU">exactOU</a></li><li><a href="global.html#extractSeries">extractSeries</a></li><li><a href="global.html#fOU">fOU</a></li><li><a href="global.html#fractionalIntegral">fractionalIntegral</a></li><li><a href="global.html#fractionalKernel">fractionalKernel</a></li><li><a href="global.html#generateFBM">generateFBM</a></li><li><a href="global.html#generateFGN">generateFGN</a></li><li><a href="global.html#generateIntradayPrices">generateIntradayPrices</a></li><li><a href="global.html#generateSPXLogVol">generateSPXLogVol</a></li><li><a href="global.html#generateVIXLogVol">generateVIXLogVol</a></li><li><a href="global.html#getLogLevel">getLogLevel</a></li><li><a href="global.html#getModel">getModel</a></li><li><a href="global.html#getOptimizer">getOptimizer</a></li><li><a href="global.html#holtWintersForecast">holtWintersForecast</a></li><li><a href="global.html#info">info</a></li><li><a href="global.html#kalmanFilter">kalmanFilter</a></li><li><a href="global.html#ksCriticalValue">ksCriticalValue</a></li><li><a href="global.html#ksDistance">ksDistance</a></li><li><a href="global.html#ksDistanceRescaled">ksDistanceRescaled</a></li><li><a href="global.html#ksPvalue">ksPvalue</a></li><li><a href="global.html#listModels">listModels</a></li><li><a href="global.html#logTransform">logTransform</a></li><li><a href="global.html#logVolDebias">logVolDebias</a></li><li><a href="global.html#mPRE">mPRE</a></li><li><a href="global.html#mPREExact">mPREExact</a></li><li><a href="global.html#nelderMead">nelderMead</a></li><li><a href="global.html#normalQuantile">normalQuantile</a></li><li><a href="global.html#parseCSV">parseCSV</a></li><li><a href="global.html#parseJSON">parseJSON</a></li><li><a href="global.html#preavgReturns">preavgReturns</a></li><li><a href="global.html#preprocessPipeline">preprocessPipeline</a></li><li><a href="global.html#rBergomi">rBergomi</a></li><li><a href="global.html#rBergomiPrice">rBergomiPrice</a></li><li><a href="global.html#rFSV">rFSV</a></li><li><a href="global.html#rFSVPrice">rFSVPrice</a></li><li><a href="global.html#randn">randn</a></li><li><a href="global.html#randnBatch">randnBatch</a></li><li><a href="global.html#random">random</a></li><li><a href="global.html#randomSample">randomSample</a></li><li><a href="global.html#realizedKernel">realizedKernel</a></li><li><a href="global.html#registerModel">registerModel</a></li><li><a href="global.html#registerOptimizer">registerOptimizer</a></li><li><a href="global.html#resetSeed">resetSeed</a></li><li><a href="global.html#resolveOptimizer">resolveOptimizer</a></li><li><a href="global.html#safeOptimizer">safeOptimizer</a></li><li><a href="global.html#seriesToCSV">seriesToCSV</a></li><li><a href="global.html#setLogLevel">setLogLevel</a></li><li><a href="global.html#setSeed">setSeed</a></li><li><a href="global.html#shuffle">shuffle</a></li><li><a href="global.html#significanceTest">significanceTest</a></li><li><a href="global.html#simulatedAnnealing">simulatedAnnealing</a></li><li><a href="global.html#standardError">standardError</a></li><li><a href="global.html#standardizeSeries">standardizeSeries</a></li><li><a href="global.html#trainTestSplit">trainTestSplit</a></li><li><a href="global.html#validateNoGaps">validateNoGaps</a></li><li><a href="global.html#vectorizedKsObjective">vectorizedKsObjective</a></li><li><a href="global.html#warn">warn</a></li><li><a href="global.html#weightedKsObjective">weightedKsObjective</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="ArfimaForecaster.html">ArfimaForecaster</a></li><li><a href="AttentionForecaster.html">AttentionForecaster</a></li><li><a href="BlockPermutationSampler.html">BlockPermutationSampler</a></li><li><a href="BootstrapConfidenceInterval.html">BootstrapConfidenceInterval</a></li><li><a href="ConstancyTest.html">ConstancyTest</a></li><li><a href="CusumBreakTest.html">CusumBreakTest</a></li><li><a href="EulerMaruyamaFractionalOuModel.html">EulerMaruyamaFractionalOuModel</a></li><li><a href="ExactFractionalOuModel.html">ExactFractionalOuModel</a></li><li><a href="ExactMultifractionalPreModel.html">ExactMultifractionalPreModel</a></li><li><a href="Forecaster.html">Forecaster</a></li><li><a href="FractionalOuModel.html">FractionalOuModel</a></li><li><a href="HoltWintersForecaster.html">HoltWintersForecaster</a></li><li><a href="Hurstify.html">Hurstify</a></li><li><a href="HurstifyError.html">HurstifyError</a></li><li><a href="HypothesisTest.html">HypothesisTest</a></li><li><a href="IdentitySampler.html">IdentitySampler</a></li><li><a href="Kernel.html">Kernel</a></li><li><a href="KsObjective.html">KsObjective</a></li><li><a href="KsSignificanceTest.html">KsSignificanceTest</a></li><li><a href="LocalHolderMultifractionalPreModel.html">LocalHolderMultifractionalPreModel</a></li><li><a href="LstmForecaster.html">LstmForecaster</a></li><li><a href="MultiScaleKsObjective.html">MultiScaleKsObjective</a></li><li><a href="MultifractionalPreModel.html">MultifractionalPreModel</a></li><li><a href="Optimizer.html">Optimizer</a></li><li><a href="PairwiseKsObjective.html">PairwiseKsObjective</a></li><li><a href="Registry_Registry.html">Registry</a></li><li><a href="ReservoirSampler.html">ReservoirSampler</a></li><li><a href="RiemannLiouvilleKernel.html">RiemannLiouvilleKernel</a></li><li><a href="RoughBergomiModel.html">RoughBergomiModel</a></li><li><a href="RoughFsvModel.html">RoughFsvModel</a></li><li><a href="Sampler.html">Sampler</a></li><li><a href="StochasticModel.html">StochasticModel</a></li><li><a href="TimeVaryingKernel.html">TimeVaryingKernel</a></li><li><a href="WeightedMultiScaleKsObjective.html">WeightedMultiScaleKsObjective</a></li></ul><h3>Global</h3><ul><li><a href="global.html#HurstifyErrorCode">HurstifyErrorCode</a></li><li><a href="global.html#LogLevel">LogLevel</a></li><li><a href="global.html#NORMAL_QUANTILE_COEFFS">NORMAL_QUANTILE_COEFFS</a></li><li><a href="global.html#aggregateDailyRealizedVariance">aggregateDailyRealizedVariance</a></li><li><a href="global.html#applyLogTransform">applyLogTransform</a></li><li><a href="global.html#applyPreprocessingPipeline">applyPreprocessingPipeline</a></li><li><a href="global.html#buildScaleProfile">buildScaleProfile</a></li><li><a href="global.html#centerSeries">centerSeries</a></li><li><a href="global.html#chooseKsObjective">chooseKsObjective</a></li><li><a href="global.html#computeFractionalIntegral">computeFractionalIntegral</a></li><li><a href="global.html#computeFractionalKernel">computeFractionalKernel</a></li><li><a href="global.html#computeKsDistance">computeKsDistance</a></li><li><a href="global.html#computeKsDistanceRescaled">computeKsDistanceRescaled</a></li><li><a href="global.html#computeRealizedKernel">computeRealizedKernel</a></li><li><a href="global.html#computeRealizedVariance">computeRealizedVariance</a></li><li><a href="global.html#computeRealizedVarianceParkinson">computeRealizedVarianceParkinson</a></li><li><a href="global.html#createSlidingWindows">createSlidingWindows</a></li><li><a href="global.html#debiasLogVolatility">debiasLogVolatility</a></li><li><a href="global.html#debug">debug</a></li><li><a href="global.html#defaultSampler">defaultSampler</a></li><li><a href="global.html#detectCusumBreakpoints">detectCusumBreakpoints</a></li><li><a href="global.html#downsampleSeries">downsampleSeries</a></li><li><a href="global.html#error">error</a></li><li><a href="global.html#extractSeries">extractSeries</a></li><li><a href="global.html#forecasterRegistry">forecasterRegistry</a></li><li><a href="global.html#fractionalDifference">fractionalDifference</a></li><li><a href="global.html#generateCorrelatedGaussian">generateCorrelatedGaussian</a></li><li><a href="global.html#generateFractionalBrownianMotion">generateFractionalBrownianMotion</a></li><li><a href="global.html#generateFractionalNoise">generateFractionalNoise</a></li><li><a href="global.html#generateGaussianBatch">generateGaussianBatch</a></li><li><a href="global.html#generateIntradayPrices">generateIntradayPrices</a></li><li><a href="global.html#generateSpxLogVolatility">generateSpxLogVolatility</a></li><li><a href="global.html#generateVixLogVolatility">generateVixLogVolatility</a></li><li><a href="global.html#getAsymptoticVariance">getAsymptoticVariance</a></li><li><a href="global.html#getBinomialCoeffs">getBinomialCoeffs</a></li><li><a href="global.html#getConfidenceInterval">getConfidenceInterval</a></li><li><a href="global.html#getForecaster">getForecaster</a></li><li><a href="global.html#getLogLevel">getLogLevel</a></li><li><a href="global.html#getModel">getModel</a></li><li><a href="global.html#getRandomSample">getRandomSample</a></li><li><a href="global.html#getStandardError">getStandardError</a></li><li><a href="global.html#info">info</a></li><li><a href="global.html#kalmanLogLikelihood">kalmanLogLikelihood</a></li><li><a href="global.html#kernelWeight">kernelWeight</a></li><li><a href="global.html#ksCriticalValue">ksCriticalValue</a></li><li><a href="global.html#ksPvalue">ksPvalue</a></li><li><a href="global.html#listForecasters">listForecasters</a></li><li><a href="global.html#listModels">listModels</a></li><li><a href="global.html#log">log</a></li><li><a href="global.html#modelRegistry">modelRegistry</a></li><li><a href="global.html#mulberry32">mulberry32</a></li><li><a href="global.html#nextGaussian">nextGaussian</a></li><li><a href="global.html#nextRandom">nextRandom</a></li><li><a href="global.html#normalCdf">normalCdf</a></li><li><a href="global.html#normalQuantile">normalQuantile</a></li><li><a href="global.html#optimizerRegistry">optimizerRegistry</a></li><li><a href="global.html#parseCsv">parseCsv</a></li><li><a href="global.html#parseJson">parseJson</a></li><li><a href="global.html#permuteBlocks">permuteBlocks</a></li><li><a href="global.html#preaverageReturns">preaverageReturns</a></li><li><a href="global.html#registerForecaster">registerForecaster</a></li><li><a href="global.html#registerModel">registerModel</a></li><li><a href="global.html#resetRandomSeed">resetRandomSeed</a></li><li><a href="global.html#runAdaptiveGridSearch">runAdaptiveGridSearch</a></li><li><a href="global.html#runBrent">runBrent</a></li><li><a href="global.html#runDifferentialEvolution">runDifferentialEvolution</a></li><li><a href="global.html#runKalmanFilter">runKalmanFilter</a></li><li><a href="global.html#runNelderMead">runNelderMead</a></li><li><a href="global.html#runSimulatedAnnealing">runSimulatedAnnealing</a></li><li><a href="global.html#seriesToCsv">seriesToCsv</a></li><li><a href="global.html#setLogLevel">setLogLevel</a></li><li><a href="global.html#setRandomSeed">setRandomSeed</a></li><li><a href="global.html#shuffleArray">shuffleArray</a></li><li><a href="global.html#splitCSVLine">splitCSVLine</a></li><li><a href="global.html#splitTrainTest">splitTrainTest</a></li><li><a href="global.html#standardizeSeries">standardizeSeries</a></li><li><a href="global.html#validateNoGaps">validateNoGaps</a></li><li><a href="global.html#warn">warn</a></li><li><a href="global.html#xavierInit">xavierInit</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Wed Aug 26 2026 15:26:41 GMT+0530 (India Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Fri Aug 28 2026 00:37:11 GMT+0530 (India Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

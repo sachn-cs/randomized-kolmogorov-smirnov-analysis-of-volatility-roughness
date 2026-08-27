@@ -29,289 +29,37 @@
             <pre class="prettyprint source linenums"><code>/**
  * @fileoverview Statistical inference facade for hurstify.
  *
- * Re-exports the focused submodule APIs and adds two families of utility
- * functions that historically lived alongside the estimator:
+ * Re-exports the focused submodule APIs. Hypothesis tests live in the
+ * {@link HypothesisTest} strategy hierarchy under
+ * `lib/strategies/hypothesis-test.js` — consumers instantiate the
+ * strategy class directly (e.g. `new KsSignificanceTest().run(...)`).
  *
- * - Kolmogorov-Smirnov critical value, p-value, and significance test for
- *   the minimized KS distance returned by `Hurstify.estimateSingle`.
- * - CUSUM-based structural break detection for series of H estimates
- *   (e.g. from `Hurstify.rolling`).
- * - A bootstrap confidence interval that wraps any user-supplied estimator
- *   and resamples from the original window with replacement.
+ * The module depends on the seeded `nextRandom()` dispatcher in
+ * `prng.js`, so bootstrap samples are reproducible across runs.
  *
- * The module depends on the seeded `random()` dispatcher in `prng.js`,
- * so bootstrap samples are reproducible across runs.
- *
- * @see ./inference/asymptotic.js for the analytical-variance / CI helpers.
- * @see ./inference/filtering.js for the Kalman filter and constancy test.
+ * @see ./inference/asymptotic.js for the analytical-variance helpers.
+ * @see ./inference/filtering.js for the Kalman filter.
+ * @see ../strategies/hypothesis-test.js for the polymorphic
+ * `HypothesisTest` strategy hierarchy.
  */
-
-import {random} from './prng.js';
 
 export {
-  asymptoticVariance,
-  standardError,
-  confidenceInterval,
+  getAsymptoticVariance,
+  getStandardError,
+  getConfidenceInterval,
 } from './inference/asymptotic.js';
 
-export {kalmanFilter, constancyTest} from './inference/filtering.js';
+export {runKalmanFilter} from './inference/filtering.js';
 
-/**
- * Two-sample Kolmogorov-Smirnov asymptotic critical value.
- *
- * Implements the classical asymptotic formula
- *
- *     D_alpha = sqrt(-0.5 * ln(alpha/2)) * sqrt((n + m) / (n * m))
- *
- * which is `O(1)` in `n, m` and accurate for moderately large samples.
- *
- * @param {number} n First sample size.
- * @param {number} m Second sample size.
- * @param {number} alpha Significance level (default `0.05`).
- * @return {number} Critical value `D_alpha`.
- * @throws {Error} When `n`, `m` are non-positive or `alpha` is outside
- *   the open interval `(0, 1)`.
- */
-export function ksCriticalValue(n, m, alpha = 0.05) {
-  if (n &lt;= 0 || m &lt;= 0) throw new Error('Sample sizes must be positive');
-  if (alpha &lt;= 0 || alpha >= 1) throw new Error('alpha must be in (0,1)');
-  const factor = Math.sqrt(-0.5 * Math.log(alpha / 2));
-  const nmFactor = Math.sqrt((n + m) / (n * m));
-  return factor * nmFactor;
-}
-
-/**
- * Approximate two-sample KS p-value via the asymptotic Kolmogorov
- * distribution.
- *
- * Uses the truncated series
- *     Q(lambda) ~ 2 * sum_{j=1..J} (-1)^{j-1} * exp(-2 * j^2 * lambda^2)
- * with `J = 3` terms. The `lambda` correction
- *
- *     lambda = (sqrt(nm) + 0.12 + 0.11 / sqrt(nm)) * D
- *
- * matches the standard asymptotic accuracy improvement recommended by
- * numerical-statistics references.
- *
- * @param {number} D Observed KS distance.
- * @param {number} n First sample size.
- * @param {number} m Second sample size.
- * @return {number} Approximate p-value in `[0, 1]`. Returns `1` when
- *   `D &lt; 0` (defensive guard against invalid negative inputs).
- */
-export function ksPvalue(D, n, m) {
-  if (D &lt; 0) return 1;
-  const nm = (n * m) / (n + m);
-  const lambda = (Math.sqrt(nm) + 0.12 + 0.11 / Math.sqrt(nm)) * D;
-  let sum = 0;
-  for (let j = 1; j &lt;= 3; j++) {
-    const sign = j % 2 === 1 ? 1 : -1;
-    sum += sign * Math.exp(-2 * j * j * lambda * lambda);
-  }
-  return Math.max(0, Math.min(1, 2 * sum));
-}
-
-/**
- * Significance test for the minimized KS distance returned by the
- * Hurstify estimator.
- *
- * Two views are returned:
- *
- * - `pValue` from {@link ksPvalue}, comparable against any `alpha`.
- * - `criticalValue` from {@link ksCriticalValue} at the same `alpha`.
- *
- * Interpretation: under the null of self-similarity at the estimated
- * `H`, the minimized KS distance should be roughly equal to the
- * critical value. A `significant` result means the null is rejected at
- * the chosen `alpha` level — i.e. the rescaled samples do **not**
- * appear identically distributed and the user should treat the
- * estimate with caution.
- *
- * @param {number} D Minimized KS distance from `Hurstify.estimateSingle`
- *   or `estimateSingleWithDiagnostics`.
- * @param {number} n Sample size at scale `a_1`.
- * @param {number} m Sample size at scale `a_2`.
- * @param {number} alpha Significance level (default `0.05`).
- * @return {{significant: boolean, pValue: number, D: number, criticalValue: number}}
- *   Test result bundle.
- * @throws {Error} When `D` is non-finite or negative.
- */
-export function significanceTest(D, n, m, alpha = 0.05) {
-  if (!Number.isFinite(D) || D &lt; 0)
-    throw new Error('D must be a non-negative finite number');
-  const criticalValue = ksCriticalValue(n, m, alpha);
-  const pValue = ksPvalue(D, n, m);
-  return {
-    significant: pValue &lt; alpha,
-    pValue,
-    D,
-    criticalValue,
-  };
-}
-
-/**
- * Cumulative Sum (CUSUM) test for structural breaks in `H(t)` series.
- *
- * This is a one-sided upper CUSUM on the standardized residuals
- * `r_i = (h_i - targetH) / sigma` (where `sigma` is the empirical
- * standard deviation of the residuals). A break is flagged when the
- * CUSUM exceeds `threshold`. The break index is the point of maximum
- * CUSUM value.
- *
- * When the residual series has zero variance (a degenerate history),
- * returns `breakDetected: false` instead of dividing by zero.
- *
- * @param {Array&lt;number>} hHistory Time-ordered series of `H` estimates.
- * @param {number} targetH Target value of `H` under the null of structural
- *   stability (typically the mean of the series).
- * @param {number} threshold Alarm threshold (default `3.0`).
- * @return {{breakDetected: boolean, maxCusum: number, breakIndex: number}}
- *   Test result; `breakIndex = -1` when no break is detected.
- * @throws {Error} When `hHistory` is empty.
- */
-export function cusumTest(hHistory, targetH, threshold = 3.0) {
-  const n = hHistory.length;
-  if (n === 0) throw new Error('hHistory must be non-empty');
-
-  const residuals = hHistory.map((h) => h - targetH);
-  const meanRes = residuals.reduce((a, b) => a + b, 0) / n;
-  const stdRes = Math.sqrt(
-    residuals.map((r) => (r - meanRes) ** 2).reduce((a, b) => a + b, 0) / n,
-  );
-
-  if (stdRes === 0) {
-    return {breakDetected: false, maxCusum: 0, breakIndex: -1};
-  }
-
-  const standardized = residuals.map((r) => (r - meanRes) / stdRes);
-  let cusum = 0;
-  let maxCusum = 0;
-  let breakIndex = -1;
-
-  for (let i = 0; i &lt; n; i++) {
-    cusum += standardized[i];
-    cusum = Math.max(0, cusum);
-    if (cusum > maxCusum) {
-      maxCusum = cusum;
-      breakIndex = i;
-    }
-  }
-
-  return {
-    breakDetected: maxCusum > threshold,
-    maxCusum,
-    breakIndex,
-  };
-}
-
-/**
- * Detects breakpoints in a series of H estimates via a sliding-window
- * CUSUM.
- *
- * At every index `i` (with sufficient room on either side) two windows of
- * length `windowSize` are compared: `[i - windowSize, i)` and
- * `[i, i + windowSize)`. The "after" window is fed into
- * {@link cusumTest} with the "before" mean as the target. A breakpoint is
- * recorded whenever the CUSUM flags a significant shift at the same
- * `threshold`.
- *
- * Windows whose `before` sample has zero variance are skipped to avoid
- * a divide-by-zero in the standardization step.
- *
- * @param {Array&lt;number>} hHistory Time-ordered series of `H` estimates.
- * @param {number} windowSize Sliding window size (default `50`).
- * @param {number} threshold CUSUM threshold (default `3.0`).
- * @return {Array&lt;{index: number, H_before: number, H_after: number}>}
- *   Detected breakpoints in chronological order; empty if none.
- */
-export function detectBreakpoints(hHistory, windowSize = 50, threshold = 3.0) {
-  const breakpoints = [];
-  for (let i = windowSize; i &lt; hHistory.length - windowSize; i++) {
-    const before = hHistory.slice(i - windowSize, i);
-    const after = hHistory.slice(i, i + windowSize);
-    const meanBefore = before.reduce((a, b) => a + b, 0) / before.length;
-    const meanAfter = after.reduce((a, b) => a + b, 0) / after.length;
-    const stdBefore = Math.sqrt(
-      before.map((x) => (x - meanBefore) ** 2).reduce((a, b) => a + b, 0) /
-        before.length,
-    );
-
-    // Defensive: a flat "before" window has no information to standardize
-    // against, so skip rather than emit a meaningless breakpoint.
-    if (stdBefore === 0) continue;
-
-    const cusumResult = cusumTest(after, meanBefore, threshold);
-    if (cusumResult.breakDetected) {
-      breakpoints.push({
-        index: i,
-        H_before: meanBefore,
-        H_after: meanAfter,
-      });
-    }
-  }
-  return breakpoints;
-}
-
-/**
- * Nonparametric bootstrap confidence interval for an arbitrary
- * `H` estimator.
- *
- * Procedure:
- *
- * 1. Evaluate the estimator on the full window to obtain `pointEstimate`.
- * 2. Draw `nBoot` IID samples **with replacement** from the window. Each
- *    bootstrap sample has the same length as the original.
- * 3. Run the estimator on each bootstrap sample; failed iterations are
- *    silently discarded.
- * 4. Sort the successful bootstrap estimates and read the
- *    `(alpha/2, 1 - alpha/2)` percentile pair.
- *
- * Notes:
- * - The percentile bounds are returned as `lower`/`upper`. When the
- *   bootstrap set is empty (very small `nBoot` with a fragile estimator)
- *   the bounds collapse to `pointEstimate` so the CI is well-defined.
- *
- * @param {function(Array&lt;number>): number} estimator Function that
- *   returns `H` from a window.
- * @param {Array&lt;number>} window Data window.
- * @param {number} nBoot Bootstrap iterations (default `1000`).
- * @param {number} alpha Significance level (default `0.05`).
- * @return {{lower: number, upper: number, pointEstimate: number}}
- *   Centile bootstrap CI.
- * @throws {Error} When `window` is empty.
- */
-export function bootstrapCI(estimator, window, nBoot = 1000, alpha = 0.05) {
-  if (!window || window.length === 0)
-    throw new Error('window must be non-empty');
-  const pointEstimate = estimator(window);
-  const bootEstimates = [];
-
-  for (let b = 0; b &lt; nBoot; b++) {
-    // Resample with replacement via the seeded `random()` dispatcher.
-    const sample = [];
-    for (let i = 0; i &lt; window.length; i++) {
-      const idx = Math.floor(random() * window.length);
-      sample.push(window[idx]);
-    }
-    try {
-      bootEstimates.push(estimator(sample));
-    } catch {
-      // Discard failed bootstrap iterations without aborting the whole
-      // loop; the centile-based CI degrades gracefully when some
-      // iterations fail.
-    }
-  }
-
-  bootEstimates.sort((a, b) => a - b);
-  const lowerIdx = Math.floor((alpha / 2) * bootEstimates.length);
-  const upperIdx = Math.floor((1 - alpha / 2) * bootEstimates.length);
-
-  return {
-    lower: bootEstimates[lowerIdx] || pointEstimate,
-    upper: bootEstimates[upperIdx] || pointEstimate,
-    pointEstimate,
-  };
-}
+export {
+  ksCriticalValue,
+  ksPvalue,
+  KsSignificanceTest,
+  ConstancyTest,
+  CusumBreakTest,
+  BootstrapConfidenceInterval,
+  detectCusumBreakpoints,
+} from './strategies/hypothesis-test.js';
 </code></pre>
         </article>
     </section>
@@ -322,13 +70,13 @@ export function bootstrapCI(estimator, window, nBoot = 1000, alpha = 0.05) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Hurstify.html">Hurstify</a></li><li><a href="Optimizer.html">Optimizer</a></li></ul><h3>Global</h3><ul><li><a href="global.html#LogLevel">LogLevel</a></li><li><a href="global.html#REGISTRY">REGISTRY</a></li><li><a href="global.html#adaptiveGridSearch">adaptiveGridSearch</a></li><li><a href="global.html#aggregateDailyRV">aggregateDailyRV</a></li><li><a href="global.html#arfima">arfima</a></li><li><a href="global.html#asymptoticVariance">asymptoticVariance</a></li><li><a href="global.html#blockPermutation">blockPermutation</a></li><li><a href="global.html#bootstrapCI">bootstrapCI</a></li><li><a href="global.html#brentMinimize">brentMinimize</a></li><li><a href="global.html#buildScaleProfile">buildScaleProfile</a></li><li><a href="global.html#centerSeries">centerSeries</a></li><li><a href="global.html#computeRV">computeRV</a></li><li><a href="global.html#computeRVParkinson">computeRVParkinson</a></li><li><a href="global.html#computeScalePairDistance">computeScalePairDistance</a></li><li><a href="global.html#confidenceInterval">confidenceInterval</a></li><li><a href="global.html#constancyTest">constancyTest</a></li><li><a href="global.html#correlatedGaussian">correlatedGaussian</a></li><li><a href="global.html#createAttentionModel">createAttentionModel</a></li><li><a href="global.html#createLSTM">createLSTM</a></li><li><a href="global.html#createWindows">createWindows</a></li><li><a href="global.html#cusumTest">cusumTest</a></li><li><a href="global.html#debug">debug</a></li><li><a href="global.html#defaultSampler">defaultSampler</a></li><li><a href="global.html#detectBreakpoints">detectBreakpoints</a></li><li><a href="global.html#differentialEvolution">differentialEvolution</a></li><li><a href="global.html#downsample">downsample</a></li><li><a href="global.html#error">error</a></li><li><a href="global.html#exactOU">exactOU</a></li><li><a href="global.html#extractSeries">extractSeries</a></li><li><a href="global.html#fOU">fOU</a></li><li><a href="global.html#fractionalIntegral">fractionalIntegral</a></li><li><a href="global.html#fractionalKernel">fractionalKernel</a></li><li><a href="global.html#generateFBM">generateFBM</a></li><li><a href="global.html#generateFGN">generateFGN</a></li><li><a href="global.html#generateIntradayPrices">generateIntradayPrices</a></li><li><a href="global.html#generateSPXLogVol">generateSPXLogVol</a></li><li><a href="global.html#generateVIXLogVol">generateVIXLogVol</a></li><li><a href="global.html#getLogLevel">getLogLevel</a></li><li><a href="global.html#getModel">getModel</a></li><li><a href="global.html#getOptimizer">getOptimizer</a></li><li><a href="global.html#holtWintersForecast">holtWintersForecast</a></li><li><a href="global.html#info">info</a></li><li><a href="global.html#kalmanFilter">kalmanFilter</a></li><li><a href="global.html#ksCriticalValue">ksCriticalValue</a></li><li><a href="global.html#ksDistance">ksDistance</a></li><li><a href="global.html#ksDistanceRescaled">ksDistanceRescaled</a></li><li><a href="global.html#ksPvalue">ksPvalue</a></li><li><a href="global.html#listModels">listModels</a></li><li><a href="global.html#logTransform">logTransform</a></li><li><a href="global.html#logVolDebias">logVolDebias</a></li><li><a href="global.html#mPRE">mPRE</a></li><li><a href="global.html#mPREExact">mPREExact</a></li><li><a href="global.html#nelderMead">nelderMead</a></li><li><a href="global.html#normalQuantile">normalQuantile</a></li><li><a href="global.html#parseCSV">parseCSV</a></li><li><a href="global.html#parseJSON">parseJSON</a></li><li><a href="global.html#preavgReturns">preavgReturns</a></li><li><a href="global.html#preprocessPipeline">preprocessPipeline</a></li><li><a href="global.html#rBergomi">rBergomi</a></li><li><a href="global.html#rBergomiPrice">rBergomiPrice</a></li><li><a href="global.html#rFSV">rFSV</a></li><li><a href="global.html#rFSVPrice">rFSVPrice</a></li><li><a href="global.html#randn">randn</a></li><li><a href="global.html#randnBatch">randnBatch</a></li><li><a href="global.html#random">random</a></li><li><a href="global.html#randomSample">randomSample</a></li><li><a href="global.html#realizedKernel">realizedKernel</a></li><li><a href="global.html#registerModel">registerModel</a></li><li><a href="global.html#registerOptimizer">registerOptimizer</a></li><li><a href="global.html#resetSeed">resetSeed</a></li><li><a href="global.html#resolveOptimizer">resolveOptimizer</a></li><li><a href="global.html#safeOptimizer">safeOptimizer</a></li><li><a href="global.html#seriesToCSV">seriesToCSV</a></li><li><a href="global.html#setLogLevel">setLogLevel</a></li><li><a href="global.html#setSeed">setSeed</a></li><li><a href="global.html#shuffle">shuffle</a></li><li><a href="global.html#significanceTest">significanceTest</a></li><li><a href="global.html#simulatedAnnealing">simulatedAnnealing</a></li><li><a href="global.html#standardError">standardError</a></li><li><a href="global.html#standardizeSeries">standardizeSeries</a></li><li><a href="global.html#trainTestSplit">trainTestSplit</a></li><li><a href="global.html#validateNoGaps">validateNoGaps</a></li><li><a href="global.html#vectorizedKsObjective">vectorizedKsObjective</a></li><li><a href="global.html#warn">warn</a></li><li><a href="global.html#weightedKsObjective">weightedKsObjective</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="ArfimaForecaster.html">ArfimaForecaster</a></li><li><a href="AttentionForecaster.html">AttentionForecaster</a></li><li><a href="BlockPermutationSampler.html">BlockPermutationSampler</a></li><li><a href="BootstrapConfidenceInterval.html">BootstrapConfidenceInterval</a></li><li><a href="ConstancyTest.html">ConstancyTest</a></li><li><a href="CusumBreakTest.html">CusumBreakTest</a></li><li><a href="EulerMaruyamaFractionalOuModel.html">EulerMaruyamaFractionalOuModel</a></li><li><a href="ExactFractionalOuModel.html">ExactFractionalOuModel</a></li><li><a href="ExactMultifractionalPreModel.html">ExactMultifractionalPreModel</a></li><li><a href="Forecaster.html">Forecaster</a></li><li><a href="FractionalOuModel.html">FractionalOuModel</a></li><li><a href="HoltWintersForecaster.html">HoltWintersForecaster</a></li><li><a href="Hurstify.html">Hurstify</a></li><li><a href="HurstifyError.html">HurstifyError</a></li><li><a href="HypothesisTest.html">HypothesisTest</a></li><li><a href="IdentitySampler.html">IdentitySampler</a></li><li><a href="Kernel.html">Kernel</a></li><li><a href="KsObjective.html">KsObjective</a></li><li><a href="KsSignificanceTest.html">KsSignificanceTest</a></li><li><a href="LocalHolderMultifractionalPreModel.html">LocalHolderMultifractionalPreModel</a></li><li><a href="LstmForecaster.html">LstmForecaster</a></li><li><a href="MultiScaleKsObjective.html">MultiScaleKsObjective</a></li><li><a href="MultifractionalPreModel.html">MultifractionalPreModel</a></li><li><a href="Optimizer.html">Optimizer</a></li><li><a href="PairwiseKsObjective.html">PairwiseKsObjective</a></li><li><a href="Registry_Registry.html">Registry</a></li><li><a href="ReservoirSampler.html">ReservoirSampler</a></li><li><a href="RiemannLiouvilleKernel.html">RiemannLiouvilleKernel</a></li><li><a href="RoughBergomiModel.html">RoughBergomiModel</a></li><li><a href="RoughFsvModel.html">RoughFsvModel</a></li><li><a href="Sampler.html">Sampler</a></li><li><a href="StochasticModel.html">StochasticModel</a></li><li><a href="TimeVaryingKernel.html">TimeVaryingKernel</a></li><li><a href="WeightedMultiScaleKsObjective.html">WeightedMultiScaleKsObjective</a></li></ul><h3>Global</h3><ul><li><a href="global.html#HurstifyErrorCode">HurstifyErrorCode</a></li><li><a href="global.html#LogLevel">LogLevel</a></li><li><a href="global.html#NORMAL_QUANTILE_COEFFS">NORMAL_QUANTILE_COEFFS</a></li><li><a href="global.html#aggregateDailyRealizedVariance">aggregateDailyRealizedVariance</a></li><li><a href="global.html#applyLogTransform">applyLogTransform</a></li><li><a href="global.html#applyPreprocessingPipeline">applyPreprocessingPipeline</a></li><li><a href="global.html#buildScaleProfile">buildScaleProfile</a></li><li><a href="global.html#centerSeries">centerSeries</a></li><li><a href="global.html#chooseKsObjective">chooseKsObjective</a></li><li><a href="global.html#computeFractionalIntegral">computeFractionalIntegral</a></li><li><a href="global.html#computeFractionalKernel">computeFractionalKernel</a></li><li><a href="global.html#computeKsDistance">computeKsDistance</a></li><li><a href="global.html#computeKsDistanceRescaled">computeKsDistanceRescaled</a></li><li><a href="global.html#computeRealizedKernel">computeRealizedKernel</a></li><li><a href="global.html#computeRealizedVariance">computeRealizedVariance</a></li><li><a href="global.html#computeRealizedVarianceParkinson">computeRealizedVarianceParkinson</a></li><li><a href="global.html#createSlidingWindows">createSlidingWindows</a></li><li><a href="global.html#debiasLogVolatility">debiasLogVolatility</a></li><li><a href="global.html#debug">debug</a></li><li><a href="global.html#defaultSampler">defaultSampler</a></li><li><a href="global.html#detectCusumBreakpoints">detectCusumBreakpoints</a></li><li><a href="global.html#downsampleSeries">downsampleSeries</a></li><li><a href="global.html#error">error</a></li><li><a href="global.html#extractSeries">extractSeries</a></li><li><a href="global.html#forecasterRegistry">forecasterRegistry</a></li><li><a href="global.html#fractionalDifference">fractionalDifference</a></li><li><a href="global.html#generateCorrelatedGaussian">generateCorrelatedGaussian</a></li><li><a href="global.html#generateFractionalBrownianMotion">generateFractionalBrownianMotion</a></li><li><a href="global.html#generateFractionalNoise">generateFractionalNoise</a></li><li><a href="global.html#generateGaussianBatch">generateGaussianBatch</a></li><li><a href="global.html#generateIntradayPrices">generateIntradayPrices</a></li><li><a href="global.html#generateSpxLogVolatility">generateSpxLogVolatility</a></li><li><a href="global.html#generateVixLogVolatility">generateVixLogVolatility</a></li><li><a href="global.html#getAsymptoticVariance">getAsymptoticVariance</a></li><li><a href="global.html#getBinomialCoeffs">getBinomialCoeffs</a></li><li><a href="global.html#getConfidenceInterval">getConfidenceInterval</a></li><li><a href="global.html#getForecaster">getForecaster</a></li><li><a href="global.html#getLogLevel">getLogLevel</a></li><li><a href="global.html#getModel">getModel</a></li><li><a href="global.html#getRandomSample">getRandomSample</a></li><li><a href="global.html#getStandardError">getStandardError</a></li><li><a href="global.html#info">info</a></li><li><a href="global.html#kalmanLogLikelihood">kalmanLogLikelihood</a></li><li><a href="global.html#kernelWeight">kernelWeight</a></li><li><a href="global.html#ksCriticalValue">ksCriticalValue</a></li><li><a href="global.html#ksPvalue">ksPvalue</a></li><li><a href="global.html#listForecasters">listForecasters</a></li><li><a href="global.html#listModels">listModels</a></li><li><a href="global.html#log">log</a></li><li><a href="global.html#modelRegistry">modelRegistry</a></li><li><a href="global.html#mulberry32">mulberry32</a></li><li><a href="global.html#nextGaussian">nextGaussian</a></li><li><a href="global.html#nextRandom">nextRandom</a></li><li><a href="global.html#normalCdf">normalCdf</a></li><li><a href="global.html#normalQuantile">normalQuantile</a></li><li><a href="global.html#optimizerRegistry">optimizerRegistry</a></li><li><a href="global.html#parseCsv">parseCsv</a></li><li><a href="global.html#parseJson">parseJson</a></li><li><a href="global.html#permuteBlocks">permuteBlocks</a></li><li><a href="global.html#preaverageReturns">preaverageReturns</a></li><li><a href="global.html#registerForecaster">registerForecaster</a></li><li><a href="global.html#registerModel">registerModel</a></li><li><a href="global.html#resetRandomSeed">resetRandomSeed</a></li><li><a href="global.html#runAdaptiveGridSearch">runAdaptiveGridSearch</a></li><li><a href="global.html#runBrent">runBrent</a></li><li><a href="global.html#runDifferentialEvolution">runDifferentialEvolution</a></li><li><a href="global.html#runKalmanFilter">runKalmanFilter</a></li><li><a href="global.html#runNelderMead">runNelderMead</a></li><li><a href="global.html#runSimulatedAnnealing">runSimulatedAnnealing</a></li><li><a href="global.html#seriesToCsv">seriesToCsv</a></li><li><a href="global.html#setLogLevel">setLogLevel</a></li><li><a href="global.html#setRandomSeed">setRandomSeed</a></li><li><a href="global.html#shuffleArray">shuffleArray</a></li><li><a href="global.html#splitCSVLine">splitCSVLine</a></li><li><a href="global.html#splitTrainTest">splitTrainTest</a></li><li><a href="global.html#standardizeSeries">standardizeSeries</a></li><li><a href="global.html#validateNoGaps">validateNoGaps</a></li><li><a href="global.html#warn">warn</a></li><li><a href="global.html#xavierInit">xavierInit</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Wed Aug 26 2026 15:26:41 GMT+0530 (India Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Fri Aug 28 2026 00:37:11 GMT+0530 (India Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

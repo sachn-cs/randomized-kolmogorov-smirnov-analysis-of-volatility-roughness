@@ -27,95 +27,147 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>/**
- * @fileoverview Public export surface for the rough-volatility model zoo.
+ * @fileoverview Public export surface for the rough-volatility model
+ * zoo and forecaster hierarchy.
  *
- * Bundles every concrete model into a single import target (`rBergomi`,
- * `rFSV`, `fOU`, `mPRE`, plus the `arfima`/`holtWinters`/`lstm`/
- * `attention` forecasters) and provides a tiny registry so applications
- * can dispatch on a model name string.
+ * v2.0.0 is a hard break from v1.x: the legacy free functions
+ * (`rBergomi`, `rFSV`, `fOU`, `exactOU`, `mPRE`, `mPREExact`,
+ * `arfima`, `holtWintersForecast`, `createLSTM`, `createAttentionModel`)
+ * have been removed. Consumers should use the polymorphic strategy
+ * classes directly:
+ *
+ * - Stochastic processes: instantiate `RoughBergomiModel`,
+ *   `RoughFsvModel`, `EulerMaruyamaFractionalOuModel`,
+ *   `ExactFractionalOuModel`, `LocalHolderMultifractionalPreModel`,
+ *   or `ExactMultifractionalPreModel` and call `simulate(opts)`.
+ *   `FractionalOuModel` and `MultifractionalPreModel` are abstract
+ *   bases — subclassing or the registry picks the concrete
+ *   discretization.
+ * - H forecasting: instantiate `ArfimaForecaster`,
+ *   `HoltWintersForecaster`, `LstmForecaster`, or `AttentionForecaster`
+ *   and call `predict(history)`.
  */
 
-import {rBergomi, rBergomiPrice} from './rbergomi.js';
-import {rFSV, rFSVPrice} from './rfsv.js';
-import {fOU, exactOU} from './fou.js';
-import {mPRE, mPREExact} from './mpre.js';
+import {Registry} from '../strategies/registry.js';
 import {
-  arfima,
-  holtWintersForecast,
-  createLSTM,
-  createAttentionModel,
-} from './forecasting.js';
+  RoughBergomiModel,
+  RoughFsvModel,
+  FractionalOuModel,
+  EulerMaruyamaFractionalOuModel,
+  ExactFractionalOuModel,
+  MultifractionalPreModel,
+  LocalHolderMultifractionalPreModel,
+  ExactMultifractionalPreModel,
+} from '../strategies/model.js';
+import {
+  ArfimaForecaster,
+  HoltWintersForecaster,
+  LstmForecaster,
+  AttentionForecaster,
+} from '../strategies/forecaster.js';
 
 export {
-  rBergomi,
-  rBergomiPrice,
-  rFSV,
-  rFSVPrice,
-  fOU,
-  exactOU,
-  mPRE,
-  mPREExact,
-  arfima,
-  holtWintersForecast,
-  createLSTM,
-  createAttentionModel,
+  RoughBergomiModel,
+  RoughFsvModel,
+  FractionalOuModel,
+  EulerMaruyamaFractionalOuModel,
+  ExactFractionalOuModel,
+  MultifractionalPreModel,
+  LocalHolderMultifractionalPreModel,
+  ExactMultifractionalPreModel,
+  ArfimaForecaster,
+  HoltWintersForecaster,
+  LstmForecaster,
+  AttentionForecaster,
 };
 
 /**
- * Model registry mapping string identifiers to model entry points.
+ * Strategy registry for stochastic models. The default `fOU` key
+ * resolves to the Euler-Maruyama discretization; consumers who want
+ * the exact Riemann-Liouville variant look up `fOU-exact`. Same
+ * convention for `mPRE` / `mPRE-exact`.
  *
- * Each entry exposes a small set of role-specific methods so consumers
- * can dispatch generically: simulators expose `{simulate, price}`,
- * forecasters expose `{forecast}`, neural predictors expose `{predict}`.
- *
- * @private
+ * @type {Registry&lt;import('../strategies/model.js').StochasticModel>}
  */
-const MODEL_REGISTRY = new Map([
-  ['rBergomi', {simulate: rBergomi, price: rBergomiPrice}],
-  ['rFSV', {simulate: rFSV, price: rFSVPrice}],
-  ['fOU', {simulate: fOU, exact: exactOU}],
-  ['mPRE', {simulate: mPRE, exact: mPREExact}],
-  ['arfima', {forecast: arfima}],
-  ['holtWinters', {forecast: holtWintersForecast}],
-  ['lstm', {predict: createLSTM}],
-  ['attention', {predict: createAttentionModel}],
-]);
+export const modelRegistry = new Registry();
+modelRegistry.register('rBergomi', () => new RoughBergomiModel());
+modelRegistry.register('rFSV', () => new RoughFsvModel());
+modelRegistry.register('fOU', () => new EulerMaruyamaFractionalOuModel());
+modelRegistry.register('fOU-exact', () => new ExactFractionalOuModel());
+modelRegistry.register('mPRE', () => new LocalHolderMultifractionalPreModel());
+modelRegistry.register('mPRE-exact', () => new ExactMultifractionalPreModel());
 
 /**
- * Retrieves a registered model by name.
+ * Strategy registry for forecasters.
  *
- * @param {string} name Model identifier (one of the keys in
- *   `MODEL_REGISTRY`, or a custom name registered via
- *   {@link registerModel}).
- * @return {Object|undefined} The registry entry; `undefined` when the
- *   name is unknown.
+ * @type {Registry&lt;import('../strategies/forecaster.js').Forecaster>}
+ */
+export const forecasterRegistry = new Registry();
+forecasterRegistry.register('arfima', () => new ArfimaForecaster());
+forecasterRegistry.register('holtWinters', () => new HoltWintersForecaster());
+forecasterRegistry.register('lstm', () => new LstmForecaster());
+forecasterRegistry.register('attention', () => new AttentionForecaster());
+
+/**
+ * Retrieves a registered model strategy by name.
+ *
+ * @param {string} name Model identifier.
+ * @return {import('../strategies/model.js').StochasticModel|undefined}
+ *   The strategy instance, or `undefined` when the name is unknown.
  */
 export function getModel(name) {
-  return MODEL_REGISTRY.get(name);
+  return modelRegistry.resolve(name);
 }
 
 /**
- * Adds a new entry to the model registry.
+ * Registers a new model strategy under the supplied name.
  *
- * Use this to expose user-defined simulators under the same dispatch
- * surface as the built-in models. Be aware the registry is in-memory
- * only — registrations are lost when the module is reloaded.
- *
- * @param {string} name Unique identifier under which to register.
- * @param {Object} entry Entry object (`{simulate, price}`, `{forecast}`,
- *   or `{predict}` depending on the role of the model).
+ * @param {string} name Unique identifier.
+ * @param {() => import('../strategies/model.js').StochasticModel} factory
+ *   Factory returning a fresh instance.
  */
-export function registerModel(name, entry) {
-  MODEL_REGISTRY.set(name, entry);
+export function registerModel(name, factory) {
+  modelRegistry.register(name, factory);
 }
 
 /**
- * Lists the identifiers of all currently registered models.
+ * Lists every registered model strategy identifier.
  *
- * @return {Array&lt;string>} Snapshot of the registry's keys.
+ * @return {Array&lt;string>} Snapshot of registered model keys.
  */
 export function listModels() {
-  return Array.from(MODEL_REGISTRY.keys());
+  return modelRegistry.list();
+}
+
+/**
+ * Retrieves a registered forecaster by name.
+ *
+ * @param {string} name Forecaster identifier.
+ * @return {import('../strategies/forecaster.js').Forecaster|undefined}
+ *   The strategy instance.
+ */
+export function getForecaster(name) {
+  return forecasterRegistry.resolve(name);
+}
+
+/**
+ * Registers a new forecaster strategy under the supplied name.
+ *
+ * @param {string} name Unique identifier.
+ * @param {() => import('../strategies/forecaster.js').Forecaster} factory
+ *   Factory returning a fresh instance.
+ */
+export function registerForecaster(name, factory) {
+  forecasterRegistry.register(name, factory);
+}
+
+/**
+ * Lists every registered forecaster identifier.
+ *
+ * @return {Array&lt;string>} Snapshot of registered forecaster keys.
+ */
+export function listForecasters() {
+  return forecasterRegistry.list();
 }
 </code></pre>
         </article>
@@ -127,13 +179,13 @@ export function listModels() {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Hurstify.html">Hurstify</a></li><li><a href="Optimizer.html">Optimizer</a></li></ul><h3>Global</h3><ul><li><a href="global.html#LogLevel">LogLevel</a></li><li><a href="global.html#REGISTRY">REGISTRY</a></li><li><a href="global.html#adaptiveGridSearch">adaptiveGridSearch</a></li><li><a href="global.html#aggregateDailyRV">aggregateDailyRV</a></li><li><a href="global.html#arfima">arfima</a></li><li><a href="global.html#asymptoticVariance">asymptoticVariance</a></li><li><a href="global.html#blockPermutation">blockPermutation</a></li><li><a href="global.html#bootstrapCI">bootstrapCI</a></li><li><a href="global.html#brentMinimize">brentMinimize</a></li><li><a href="global.html#buildScaleProfile">buildScaleProfile</a></li><li><a href="global.html#centerSeries">centerSeries</a></li><li><a href="global.html#computeRV">computeRV</a></li><li><a href="global.html#computeRVParkinson">computeRVParkinson</a></li><li><a href="global.html#computeScalePairDistance">computeScalePairDistance</a></li><li><a href="global.html#confidenceInterval">confidenceInterval</a></li><li><a href="global.html#constancyTest">constancyTest</a></li><li><a href="global.html#correlatedGaussian">correlatedGaussian</a></li><li><a href="global.html#createAttentionModel">createAttentionModel</a></li><li><a href="global.html#createLSTM">createLSTM</a></li><li><a href="global.html#createWindows">createWindows</a></li><li><a href="global.html#cusumTest">cusumTest</a></li><li><a href="global.html#debug">debug</a></li><li><a href="global.html#defaultSampler">defaultSampler</a></li><li><a href="global.html#detectBreakpoints">detectBreakpoints</a></li><li><a href="global.html#differentialEvolution">differentialEvolution</a></li><li><a href="global.html#downsample">downsample</a></li><li><a href="global.html#error">error</a></li><li><a href="global.html#exactOU">exactOU</a></li><li><a href="global.html#extractSeries">extractSeries</a></li><li><a href="global.html#fOU">fOU</a></li><li><a href="global.html#fractionalIntegral">fractionalIntegral</a></li><li><a href="global.html#fractionalKernel">fractionalKernel</a></li><li><a href="global.html#generateFBM">generateFBM</a></li><li><a href="global.html#generateFGN">generateFGN</a></li><li><a href="global.html#generateIntradayPrices">generateIntradayPrices</a></li><li><a href="global.html#generateSPXLogVol">generateSPXLogVol</a></li><li><a href="global.html#generateVIXLogVol">generateVIXLogVol</a></li><li><a href="global.html#getLogLevel">getLogLevel</a></li><li><a href="global.html#getModel">getModel</a></li><li><a href="global.html#getOptimizer">getOptimizer</a></li><li><a href="global.html#holtWintersForecast">holtWintersForecast</a></li><li><a href="global.html#info">info</a></li><li><a href="global.html#kalmanFilter">kalmanFilter</a></li><li><a href="global.html#ksCriticalValue">ksCriticalValue</a></li><li><a href="global.html#ksDistance">ksDistance</a></li><li><a href="global.html#ksDistanceRescaled">ksDistanceRescaled</a></li><li><a href="global.html#ksPvalue">ksPvalue</a></li><li><a href="global.html#listModels">listModels</a></li><li><a href="global.html#logTransform">logTransform</a></li><li><a href="global.html#logVolDebias">logVolDebias</a></li><li><a href="global.html#mPRE">mPRE</a></li><li><a href="global.html#mPREExact">mPREExact</a></li><li><a href="global.html#nelderMead">nelderMead</a></li><li><a href="global.html#normalQuantile">normalQuantile</a></li><li><a href="global.html#parseCSV">parseCSV</a></li><li><a href="global.html#parseJSON">parseJSON</a></li><li><a href="global.html#preavgReturns">preavgReturns</a></li><li><a href="global.html#preprocessPipeline">preprocessPipeline</a></li><li><a href="global.html#rBergomi">rBergomi</a></li><li><a href="global.html#rBergomiPrice">rBergomiPrice</a></li><li><a href="global.html#rFSV">rFSV</a></li><li><a href="global.html#rFSVPrice">rFSVPrice</a></li><li><a href="global.html#randn">randn</a></li><li><a href="global.html#randnBatch">randnBatch</a></li><li><a href="global.html#random">random</a></li><li><a href="global.html#randomSample">randomSample</a></li><li><a href="global.html#realizedKernel">realizedKernel</a></li><li><a href="global.html#registerModel">registerModel</a></li><li><a href="global.html#registerOptimizer">registerOptimizer</a></li><li><a href="global.html#resetSeed">resetSeed</a></li><li><a href="global.html#resolveOptimizer">resolveOptimizer</a></li><li><a href="global.html#safeOptimizer">safeOptimizer</a></li><li><a href="global.html#seriesToCSV">seriesToCSV</a></li><li><a href="global.html#setLogLevel">setLogLevel</a></li><li><a href="global.html#setSeed">setSeed</a></li><li><a href="global.html#shuffle">shuffle</a></li><li><a href="global.html#significanceTest">significanceTest</a></li><li><a href="global.html#simulatedAnnealing">simulatedAnnealing</a></li><li><a href="global.html#standardError">standardError</a></li><li><a href="global.html#standardizeSeries">standardizeSeries</a></li><li><a href="global.html#trainTestSplit">trainTestSplit</a></li><li><a href="global.html#validateNoGaps">validateNoGaps</a></li><li><a href="global.html#vectorizedKsObjective">vectorizedKsObjective</a></li><li><a href="global.html#warn">warn</a></li><li><a href="global.html#weightedKsObjective">weightedKsObjective</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="ArfimaForecaster.html">ArfimaForecaster</a></li><li><a href="AttentionForecaster.html">AttentionForecaster</a></li><li><a href="BlockPermutationSampler.html">BlockPermutationSampler</a></li><li><a href="BootstrapConfidenceInterval.html">BootstrapConfidenceInterval</a></li><li><a href="ConstancyTest.html">ConstancyTest</a></li><li><a href="CusumBreakTest.html">CusumBreakTest</a></li><li><a href="EulerMaruyamaFractionalOuModel.html">EulerMaruyamaFractionalOuModel</a></li><li><a href="ExactFractionalOuModel.html">ExactFractionalOuModel</a></li><li><a href="ExactMultifractionalPreModel.html">ExactMultifractionalPreModel</a></li><li><a href="Forecaster.html">Forecaster</a></li><li><a href="FractionalOuModel.html">FractionalOuModel</a></li><li><a href="HoltWintersForecaster.html">HoltWintersForecaster</a></li><li><a href="Hurstify.html">Hurstify</a></li><li><a href="HurstifyError.html">HurstifyError</a></li><li><a href="HypothesisTest.html">HypothesisTest</a></li><li><a href="IdentitySampler.html">IdentitySampler</a></li><li><a href="Kernel.html">Kernel</a></li><li><a href="KsObjective.html">KsObjective</a></li><li><a href="KsSignificanceTest.html">KsSignificanceTest</a></li><li><a href="LocalHolderMultifractionalPreModel.html">LocalHolderMultifractionalPreModel</a></li><li><a href="LstmForecaster.html">LstmForecaster</a></li><li><a href="MultiScaleKsObjective.html">MultiScaleKsObjective</a></li><li><a href="MultifractionalPreModel.html">MultifractionalPreModel</a></li><li><a href="Optimizer.html">Optimizer</a></li><li><a href="PairwiseKsObjective.html">PairwiseKsObjective</a></li><li><a href="Registry_Registry.html">Registry</a></li><li><a href="ReservoirSampler.html">ReservoirSampler</a></li><li><a href="RiemannLiouvilleKernel.html">RiemannLiouvilleKernel</a></li><li><a href="RoughBergomiModel.html">RoughBergomiModel</a></li><li><a href="RoughFsvModel.html">RoughFsvModel</a></li><li><a href="Sampler.html">Sampler</a></li><li><a href="StochasticModel.html">StochasticModel</a></li><li><a href="TimeVaryingKernel.html">TimeVaryingKernel</a></li><li><a href="WeightedMultiScaleKsObjective.html">WeightedMultiScaleKsObjective</a></li></ul><h3>Global</h3><ul><li><a href="global.html#HurstifyErrorCode">HurstifyErrorCode</a></li><li><a href="global.html#LogLevel">LogLevel</a></li><li><a href="global.html#NORMAL_QUANTILE_COEFFS">NORMAL_QUANTILE_COEFFS</a></li><li><a href="global.html#aggregateDailyRealizedVariance">aggregateDailyRealizedVariance</a></li><li><a href="global.html#applyLogTransform">applyLogTransform</a></li><li><a href="global.html#applyPreprocessingPipeline">applyPreprocessingPipeline</a></li><li><a href="global.html#buildScaleProfile">buildScaleProfile</a></li><li><a href="global.html#centerSeries">centerSeries</a></li><li><a href="global.html#chooseKsObjective">chooseKsObjective</a></li><li><a href="global.html#computeFractionalIntegral">computeFractionalIntegral</a></li><li><a href="global.html#computeFractionalKernel">computeFractionalKernel</a></li><li><a href="global.html#computeKsDistance">computeKsDistance</a></li><li><a href="global.html#computeKsDistanceRescaled">computeKsDistanceRescaled</a></li><li><a href="global.html#computeRealizedKernel">computeRealizedKernel</a></li><li><a href="global.html#computeRealizedVariance">computeRealizedVariance</a></li><li><a href="global.html#computeRealizedVarianceParkinson">computeRealizedVarianceParkinson</a></li><li><a href="global.html#createSlidingWindows">createSlidingWindows</a></li><li><a href="global.html#debiasLogVolatility">debiasLogVolatility</a></li><li><a href="global.html#debug">debug</a></li><li><a href="global.html#defaultSampler">defaultSampler</a></li><li><a href="global.html#detectCusumBreakpoints">detectCusumBreakpoints</a></li><li><a href="global.html#downsampleSeries">downsampleSeries</a></li><li><a href="global.html#error">error</a></li><li><a href="global.html#extractSeries">extractSeries</a></li><li><a href="global.html#forecasterRegistry">forecasterRegistry</a></li><li><a href="global.html#fractionalDifference">fractionalDifference</a></li><li><a href="global.html#generateCorrelatedGaussian">generateCorrelatedGaussian</a></li><li><a href="global.html#generateFractionalBrownianMotion">generateFractionalBrownianMotion</a></li><li><a href="global.html#generateFractionalNoise">generateFractionalNoise</a></li><li><a href="global.html#generateGaussianBatch">generateGaussianBatch</a></li><li><a href="global.html#generateIntradayPrices">generateIntradayPrices</a></li><li><a href="global.html#generateSpxLogVolatility">generateSpxLogVolatility</a></li><li><a href="global.html#generateVixLogVolatility">generateVixLogVolatility</a></li><li><a href="global.html#getAsymptoticVariance">getAsymptoticVariance</a></li><li><a href="global.html#getBinomialCoeffs">getBinomialCoeffs</a></li><li><a href="global.html#getConfidenceInterval">getConfidenceInterval</a></li><li><a href="global.html#getForecaster">getForecaster</a></li><li><a href="global.html#getLogLevel">getLogLevel</a></li><li><a href="global.html#getModel">getModel</a></li><li><a href="global.html#getRandomSample">getRandomSample</a></li><li><a href="global.html#getStandardError">getStandardError</a></li><li><a href="global.html#info">info</a></li><li><a href="global.html#kalmanLogLikelihood">kalmanLogLikelihood</a></li><li><a href="global.html#kernelWeight">kernelWeight</a></li><li><a href="global.html#ksCriticalValue">ksCriticalValue</a></li><li><a href="global.html#ksPvalue">ksPvalue</a></li><li><a href="global.html#listForecasters">listForecasters</a></li><li><a href="global.html#listModels">listModels</a></li><li><a href="global.html#log">log</a></li><li><a href="global.html#modelRegistry">modelRegistry</a></li><li><a href="global.html#mulberry32">mulberry32</a></li><li><a href="global.html#nextGaussian">nextGaussian</a></li><li><a href="global.html#nextRandom">nextRandom</a></li><li><a href="global.html#normalCdf">normalCdf</a></li><li><a href="global.html#normalQuantile">normalQuantile</a></li><li><a href="global.html#optimizerRegistry">optimizerRegistry</a></li><li><a href="global.html#parseCsv">parseCsv</a></li><li><a href="global.html#parseJson">parseJson</a></li><li><a href="global.html#permuteBlocks">permuteBlocks</a></li><li><a href="global.html#preaverageReturns">preaverageReturns</a></li><li><a href="global.html#registerForecaster">registerForecaster</a></li><li><a href="global.html#registerModel">registerModel</a></li><li><a href="global.html#resetRandomSeed">resetRandomSeed</a></li><li><a href="global.html#runAdaptiveGridSearch">runAdaptiveGridSearch</a></li><li><a href="global.html#runBrent">runBrent</a></li><li><a href="global.html#runDifferentialEvolution">runDifferentialEvolution</a></li><li><a href="global.html#runKalmanFilter">runKalmanFilter</a></li><li><a href="global.html#runNelderMead">runNelderMead</a></li><li><a href="global.html#runSimulatedAnnealing">runSimulatedAnnealing</a></li><li><a href="global.html#seriesToCsv">seriesToCsv</a></li><li><a href="global.html#setLogLevel">setLogLevel</a></li><li><a href="global.html#setRandomSeed">setRandomSeed</a></li><li><a href="global.html#shuffleArray">shuffleArray</a></li><li><a href="global.html#splitCSVLine">splitCSVLine</a></li><li><a href="global.html#splitTrainTest">splitTrainTest</a></li><li><a href="global.html#standardizeSeries">standardizeSeries</a></li><li><a href="global.html#validateNoGaps">validateNoGaps</a></li><li><a href="global.html#warn">warn</a></li><li><a href="global.html#xavierInit">xavierInit</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Wed Aug 26 2026 15:26:41 GMT+0530 (India Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Fri Aug 28 2026 00:37:11 GMT+0530 (India Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

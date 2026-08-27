@@ -43,54 +43,125 @@
 
 
     <section>
-        <article><h1>hurstify</h1>
-<blockquote>
-<p><strong>The problem.</strong> Estimating the Hurst parameter of rough-volatility processes is hard. Parametric models miss the point, and historical estimators carry estimator bias and slow windows.</p>
-<p><strong>The answer.</strong> hurstify gives you a one-call estimator for <code>H</code> built on the RK-SAVR algorithm — the rescaled, multi-sample, block-permuted Kolmogorov–Smirnov distance developed by Angelini &amp; Bianchi (2025). Zero dependencies, runs anywhere JavaScript runs.</p>
-</blockquote>
-<p align="center">
-  <a href="#installation"><img src="https://img.shields.io/badge/node-26%2B-brightgreen" alt="Node">
-<a href="https://github.com/sachncs/hurstify/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/sachncs/hurstify/ci.yml?branch=master" alt="Build Status"></a></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
-  <a href="https://github.com/sachncs/hurstify/actions"><img src="https://img.shields.io/github/actions/workflow/status/sachncs/hurstify/ci.yml?branch=master" alt="CI"></a>
-  <a href="https://www.npmjs.com/package/hurstify"><img src="https://img.shields.io/npm/v/hurstify" alt="npm"></a>
-  <a href="https://github.com/sachncs/hurstify/stargazers"><img src="https://img.shields.io/github/stars/sachncs/hurstify" alt="Stars"></a>
+        <article><p align="center">
+  <h1 align="center">hurstify</h1>
+  <p align="center">A zero-dependency JavaScript library for estimating the Hurst parameter of rough-volatility processes.</p>
+  <p align="center">
+    <a href="#installation"><img src="https://img.shields.io/badge/node-26%2B-brightgreen" alt="Node"></a>
+    <a href="https://github.com/sachncs/hurstify/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/sachncs/hurstify/ci.yml?branch=master" alt="Build Status"></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
+    <a href="https://www.npmjs.com/package/hurstify"><img src="https://img.shields.io/npm/v/hurstify" alt="npm"></a>
+    <a href="https://github.com/sachncs/hurstify/actions"><img src="https://img.shields.io/github/actions/workflow/status/sachncs/hurstify/ci.yml?branch=master" alt="CI"></a>
+    <a href="https://github.com/sachncs/hurstify/stargazers"><img src="https://img.shields.io/github/stars/sachncs/hurstify" alt="Stars"></a>
+  </p>
 </p>
-<h2>Features</h2>
+<hr>
+<h2>What is this?</h2>
+<p>hurstify is a small JavaScript tool that answers one question:</p>
+<blockquote>
+<p><em>&quot;Given a series of volatility observations, how rough is it?&quot;</em></p>
+</blockquote>
+<p>Roughness is captured by a single number called the <strong>Hurst parameter</strong> (<code>H</code>). <code>H</code> close to <code>0</code> means very rough (jumpy, anti-persistent), <code>H</code> close to <code>1</code> means very smooth (trending, persistent), and <code>H = 0.5</code> is the familiar Brownian-motion middle ground.</p>
+<p>You feed hurstify a time series; it hands you back <code>Ĥ</code> — a number between <code>0</code> and <code>1</code>.</p>
+<blockquote>
+<p><strong>The problem.</strong> Estimating <code>H</code> for rough-volatility processes is hard. Parametric models miss the point, and historical estimators carry estimator bias and slow windows.</p>
+<p><strong>The answer.</strong> hurstify gives you a one-call estimator for <code>H</code> built on the <strong>RK-SAVR algorithm</strong> — the rescaled, multi-sample, block-permuted Kolmogorov–Smirnov distance developed by Angelini &amp; Bianchi (2025). Zero dependencies, runs anywhere JavaScript runs.</p>
+</blockquote>
+<hr>
+<h2>Who is this for?</h2>
+<p>You, even if:</p>
 <ul>
-<li><strong>Observatory</strong> — Interactive Next.js 16 + shadcn/ui app (<code>npm run dev:demo</code>) for live H estimation, parameter grid search, and replicated paper figures.</li>
-<li><strong>Distributional scaling</strong> — Compare entire rescaled distributions of increments across scales.</li>
-<li><strong>Block random permutation</strong> — Decorrelate serial dependence while preserving marginal distributions.</li>
+<li>You're new to JavaScript or Node.js.</li>
+<li>You've never worked with financial time series.</li>
+<li>You've never heard of fractional Brownian motion.</li>
+</ul>
+<p>If you can install Node and type commands into a terminal, you can
+use hurstify. When the docs use a word you don't know, search for it
+in the <a href="#api-reference">API Reference</a>.</p>
+<p>If you've used Node.js before, you'll be productive in five minutes.</p>
+<hr>
+<h2>What can it do?</h2>
+<ul>
+<li><strong>Single-shot H estimation</strong> — One call returns an <code>H</code> estimate for a stationary window.</li>
+<li><strong>Multi-scale analysis</strong> — Compare rescaled distributions across multiple scales with optional weights.</li>
+<li><strong>Block random permutation</strong> — Decorrelate serial dependence while preserving marginals.</li>
 <li><strong>Variance reduction</strong> — Repeated subsampling and averaging across <code>K</code> independent iterations.</li>
-<li><strong>Multi-scale analysis</strong> — Vectorized scaling profile across <code>k</code> scales with optional weights.</li>
 <li><strong>Pluggable optimizers</strong> — Brent's method, Nelder-Mead, simulated annealing, differential evolution, and adaptive grid search.</li>
-<li><strong>Statistical inference</strong> — Asymptotic variance (Prop 2.9), confidence intervals, KS significance testing, Kalman filtering, CUSUM break detection, constancy test, bootstrap CIs.</li>
+<li><strong>Statistical inference</strong> — Asymptotic variance (Prop 2.9), confidence intervals, KS significance testing, Kalman filtering, CUSUM break detection, constancy tests, bootstrap CIs.</li>
 <li><strong>Synthetic data</strong> — Hosking-method fBm/fGn, VIX-style and SPX-RV-style log-volatility generators.</li>
 <li><strong>Rough-volatility model zoo</strong> — Simulators for rBergomi, rFSV, fOU, and mPRE processes.</li>
 <li><strong>H-forecasting</strong> — ARFIMA, Holt-Winters, and LSTM-style predictors.</li>
 <li><strong>Noise correction</strong> — Preaveraging, realized kernel, log-volatility de-biasing.</li>
 <li><strong>Zero runtime dependencies</strong> — Pure JavaScript, ESM + CJS + IIFE distributions.</li>
+<li><strong>Observatory demo</strong> — Interactive Next.js 16 + shadcn/ui app for live H estimation, parameter grid search, and replicated paper figures.</li>
 </ul>
+<hr>
+<h2>Before you start</h2>
+<p>You'll need <strong>Node.js 24 or newer</strong> installed on your computer.</p>
+<p>If you don't know what Node is or whether you have it:</p>
+<ol>
+<li>Open a terminal (on macOS: <code>Cmd + Space</code>, type &quot;Terminal&quot;; on
+Windows: open &quot;PowerShell&quot;; on Linux: open your usual terminal).</li>
+<li>Type <code>node --version</code> and press Enter.</li>
+<li>If you see a version number starting with <code>v24</code> or <code>v26</code>, you're
+set.</li>
+<li>If you see &quot;command not found&quot; or an older version, follow the
+<a href="https://nodejs.org/en/download">official Node installer guide</a>.</li>
+</ol>
+<p>You'll also need <strong>git</strong> (a tool for downloading code). Same drill:
+type <code>git --version</code> in your terminal.</p>
+<hr>
 <h2>Installation</h2>
+<p>Pick whichever option fits your setup:</p>
+<h3>Option 1 — npm (fastest)</h3>
 <pre class="prettyprint source lang-bash"><code>npm install hurstify
 </code></pre>
-<p>Requires Node.js ≥ 24.</p>
-<h2>Quick Start</h2>
-<pre class="prettyprint source lang-javascript"><code>import { Hurstify, generateFBM } from 'hurstify';
+<p>No <code>git clone</code>, no build step. Works as soon as the package is
+published to npm.</p>
+<h3>Option 2 — From source (recommended for development)</h3>
+<p>A &quot;virtual environment&quot; equivalent in Node is just installing
+dependencies per project — Node resolves modules automatically, so
+you don't need to worry about polluting your global install.</p>
+<pre class="prettyprint source lang-bash"><code># 1. Download the code
+git clone https://github.com/sachncs/hurstify.git
+cd hurstify
+
+# 2. Install dependencies
+npm install
+
+# 3. Run the test suite to confirm everything works
+npm test
+</code></pre>
+<blockquote>
+<p>💡 <strong>The <code>cd hurstify</code> is intentional.</strong> It switches into the
+cloned project directory.</p>
+</blockquote>
+<p>After this, you can also launch the interactive observatory:</p>
+<pre class="prettyprint source lang-bash"><code>npm run dev:demo
+</code></pre>
+<p>Then open the URL it prints (typically <code>http://localhost:5173</code>).</p>
+<hr>
+<h2>Your first run — Node.js</h2>
+<p>Open a Node interpreter (<code>node</code> in your terminal) and try this:</p>
+<pre class="prettyprint source lang-javascript"><code>import {Hurstify, generateFBM} from 'hurstify';
 
 // Generate a synthetic rough-volatility path with H = 0.1
+// (Fractional Brownian motion with a Hurst parameter of 0.1)
 const path = generateFBM(2000, 0.1);
 
 // Estimate Ĥ in a single call
 const r = new Hurstify({
-  scaleA1: 1,
-  scaleA2: 25,
-  sampleSize: 500,
-  iterations: 16,
+  scaleA1: 1, // smallest scale to compare
+  scaleA2: 25, // largest scale to compare
+  sampleSize: 500, // increments per scale
+  iterations: 16, // variance-reduction iterations
 });
 const H = r.estimateSingle(path);
 console.log(`Ĥ = ${H.toFixed(3)} (true: 0.100)`);
 </code></pre>
+<p>You'll see something like <code>Ĥ = 0.107 (true: 0.100)</code>. That means
+hurstify correctly recovered a roughness very close to the true value
+of <code>0.1</code> from a noisy sample of <code>2000</code> points.</p>
 <p>For multi-scale analysis:</p>
 <pre class="prettyprint source lang-javascript"><code>const r = new Hurstify({
   scales: [1, 2, 5, 10, 20, 50],
@@ -99,93 +170,88 @@ console.log(`Ĥ = ${H.toFixed(3)} (true: 0.100)`);
   iterations: 8,
 });
 const multiResults = r.rollingMultiScale(
-  path, 512, [1, 2, 5, 10, 20, 50], [1, 0.8, 0.6, 0.4, 0.2, 0.1], 20,
+  path,
+  512,
+  [1, 2, 5, 10, 20, 50],
+  [1, 0.8, 0.6, 0.4, 0.2, 0.1],
+  20,
 );
 </code></pre>
 <p>For rolling estimation across a long series:</p>
-<pre class="prettyprint source lang-javascript"><code>const windowSize = 512;
-const step = 20;
+<pre class="prettyprint source lang-javascript"><code>const windowSize = 512; // width of the sliding window
+const step = 20; // how far to advance each window
 const results = r.rolling(path, windowSize, step, (p) => {
   console.log(`Progress: ${(p * 100).toFixed(1)}%`);
 });
 // results: [{ t: 0, H: 0.12 }, { t: 20, H: 0.14 }, ...]
 </code></pre>
+<hr>
 <h2>Configuration</h2>
+<p>Want to change something? Pass an options object when creating the
+estimator:</p>
+<pre class="prettyprint source lang-javascript"><code>const r = new Hurstify({
+  scaleA1: 1,
+  scaleA2: 50,
+  sampleSize: 500,
+  iterations: 16,
+  blockSize: 16,
+  optimizerType: 'brent',
+  hMin: 0.01,
+  hMax: 0.99,
+});
+</code></pre>
+<p>What each field means:</p>
 <table>
 <thead>
 <tr>
-<th>Option</th>
-<th>Type</th>
-<th>Default</th>
-<th>Description</th>
+<th>Field</th>
+<th>Plain English</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>scaleA1</code></td>
-<td><code>number</code></td>
-<td><code>1</code></td>
-<td>Lower scale for increment computation</td>
+<td>Smallest scale at which to compute increments. Default <code>1</code>.</td>
 </tr>
 <tr>
 <td><code>scaleA2</code></td>
-<td><code>number</code></td>
-<td><code>50</code></td>
-<td>Upper scale for increment computation</td>
+<td>Largest scale at which to compute increments. Default <code>50</code>.</td>
 </tr>
 <tr>
 <td><code>sampleSize</code></td>
-<td><code>number</code></td>
-<td><code>500</code></td>
-<td>Increments sampled per scale</td>
+<td>Number of increments sampled per scale. Default <code>500</code>.</td>
 </tr>
 <tr>
 <td><code>iterations</code></td>
-<td><code>number</code></td>
-<td><code>16</code></td>
-<td>Variance-reduction iterations</td>
+<td>How many times to repeat the estimator and average. More = lower variance, slower. Default <code>16</code>.</td>
 </tr>
 <tr>
 <td><code>blockSize</code></td>
-<td><code>number</code></td>
-<td><code>16</code></td>
-<td>Block length for random permutation</td>
+<td>Length of the blocks used in random permutation. Default <code>16</code>.</td>
 </tr>
 <tr>
 <td><code>optimizerType</code></td>
-<td><code>string</code></td>
-<td><code>'brent'</code></td>
-<td>Optimizer selection</td>
+<td>Which optimizer to use: <code>brent</code>, <code>nelder-mead</code>, <code>annealing</code>, <code>de</code>, or <code>ags</code>. Default <code>brent</code>.</td>
 </tr>
 <tr>
 <td><code>hMin</code></td>
-<td><code>number</code></td>
-<td><code>0.01</code></td>
-<td>Lower bound on H</td>
+<td>Lower bound on <code>H</code>. Default <code>0.01</code>.</td>
 </tr>
 <tr>
 <td><code>hMax</code></td>
-<td><code>number</code></td>
-<td><code>0.99</code></td>
-<td>Upper bound on H</td>
+<td>Upper bound on <code>H</code>. Default <code>0.99</code>.</td>
 </tr>
 <tr>
 <td><code>scales</code></td>
-<td><code>Array&lt;number&gt;</code></td>
-<td><code>null</code></td>
-<td>Multi-scale array; overrides <code>scaleA1</code>/<code>scaleA2</code></td>
+<td>Array of scales for multi-scale analysis. Overrides <code>scaleA1</code> / <code>scaleA2</code>. Default <code>null</code>.</td>
 </tr>
 <tr>
 <td><code>weights</code></td>
-<td><code>Array&lt;number&gt;</code></td>
-<td><code>null</code></td>
-<td>Per-scale weights</td>
+<td>Per-scale weights (must match <code>scales</code> length). Default <code>null</code> (uniform).</td>
 </tr>
 <tr>
 <td><code>sampler</code></td>
-<td><code>function</code></td>
-<td>—</td>
-<td>Custom <code>(data, n) =&gt; sample</code></td>
+<td>Custom <code>(data, n) =&gt; sample</code> function. Default — internal reservoir sampler.</td>
 </tr>
 </tbody>
 </table>
@@ -226,88 +292,128 @@ const results = r.rolling(path, windowSize, step, (p) => {
 </tr>
 </tbody>
 </table>
+<hr>
 <h2>API Reference</h2>
 <table>
 <thead>
 <tr>
 <th>Symbol</th>
-<th>Description</th>
+<th>What it does</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>Hurstify</code></td>
-<td>Main estimator (two-scale and multi-scale)</td>
+<td>Main estimator (two-scale and multi-scale).</td>
 </tr>
 <tr>
 <td><code>Hurstify#estimate(data)</code></td>
-<td>Single-shot <code>H</code> estimate</td>
+<td>Single-shot <code>H</code> estimate.</td>
 </tr>
 <tr>
 <td><code>Hurstify#estimateSingleWithDiagnostics(data)</code></td>
-<td>Returns <code>H</code>, <code>D</code>, significance, SE, CI</td>
+<td>Returns <code>H</code>, <code>D</code>, significance, SE, CI.</td>
 </tr>
 <tr>
 <td><code>Hurstify#rolling(data, w, step, onProgress)</code></td>
-<td>Sliding-window <code>H</code> trajectory</td>
+<td>Sliding-window <code>H</code> trajectory.</td>
 </tr>
 <tr>
 <td><code>Hurstify#rollingMultiScale(...)</code></td>
-<td>Multi-scale rolling estimates</td>
+<td>Multi-scale rolling estimates.</td>
 </tr>
 <tr>
 <td><code>asymptoticVariance(a1, a2, n, m)</code></td>
-<td>Prop 2.9 variance</td>
+<td>Prop 2.9 asymptotic variance.</td>
 </tr>
 <tr>
 <td><code>confidenceInterval(h, a1, a2, n, m, alpha)</code></td>
-<td>CI for <code>H</code></td>
+<td>Confidence interval for <code>H</code>.</td>
 </tr>
 <tr>
 <td><code>kalmanFilter(series, opts)</code></td>
-<td>Kalman-smoothed <code>H</code> series</td>
+<td>Kalman-smoothed <code>H</code> series.</td>
 </tr>
 <tr>
 <td><code>cusumTest(series, opts)</code></td>
-<td>CUSUM structural-break test</td>
+<td>CUSUM structural-break test.</td>
 </tr>
 <tr>
 <td><code>constancyTest(series)</code></td>
-<td>Constancy-of-H test</td>
+<td>Constancy-of-H test.</td>
 </tr>
 <tr>
 <td><code>bootstrapCI(estimator, data, B, alpha)</code></td>
-<td>Bootstrap CI</td>
+<td>Bootstrap CI.</td>
 </tr>
 <tr>
 <td><code>rBergomi / rFSV / fOU / mPRE</code></td>
-<td>Rough-vol path simulators</td>
+<td>Rough-volatility path simulators.</td>
 </tr>
 <tr>
 <td><code>arfima / holtWintersForecast / createLSTM</code></td>
-<td>H-forecasting</td>
+<td>H-forecasting predictors.</td>
 </tr>
 <tr>
 <td><code>preavgReturns / realizedKernel / logVolDebias</code></td>
-<td>Microstructure-noise correction</td>
+<td>Microstructure-noise correction.</td>
 </tr>
 </tbody>
 </table>
+<hr>
 <h2>Methodology</h2>
-<p>Given a stationary window <code>X_0, …, X_{W-1}</code> of a log-volatility series:</p>
+<p>Given a stationary window <code>X_0, …, X_{W-1}</code> of a log-volatility
+series:</p>
 <ol>
 <li><strong>Segmentation</strong> — Slice into overlapping windows.</li>
-<li><strong>Increments</strong> — Compute <code>Z_{t,a} = X_{t+a} − X_t</code> at scales <code>a₁</code> and <code>a₂</code> (or a multi-scale array).</li>
-<li><strong>Block permutation</strong> — Randomly permute blocks to remove temporal correlation, preserving marginals.</li>
-<li><strong>Subsampling</strong> — Draw <code>T</code> increments per scale via Floyd's reservoir sampler.</li>
-<li><strong>Rescaling</strong> — Rescale by <code>a^(−H)</code>; under the null of self-similarity the rescaled samples are i.i.d.</li>
-<li><strong>KS minimization</strong> — Find <code>H ∈ (0, 1)</code> minimizing the two-sample KS distance between rescaled samples.</li>
+<li><strong>Increments</strong> — Compute <code>Z_{t,a} = X_{t+a} − X_t</code> at scales <code>a₁</code>
+and <code>a₂</code> (or a multi-scale array).</li>
+<li><strong>Block permutation</strong> — Randomly permute blocks to remove temporal
+correlation, preserving marginals.</li>
+<li><strong>Subsampling</strong> — Draw <code>T</code> increments per scale via Floyd's
+reservoir sampler.</li>
+<li><strong>Rescaling</strong> — Rescale by <code>a^(−H)</code>; under the null of
+self-similarity the rescaled samples are i.i.d.</li>
+<li><strong>KS minimization</strong> — Find <code>H ∈ (0, 1)</code> minimizing the two-sample
+KS distance between rescaled samples.</li>
 <li><strong>Variance reduction</strong> — Average across <code>K</code> iterations.</li>
 </ol>
 <p>The asymptotic variance of <code>Ĥ</code> (Proposition 2.9 in the paper):</p>
 <pre class="prettyprint source"><code>Var(Ĥ) = (2 π e) / (ln(a₂ / a₁))² × (1/√n + 1/√m)²
 </code></pre>
-<p>Doubling the sample sizes halves the SE; widening the scale ratio shrinks it quadratically.</p>
+<p>Doubling the sample sizes halves the SE; widening the scale ratio
+shrinks it quadratically.</p>
+<hr>
+<h2>Where to go next</h2>
+<ul>
+<li><strong><a href="#api-reference">API Reference</a></strong> — Full list of symbols and
+methods. Bookmark this once you start writing real code.</li>
+<li><strong><a href="#methodology">Methodology</a></strong> — The seven-step pipeline behind
+the estimator.</li>
+<li><strong><a href="#observatory">Observatory</a></strong> — Launch the interactive Next.js +
+shadcn/ui app and explore <code>H</code> visually.</li>
+<li><strong><a href="#project-structure">Project Structure</a></strong> — How the package is
+laid out, for the curious.</li>
+<li><strong><a href="#tech-stack">Tech Stack</a></strong> — Build tools, test runners, and
+bundler choices.</li>
+<li><strong><a href="#roadmap">Roadmap</a></strong> — Where the project is heading.</li>
+</ul>
+<p>For operators / maintainers:</p>
+<ul>
+<li><strong><a href="#development">Development</a></strong> — Run lint, tests, builds, and
+docs.</li>
+<li><strong><a href="#references">References</a></strong> — The papers, methods, and algorithms
+that inspired hurstify.</li>
+</ul>
+<hr>
+<h2>Observatory</h2>
+<p>hurstify ships an interactive Next.js 16 + shadcn/ui app for live
+<code>H</code> estimation, parameter grid search, and replicated paper figures.</p>
+<pre class="prettyprint source lang-bash"><code>npm run dev:demo
+</code></pre>
+<p>Then open the URL it prints (typically <code>http://localhost:5173</code>).
+Useful when you'd rather click than code.</p>
+<hr>
 <h2>Project Structure</h2>
 <pre class="prettyprint source"><code>hurstify/
 ├── lib/                       # Core library (zero runtime deps)
@@ -329,16 +435,18 @@ const results = r.rolling(path, windowSize, step, (p) => {
 ├── .github/                   # CI, issue templates, CODEOWNERS
 └── docs/                      # Generated JSDoc
 </code></pre>
+<hr>
 <h2>Development</h2>
 <pre class="prettyprint source lang-bash"><code>git clone https://github.com/sachncs/hurstify.git
 cd hurstify
 npm install
 npm run lint          # ESLint + Prettier
-npm run test          # 190 tests
+npm run test          # Mocha + Chai test suites
 npm run build         # Rollup → dist/
 npm run docs          # JSDoc → docs/ + API.md
 npm run dev:demo      # Next.js observatory
 </code></pre>
+<hr>
 <h2>Tech Stack</h2>
 <table>
 <thead>
@@ -374,26 +482,50 @@ npm run dev:demo      # Next.js observatory
 </tr>
 </tbody>
 </table>
+<hr>
 <h2>Roadmap</h2>
 <ul>
-<li><strong>v1.0</strong> — Current: core RK-SAVR estimator, multi-scale analysis, statistical inference, model zoo, forecasting.</li>
-<li><strong>v2.0</strong> — Rebrand to <code>hurstify</code>, per-module TypeScript declarations, Next.js 16 + shadcn observatory.</li>
-<li><strong>v2.1</strong> — React Hook Form for advanced parameter sweeps, persistent demo state, dark/light theme toggle.</li>
-<li><strong>v3.0</strong> — Real-time WebSocket demo with streaming estimator; integration with VIX/SPX-RV reference datasets.</li>
+<li><strong>v1.0</strong> — Current: core RK-SAVR estimator, multi-scale analysis,
+statistical inference, model zoo, forecasting.</li>
+<li><strong>v2.0</strong> — Rebrand to <code>hurstify</code>, per-module TypeScript declarations,
+Next.js 16 + shadcn observatory.</li>
+<li><strong>v2.1</strong> — React Hook Form for advanced parameter sweeps, persistent
+demo state, dark/light theme toggle.</li>
+<li><strong>v3.0</strong> — Real-time WebSocket demo with streaming estimator;
+integration with VIX/SPX-RV reference datasets.</li>
 </ul>
+<hr>
+<h2>Contributing</h2>
+<p>Want to improve hurstify? See <a href="CONTRIBUTING.md">CONTRIBUTING.md</a> for
+how to set up a development environment and submit changes.</p>
+<h2>Code of Conduct</h2>
+<p>We expect everyone to follow our <a href="CODE_OF_CONDUCT.md">Code of Conduct</a>.</p>
+<h2>Security</h2>
+<p>Found a security issue? See <a href="SECURITY.md">SECURITY.md</a> — please don't
+open a public GitHub issue for security problems.</p>
 <h2>License</h2>
 <p><a href="LICENSE">MIT</a> © 2025–2026 Sachin.</p>
-<p>This is an <strong>independent implementation</strong> of the RK-SAVR algorithm described in <em>Randomized Kolmogorov-Smirnov Analysis of Volatility Roughness</em> (arXiv:2509.20015v3) by Angelini &amp; Bianchi. The author is not affiliated with the paper's authors. Provided as-is for research and educational use. Please cite the original paper when using this library in academic work.</p>
+<p>This is an <strong>independent implementation</strong> of the RK-SAVR algorithm
+described in <em>Randomized Kolmogorov-Smirnov Analysis of Volatility
+Roughness</em> (<a href="https://arxiv.org/abs/2509.20015v3">arXiv:2509.20015v3</a>)
+by Angelini &amp; Bianchi. The author is not affiliated with the paper's
+authors. Provided as-is for research and educational use. Please cite
+the original paper when using this library in academic work.</p>
 <hr>
-<p><strong>Screenshots</strong>: launch the observatory locally with <code>npm run dev:demo</code>.</p>
 <h2>References</h2>
 <ul>
-<li>Angelini &amp; Bianchi (2025). <em>Randomized Kolmogorov-Smirnov Analysis of Volatility Roughness</em>. <a href="https://arxiv.org/abs/2509.20015v3">arXiv:2509.20015v3</a>.</li>
-<li>Bianchi (2004). <em>A new distribution-based estimator of the self-similarity parameter</em>.</li>
-<li>Bayer, Friz, Gatheral (2016). <em>Roughing it up: Connecting rough volatility with option pricing</em>.</li>
+<li>Angelini &amp; Bianchi (2025). <em>Randomized Kolmogorov-Smirnov Analysis
+of Volatility Roughness</em>.
+<a href="https://arxiv.org/abs/2509.20015v3">arXiv:2509.20015v3</a>.</li>
+<li>Bianchi (2004). <em>A new distribution-based estimator of the
+self-similarity parameter</em>.</li>
+<li>Bayer, Friz, Gatheral (2016). <em>Roughing it up: Connecting rough
+volatility with option pricing</em>.</li>
 <li>Gatheral, Jaisson, Rosenbaum (2018). <em>Volatility is Rough</em>.</li>
-<li>Hosking (1984). <em>Modeling persistence in hydrological time series using fractional differencing</em>.</li>
-<li>Mandelbrot &amp; Van Ness (1968). <em>Fractional Brownian motions, fractional noises and applications</em>.</li>
+<li>Hosking (1984). <em>Modeling persistence in hydrological time series
+using fractional differencing</em>.</li>
+<li>Mandelbrot &amp; Van Ness (1968). <em>Fractional Brownian motions,
+fractional noises and applications</em>.</li>
 <li>Brent (1971). <em>Algorithms for Minimization without Derivatives</em>.</li>
 </ul></article>
     </section>
@@ -626,12 +758,13 @@ a dedicated parser (e.g. via `registerModel` pattern in `models/`).</div>
 Implements three practical denoisers commonly applied to
 high-frequency financial data:
 
-- <a href="global.html#preavgReturns">preavgReturns</a>: Jacod et al. (2009) pre-averaging returns.
-- <a href="global.html#realizedKernel">realizedKernel</a>: Barndorff-Nielsen et al. (2008) realized
-  kernel with optional kernel choice (Bartlett, Parzen, Tukey-Hanning).
-- <a href="global.html#logVolDebias">logVolDebias</a>: a small heuristic that nudges raw H estimates
-  upwards to compensate for noise attenuation of the roughness
-  measure.
+- <a href="global.html#preaverageReturns">preaverageReturns</a>: Jacod et al. (2009) pre-averaging returns.
+- <a href="global.html#computeRealizedKernel">computeRealizedKernel</a>: Barndorff-Nielsen et al. (2008)
+  realized kernel with optional kernel choice (Bartlett, Parzen,
+  Tukey-Hanning).
+- <a href="global.html#debiasLogVolatility">debiasLogVolatility</a>: a small heuristic that nudges raw H
+  estimates upwards to compensate for noise attenuation of the
+  roughness measure.
 
 These routines are designed to be **offline**; they expect the full
 price/return series in memory and never stream.</div>
@@ -923,7 +1056,7 @@ generator returns.</div>
 
 <header>
     
-        <h2>fbm.js</h2>
+        <h2>errors.js</h2>
         
     
 </header>
@@ -932,10 +1065,12 @@ generator returns.</div>
     <div class="container-overview">
     
         
-            <div class="description">Fractional Brownian motion re-exports.
+            <div class="description">Domain-specific error class for hurstify.
 
-Backward-compatible shim that re-exports the fBM/fGN helpers from the
-canonical implementation in `random.js`.</div>
+Every hurstify-level failure (empty windows, optimizer divergence,
+invalid configuration, etc.) should be raised as a `HurstifyError`
+with a stable machine-readable `code` so that production consumers can
+branch on the failure type without parsing error messages.</div>
         
 
         
@@ -970,20 +1105,12 @@ canonical implementation in `random.js`.</div>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="fbm.js.html">fbm.js</a>, <a href="fbm.js.html#line1">line 1</a>
+        <a href="errors.js.html">errors.js</a>, <a href="errors.js.html#line1">line 1</a>
     </li></ul></dd>
     
 
     
 
-    
-    <dt class="tag-see">See:</dt>
-    <dd class="tag-see">
-        <ul>
-            <li>./random.js for the full documentation and the Hosking-method
-  implementation.</li>
-        </ul>
-    </dd>
     
 
     
@@ -1041,55 +1168,33 @@ canonical implementation in `random.js`.</div>
 Implements the **Randomized Kolmogorov-Smirnov Analysis of Volatility
 Roughness** (RK-SAVR) algorithm of Angelini & Bianchi (arXiv:2509.20015v3)
 in pure JavaScript, exposed under the hurstify package name.
-The estimator determines the Hurst parameter `H` of a
-stationary series of log-volatilities by comparing the empirical
-distributions of rescaled increments at two (or more) scales.
+
+## Strategy injection
+
+`Hurstify` is a thin orchestrator: every pluggable behaviour is
+delegated to a strategy instance:
+
+- <a href="Sampler.html">Sampler</a> — `Sampler` strategy (reservoir / block permutation).
+- <a href="KsObjective.html">KsObjective</a> — `KsObjective` strategy (pairwise / multi-scale /
+  weighted multi-scale).
+- <a href="Optimizer.html">Optimizer</a> — `Optimizer` strategy (Brent, Nelder-Mead, SA, DE,
+  AGS, or any user-registered factory).
+
+Subclasses implement their respective polymorphic entry point, and the
+estimator dispatches through the uniform method without any branching.
 
 ## Algorithm
 
-Given a window `X_0, ..., X_{W-1}` of a stationary (log-volatility) series:
-
-1. Choose two (or more) scales `a_1 < a_2 < ... < a_K` with the default
-   two-scale setting being `(scaleA1, scaleA2)`.
-2. Compute the increments `Z_{t,a_k} = X_{t + a_k} - X_t` for every scale.
-3. If a positive `blockSize` is configured, apply a **block random
-   permutation** to the increments of every scale to strip away short-
-   range serial dependence while preserving the marginal distribution.
-   Otherwise apply plain reservoir sampling for variance reduction.
-4. Resample `sampleSize` increments per scale with Floyd's algorithm.
-5. For each candidate `H`, rescale the increments by `a_k^{-H}` and compute
-   the empirical Kolmogorov-Smirnov distance between every pair of rescaled
-   samples. The paper shows that, under the null of self-similarity, the
-   rescaled samples are identically distributed and the KS distance is
-   minimized at the true `H`.
-6. The 1D minimizer over `H` is delegated to a pluggable optimizer
-   (`brent`, `nelder-mead`, `annealing`, `de`, `ags`, or any user-registered
-   factory via <a href="Hurstify.html#.registerOptimizer">Hurstify.registerOptimizer</a>).
-7. **Variance reduction:** the single-shot procedure is repeated
-   `iterations` times with independent random permutations/samples and the
-   results are averaged.
-
-## Constraints and assumptions
-
-- **Stationarity.** Convergence of the KS minimizer requires that the
-  underlying series be stationary in the relevant lag range. Long-window
-  analysis is therefore preferred over short ones.
-- **`0 < H < 1`.** The estimator explicitly clamps the result to
-  `[hMin, hMax]` (defaults `0.01` to `0.99`).
-- **IID marginals after permutation.** Block random permutation breaks
-  short-range autocorrelation but does not destroy higher-order structure.
-  Choose `blockSize` large enough to defeat the dominant autocorrelation
-  scale.
-
-## Performance
-
-- Precomputes all increments for every scale in a single O(W) pass
-  (`getIncrementsMulti`).
-- The KS objective for `K > 2` scales walks the empirical CDFs once per
-  pair; it allocates `Float64Array` outputs for contiguous memory.
-- Each variance-reduction iteration reuses the prepared increments but
-  performs an independent permutation and sample, then a full
-  optimization pass.</div>
+1. Compute increments `Z_{t,a} = X_{t + a} - X_t` for every configured
+   scale.
+2. Use the configured `Sampler` to draw `sampleSize` increments per
+   scale. Block random permutation is selected automatically when
+   `blockSize > 0`.
+3. Sort the samples (assumed by the inner KS walk).
+4. For each candidate `H`, evaluate the configured `KsObjective` on
+   the rescaled samples.
+5. Minimize the objective over `H` with the configured `Optimizer`.
+6. Repeat the single-shot procedure `iterations` times and average.</div>
         
 
         
@@ -1136,10 +1241,9 @@ Given a window `X_0, ..., X_{W-1}` of a stationary (log-volatility) series:
         <ul>
             <li>./stats.js for the underlying statistical primitives.</li>
         
-            <li>./optimization/registry.js for the pluggable optimizer registry.</li>
+            <li>./strategies/* for the polymorphic strategy hierarchy.</li>
         
-            <li>./logger.js for the leveled logging used for non-fatal iteration
-  failures.</li>
+            <li>./logger.js for the leveled logging used for non-fatal failures.</li>
         </ul>
     </dd>
     
@@ -1196,44 +1300,33 @@ Given a window `X_0, ..., X_{W-1}` of a stationary (log-volatility) series:
         
             <div class="description">Public entry point for the hurstify package.
 
-This module re-exports every user-facing API of the hurstify library. It is
-the only file consumers should normally import from when using the package
-(`import {Hurstify} from 'hurstify';`). The intent is to keep a stable surface
-even when internal modules are split, renamed, or rearranged.
+This module re-exports every user-facing API of the hurstify library.
+It is the only file consumers should normally import from when using
+the package (`import {Hurstify} from 'hurstify';`). The intent is to
+keep a stable surface even when internal modules are split, renamed,
+or rearranged.
 
-## Architecture
+## Architecture (v2.0.0)
 
-The library follows a layered, single-responsibility design:
+The library is now organized around a polymorphic strategy hierarchy
+under `lib/strategies/`. Each strategy family has its own base class
+and concrete subclasses; the `Hurstify` estimator injects the right
+combination at construction time.
 
   lib/
   ├── index.js                 <- this file, the public surface
-  <-- hurstify.js                <- Hurstify class (the estimator)
+  ├── hurstify.js              <- Hurstify class (the estimator)
+  ├── errors.js                <- HurstifyError + error code enum
   ├── stats.js                 <- KS distance, permutation, sampling
-  ├── random.js                <- fBm/fGn generation, Box-Muller, kernels
-  ├── prng.js                  <- Seedable mulberry32 PRNG + global handle
+  ├── prng.js                  <- Seedable mulberry32 PRNG + helpers
   ├── logger.js                <- Minimal leveled logger
-  ├── inference.js             <- High-level inference facade
-  ├── inference/asymptotic.js  <- Asymptotic variance, CIs
-  ├── inference/filtering.js   <- Kalman filter, constancy test
-  ├── inference/math.js        <- Internal normal-quantile approximation
-  ├── optimization/            <- Brent, Nelder-Mead, SA, DE, AGS, registry
-  ├── models/                  <- Rough volatility simulators + forecasters
-  └── data/                    <- Loaders, preprocessing, noise correction
-
-The Hurstify estimator itself depends only on `stats.js`,
-`optimization/index.js`, and `logger.js`. Inference, models, and the data
-pipeline are independent consumers that may be used standalone.
-
-## Design rationale
-
-- **Zero runtime dependencies.** Everything is implemented in pure ES2022+
-  JavaScript so the library is portable across Node.js, browsers, and the
-  bundled IIFE/CJS/ESM distributions.
-- **Seeded, deterministic PRNG.** `setSeed`/`random` in `prng.js` lets users
-  make simulations reproducible. Math.random() is used as a fallback.
-- **Pluggable optimizers.** Estimators delegate the 1D minimization problem
-  to factories registered in `optimization/registry.js`. Callers can plug
-  in custom optimizers at runtime.</div>
+  ├── inference/               <- Asymptotic variance, Kalman, math
+  ├── strategies/              <- Sampler, KsObjective, Kernel,
+  │                               StochasticModel, Forecaster,
+  │                               HypothesisTest, Registry<T>
+  ├── optimization/            <- Brent, Nelder-Mead, SA, DE, AGS
+  └── models/                  <- Strategy-class re-exports +
+                                  registries</div>
         
 
         
@@ -1280,19 +1373,8 @@ pipeline are independent consumers that may be used standalone.
         <ul>
             <li><a href="Hurstify.html">Hurstify</a> for the main estimator class.</li>
         
-            <li>module:stats for the statistical primitives.</li>
-        
-            <li>module:optimization for the optimizer registry.</li>
-        
-            <li>./hurstify.js</li>
-        
-            <li>./stats.js</li>
-        
-            <li>./inference.js</li>
-        
-            <li>./models/index.js</li>
-        
-            <li>./optimization/index.js</li>
+            <li><a href="Sampler.html">Sampler</a>, <a href="KsObjective.html">KsObjective</a>, <a href="Optimizer.html">Optimizer</a> for the
+  pluggable strategy families.</li>
         </ul>
     </dd>
     
@@ -1349,18 +1431,13 @@ pipeline are independent consumers that may be used standalone.
         
             <div class="description">Statistical inference facade for hurstify.
 
-Re-exports the focused submodule APIs and adds two families of utility
-functions that historically lived alongside the estimator:
+Re-exports the focused submodule APIs. Hypothesis tests live in the
+<a href="HypothesisTest.html">HypothesisTest</a> strategy hierarchy under
+`lib/strategies/hypothesis-test.js` — consumers instantiate the
+strategy class directly (e.g. `new KsSignificanceTest().run(...)`).
 
-- Kolmogorov-Smirnov critical value, p-value, and significance test for
-  the minimized KS distance returned by `Hurstify.estimateSingle`.
-- CUSUM-based structural break detection for series of H estimates
-  (e.g. from `Hurstify.rolling`).
-- A bootstrap confidence interval that wraps any user-supplied estimator
-  and resamples from the original window with replacement.
-
-The module depends on the seeded `random()` dispatcher in `prng.js`,
-so bootstrap samples are reproducible across runs.</div>
+The module depends on the seeded `nextRandom()` dispatcher in
+`prng.js`, so bootstrap samples are reproducible across runs.</div>
         
 
         
@@ -1405,9 +1482,12 @@ so bootstrap samples are reproducible across runs.</div>
     <dt class="tag-see">See:</dt>
     <dd class="tag-see">
         <ul>
-            <li>./inference/asymptotic.js for the analytical-variance / CI helpers.</li>
+            <li>./inference/asymptotic.js for the analytical-variance helpers.</li>
         
-            <li>./inference/filtering.js for the Kalman filter and constancy test.</li>
+            <li>./inference/filtering.js for the Kalman filter.</li>
+        
+            <li>../strategies/hypothesis-test.js for the polymorphic
+`HypothesisTest` strategy hierarchy.</li>
         </ul>
     </dd>
     
@@ -1575,10 +1655,9 @@ the paper's discussion around Proposition 2.9.</div>
 
 Provides:
 
-- `kalmanFilter`: a one-dimensional Kalman filter that smooths a series
-  of `H` estimates under a simple random-walk state-space model.
-- `constancyTest`: a likelihood-ratio test of whether `H` is constant
-  over time (`q = 0`) against the alternative that it varies (`q > 0`).
+- `runKalmanFilter`: a one-dimensional Kalman filter that smooths a
+  series of `H` estimates under a simple random-walk state-space
+  model.
 
 The state-space model assumed throughout is
 
@@ -1587,7 +1666,11 @@ The state-space model assumed throughout is
 
 where `x_t` is the latent Hurst exponent at time `t` and `z_t` is the
 estimated value. The process-noise variance `q` and the observation-
-noise variance `r` are user-specified.</div>
+noise variance `r` are user-specified.
+
+The likelihood-ratio constancy test now lives as the
+<a href="ConstancyTest.html">ConstancyTest</a> strategy in
+`lib/strategies/hypothesis-test.js`.</div>
         
 
         
@@ -1687,8 +1770,8 @@ implemented with the Wichura/Beasley-Springer-Malkin rational
 approximation. Used by `confidenceInterval` to convert the configured
 alpha into a two-sided `z` critical value.
 
-This module is `@private` — it is consumed only by sibling inference
-modules and is not re-exported from `inference.js`.</div>
+This module is consumed only by sibling inference modules and is not
+re-exported from `inference.js`.</div>
         
 
         
@@ -1881,234 +1964,6 @@ the level should serialize.</div>
 
 <header>
     
-        <h2>models/forecasting.js</h2>
-        
-    
-</header>
-
-<article>
-    <div class="container-overview">
-    
-        
-            <div class="description">H-forecasting primitives for hurstify.
-
-Provides lightweight forecasting tools that consume a stream of
-historical `H` estimates (typically the output of `Hurstify.rolling`)
-and predict the next value. The intent is to enable the dashboard
-and experiments modules to demonstrate online forecasting without
-pulling in a heavyweight ML framework.
-
-Shipped forecasters:
-
-- `arfima`: autoregressive fractionally-integrated moving average.
-- `holtWintersForecast`: exponential smoothing with level + trend.
-- `createLSTM`: a minimal stateless LSTM-like recurrent cell.
-- `createAttentionModel`: a minimal stateless Transformer-style
-  self-attention block.
-
-All forecasters route their random initialization through `prng.js`
-so that seeded experiments are reproducible.</div>
-        
-
-        
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="models_forecasting.js.html">models/forecasting.js</a>, <a href="models_forecasting.js.html#line1">line 1</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-    <dt class="tag-see">See:</dt>
-    <dd class="tag-see">
-        <ul>
-            <li>../../tests/forecasting.tests.js for behavioral tests.</li>
-        
-            <li>../prng.js for the seeded mulberry32 random source.</li>
-        </ul>
-    </dd>
-    
-
-    
-</dl>
-
-
-        
-    
-    </div>
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</article>
-
-</section>
-
-
-
-
-
-
-
-<section>
-
-<header>
-    
-        <h2>models/fou.js</h2>
-        
-    
-</header>
-
-<article>
-    <div class="container-overview">
-    
-        
-            <div class="description">Fractional Ornstein-Uhlenbeck (fOU) simulator.
-
-Mean-reverting process driven by fractional Brownian motion:
-
-    dX_t = theta * (mu - X_t) dt + sigma * dB^H_t
-
-where `B^H` is fractional Brownian motion with Hurst parameter `H`.
-
-- For `H = 0.5` the driver reduces to ordinary Brownian motion and
-  the simulator switches to an exact discretization (the Vasicek
-  recursion).
-- For `H != 0.5` we fall back to Euler-Maruyama using a pre-generated
-  fGN sample; this introduces `O(sqrt(dt))` bias but is adequate for
-  path generation at the typical sample sizes used here.
-
-The `exactOU` companion uses a fully consistent fractional integral
-discretization that is more accurate but `O(n^2)` per path.</div>
-        
-
-        
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="models_fou.js.html">models/fou.js</a>, <a href="models_fou.js.html#line1">line 1</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-        
-    
-    </div>
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</article>
-
-</section>
-
-
-
-
-
-
-
-<section>
-
-<header>
-    
         <h2>models/index.js</h2>
         
     
@@ -2118,12 +1973,25 @@ discretization that is more accurate but `O(n^2)` per path.</div>
     <div class="container-overview">
     
         
-            <div class="description">Public export surface for the rough-volatility model zoo.
+            <div class="description">Public export surface for the rough-volatility model
+zoo and forecaster hierarchy.
 
-Bundles every concrete model into a single import target (`rBergomi`,
-`rFSV`, `fOU`, `mPRE`, plus the `arfima`/`holtWinters`/`lstm`/
-`attention` forecasters) and provides a tiny registry so applications
-can dispatch on a model name string.</div>
+v2.0.0 is a hard break from v1.x: the legacy free functions
+(`rBergomi`, `rFSV`, `fOU`, `exactOU`, `mPRE`, `mPREExact`,
+`arfima`, `holtWintersForecast`, `createLSTM`, `createAttentionModel`)
+have been removed. Consumers should use the polymorphic strategy
+classes directly:
+
+- Stochastic processes: instantiate `RoughBergomiModel`,
+  `RoughFsvModel`, `EulerMaruyamaFractionalOuModel`,
+  `ExactFractionalOuModel`, `LocalHolderMultifractionalPreModel`,
+  or `ExactMultifractionalPreModel` and call `simulate(opts)`.
+  `FractionalOuModel` and `MultifractionalPreModel` are abstract
+  bases — subclassing or the registry picks the concrete
+  discretization.
+- H forecasting: instantiate `ArfimaForecaster`,
+  `HoltWintersForecaster`, `LstmForecaster`, or `AttentionForecaster`
+  and call `predict(history)`.</div>
         
 
         
@@ -2207,361 +2075,6 @@ can dispatch on a model name string.</div>
 
 <header>
     
-        <h2>models/mpre.js</h2>
-        
-    
-</header>
-
-<article>
-    <div class="container-overview">
-    
-        
-            <div class="description">Multifractional Process with Random Exponent (mPRE).
-
-A generalization of fractional Brownian motion in which the local
-Hölder exponent `H(t)` is itself a stochastic process
-
-    X_t = B_{H(t)}(t),
-
-sampled here by driving `H(t)` with an Ornstein-Uhlenbeck mean-reverting
-process bounded between `hMin` and `hMax`. Two simulators are
-shipped:
-
-- `mPRE`: an `O(n)` local-Holder approximation that uses the
-  conditional variance `dt^{2 * H_avg}` of an fBm increment.
-- `mPREExact`: an `O(n^2)` exact Riemann-Liouville integration with a
-  time-varying exponent at every lag.
-
-The local-Holder approximation is the practical default for paths of
-more than a few hundred steps; it is accurate to first order in `dt`
-and avoids the obvious `O(n^2)` cost of the exact variant.</div>
-        
-
-        
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="models_mpre.js.html">models/mpre.js</a>, <a href="models_mpre.js.html#line1">line 1</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-        
-    
-    </div>
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</article>
-
-</section>
-
-
-
-
-
-
-
-<section>
-
-<header>
-    
-        <h2>models/rbergomi.js</h2>
-        
-    
-</header>
-
-<article>
-    <div class="container-overview">
-    
-        
-            <div class="description">Rough Bergomi (rBergomi) simulator.
-
-## Model
-
-The variance process follows
-
-    dV_t / V_t = eta * dW_t^perp
-    I_t        = ∫_0^t sqrt(2H) * (t - s)^{H - 0.5} dW_s^perp
-    V_t        = xi * exp(eta * I_t - (eta^2 / 2) * t^{2H})
-
-where `W^perp` is a Brownian motion correlated with the price Brownian
-`W` via `dW_t * dW_t^perp = rho dt`. The kernel `K(t) = sqrt(2H) *
-t^{H - 0.5}` is the Riemann-Liouville fractional kernel of order
-`H - 0.5 < 0` for `0 < H <= 0.5`.
-
-Implementation strategy:
-
-1. Draw `nPaths` pairs of correlated standard normals once via
-   <a href="global.html#correlatedGaussian">correlatedGaussian</a>.
-2. For each path, precompute the fractional kernel and accumulate the
-   running fractional integral `I_t` time-step by time-step via
-   <a href="global.html#fractionalIntegral">fractionalIntegral</a>.
-3. Apply the exponential-of-linear formula to obtain the variance path;
-   the negative `(eta^2 / 2) * t^{2H}` term corrects the drift.
-
-Path generation is `O(nPaths * nSteps^2)` due to the cumulative kernel
-convolution. For very long paths switch to a circulant-embedding FFT
-approximation (not implemented here).</div>
-        
-
-        
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="models_rbergomi.js.html">models/rbergomi.js</a>, <a href="models_rbergomi.js.html#line1">line 1</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-    <dt class="tag-see">See:</dt>
-    <dd class="tag-see">
-        <ul>
-            <li>Bayer, C., Friz, P., Gatheral, J. (2016). Pricing under rough
-  volatility. *Quantitative Finance* 16(6), 887-884.</li>
-        
-            <li>../random.js for the stochastic primitives used here.</li>
-        </ul>
-    </dd>
-    
-
-    
-</dl>
-
-
-        
-    
-    </div>
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</article>
-
-</section>
-
-
-
-
-
-
-
-<section>
-
-<header>
-    
-        <h2>models/rfsv.js</h2>
-        
-    
-</header>
-
-<article>
-    <div class="container-overview">
-    
-        
-            <div class="description">Rough Fractional Stochastic Volatility (rFSV) simulator.
-
-Combines a Heston-style drift/diffusion
-
-    dV_t = theta * (mu - V_t) dt + nu * V_t^alpha * dW^V_t
-
-with an additive roughness term driven by the fractional kernel
-`K(t) = sqrt(2H) * t^{H - 0.5}`. The mean-reversion (`theta`) targets
-the long-run variance `mu` and the diffusion exponent `alpha = 0.5`
-recovers the classical square-root process.
-
-The discretization uses an Euler-Maruyama step for the Heston
-component plus a small additive roughness shock; the resulting path is
-floored at `1e-6` so that `V_t` stays strictly positive.</div>
-        
-
-        
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="models_rfsv.js.html">models/rfsv.js</a>, <a href="models_rfsv.js.html#line1">line 1</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-    <dt class="tag-see">See:</dt>
-    <dd class="tag-see">
-        <ul>
-            <li>Gatheral, J., Jaisson, T., Rosenbaum, M. (2018). Volatility is
-  rough. *Quantitative Finance* 18(6), 933-949.</li>
-        </ul>
-    </dd>
-    
-
-    
-</dl>
-
-
-        
-    
-    </div>
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</article>
-
-</section>
-
-
-
-
-
-
-
-<section>
-
-<header>
-    
         <h2>optimization/adaptiveGridSearch.js</h2>
         
     
@@ -2576,7 +2089,7 @@ floored at `1e-6` so that `V_t` stays strictly positive.</div>
 A coarse-to-fine 1D optimizer: it lays down a uniform grid, finds the
 current best point, tightens the search interval around it by a
 factor of two, then refines the grid `refineIters` times. After the
-grid stage the result is polished with <a href="global.html#brentMinimize">brentMinimize</a> so the
+grid stage the result is polished with brentMinimize so the
 returned `x` is precise to the requested `tol`.</div>
         
 
@@ -2888,11 +2401,9 @@ clamps trials to `[lb, ub]`.</div>
             <div class="description">Re-exports for the optimization layer.
 
 Provides a single import surface for every optimizer shipped with the
-library plus the registry helpers used internally by `Hurstify`.
-
-The free-function optimizers (`brentMinimize`, `nelderMead`, etc.) are
-retained for direct use; the polymorphic `Optimizer` subclasses are
-the form consumed by the hurstify estimator.</div>
+library. Consumers either instantiate a concrete `Optimizer` subclass
+directly, or look up a built-in by short key through
+<a href="global.html#optimizerRegistry">optimizerRegistry</a>.</div>
         
 
         
@@ -3196,12 +2707,9 @@ prefer that ergonomics.</div>
             <div class="description">Optimizer registry mapping short string keys to
 `Optimizer` strategy instances.
 
-The estimator can be configured with either:
-  1. A string key (e.g. `'brent'`) — resolved here into an instance, OR
-  2. An `Optimizer` instance directly (skips the registry).
-
-Either way the estimator dispatches the actual minimization through
-the polymorphic `Optimizer.minimize(...)` method.</div>
+The estimator holds an `Optimizer` instance (or a string key that is
+resolved here into one). The registry is the single source of truth
+for built-in and user-registered optimizers.</div>
         
 
         
@@ -3404,8 +2912,8 @@ across calls that share the same seed.</div>
 All stochastic primitives in the library (`stats.js`, `random.js`,
 `models/*`, `data/synthetic.js`) route their randomness through a
 single global dispatcher exposed here. This makes the entire pipeline
-deterministically reproducible: call `setSeed(seed)` once at the top of
-a script and every downstream draw follows the same sequence.
+deterministically reproducible: call `setRandomSeed(seed)` once at the
+top of a script and every downstream draw follows the same sequence.
 
 The default generator is **mulberry32**, a tiny 32-bit state machine
 with a 2^32 period that passes most statistical tests for non-crypto
@@ -3414,11 +2922,13 @@ key generation, tokens, or anything that requires unpredictability.
 
 ## Lifecycle
 
-1. `setSeed(seed)` captures the seed and constructs a fresh generator.
-   The previous generator (if any) is discarded.
-2. Every `random()` call advances the global generator by one step.
-3. `resetSeed()` (or `setSeed(null)`) clears the global generator so
-   subsequent `random()` calls fall back to `Math.random()`.</div>
+1. `setRandomSeed(seed)` captures the seed and constructs a fresh
+   generator. The previous generator (if any) is discarded.
+2. Every ` `nextRandom()` call advances the global generator by one
+   step.
+3. `resetRandomSeed()` (or `setRandomSeed(null)`) clears the global
+   generator so subsequent `nextRandom()` calls fall back to
+   `Math.random()`.</div>
         
 
         
@@ -3465,136 +2975,6 @@ key generation, tokens, or anything that requires unpredictability.
         <ul>
             <li><a href="https://github.com/bryc/code/blob/master/jshash/PRNGs.md#mulberry32%0A%20%20for%20the%20canonical%20mulberry32%20implementation%20reference.">https://github.com/bryc/code/blob/master/jshash/PRNGs.md#mulberry32
   for the canonical mulberry32 implementation reference.</a></li>
-        </ul>
-    </dd>
-    
-
-    
-</dl>
-
-
-        
-    
-    </div>
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</article>
-
-</section>
-
-
-
-
-
-
-
-<section>
-
-<header>
-    
-        <h2>random.js</h2>
-        
-    
-</header>
-
-<article>
-    <div class="container-overview">
-    
-        
-            <div class="description">Random number generation utilities for hurstify.
-
-This module centralizes every stochastic primitive that other parts of
-the library depend on:
-
-- `randn` / `randnBatch`: scalar or vector draws from the standard normal
-  via the Box-Muller polar method.
-- `correlatedGaussian`: pairs of correlated standard normals (used by the
-  rBergomi simulator).
-- `generateFGN`: fractional Gaussian noise via **Hosking's method** —
-  exact at any `H in (0, 1)` but `O(n^2)`.
-- `generateFBM`: fractional Brownian motion obtained by cumulative
-  summation of fGN.
-- `fractionalKernel` / `fractionalIntegral`: the Riemann-Liouville kernel
-  and integral that drive the rough-volatility simulators.
-
-All routines route their randomness through `prng.js`, so calling
-`setSeed(seed)` before any of them makes the whole pipeline
-reproducible.
-
-## References
-
-- Box, G. E. P., & Muller, M. E. (1958). A note on the generation of
-  random normal deviates.
-- Hosking, J. R. M. (1984). Modeling persistence in hydrological time
-  series using fractional differencing. *Water Resources Research*.
-- Mandelbrot, B., & Van Ness, J. W. (1968). Fractional Brownian motions,
-  fractional noises and applications. *SIAM Review*.</div>
-        
-
-        
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="random.js.html">random.js</a>, <a href="random.js.html#line1">line 1</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-    <dt class="tag-see">See:</dt>
-    <dd class="tag-see">
-        <ul>
-            <li>./prng.js for the seeded mulberry32 generator used here.</li>
-        
-            <li>./models/rbergomi.js for the rBergomi simulator that consumes
-  `correlatedGaussian` and `fractionalKernel`.</li>
         </ul>
     </dd>
     
@@ -3752,16 +3132,1005 @@ fully deterministic.</div>
 
 
 
+
+
+
+<section>
+
+<header>
+    
+        <h2>stochastic-generators.js</h2>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+            <div class="description">Random number generation utilities for hurstify.
+
+This module centralizes every stochastic primitive that other parts of
+the library depend on:
+
+- `nextGaussian` / `generateGaussianBatch`: scalar or vector draws from
+  the standard normal via the Box-Muller polar method.
+- `generateCorrelatedGaussian`: pairs of correlated standard normals
+  (used by the rBergomi simulator).
+- `generateFractionalNoise`: fractional Gaussian noise via Hosking's
+  method — exact at any `H in (0, 1)` but `O(n^2)`.
+- `generateFractionalBrownianMotion`: fractional Brownian motion
+  obtained by cumulative summation of fGN.
+- `computeFractionalKernel` / `computeFractionalIntegral`: the
+  Riemann-Liouville kernel and integral that drive the
+  rough-volatility simulators.
+
+All routines route their randomness through `prng.js`, so calling
+`setRandomSeed(seed)` before any of them makes the whole pipeline
+reproducible.
+
+## References
+
+- Box, G. E. P., & Muller, M. E. (1958). A note on the generation of
+  random normal deviates.
+- Hosking, J. R. M. (1984). Modeling persistence in hydrological time
+  series using fractional differencing. *Water Resources Research*.
+- Mandelbrot, B., & Van Ness, J. W. (1968). Fractional Brownian motions,
+  fractional noises and applications. *SIAM Review*.</div>
+        
+
+        
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="stochastic-generators.js.html">stochastic-generators.js</a>, <a href="stochastic-generators.js.html#line1">line 1</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li>./prng.js for the seeded mulberry32 generator used here.</li>
+        
+            <li>../strategies/kernel.js for the polymorphic kernel abstraction.</li>
+        </ul>
+    </dd>
+    
+
+    
+</dl>
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+
+
+
+<section>
+
+<header>
+    
+        <h2>strategies/forecaster.js</h2>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+            <div class="description">Forecaster strategy hierarchy.
+
+Replaces the inconsistent forecaster API surface
+(`createArfimaForecaster`, `runHoltWintersForecast`, `createLstmForecaster`,
+`createAttentionForecaster`) with a single polymorphic `Forecaster` base
+class.
+
+- <a href="ArfimaForecaster.html">ArfimaForecaster</a>: autoregressive fractionally-integrated
+  moving average.
+- <a href="HoltWintersForecaster.html">HoltWintersForecaster</a>: exponential smoothing (level + trend).
+- <a href="LstmForecaster.html">LstmForecaster</a>: stateless LSTM-like recurrent cell.
+- <a href="AttentionForecaster.html">AttentionForecaster</a>: stateless single-head attention block.
+
+All forecasters expose `predict(history)` as the primary entry point;
+`forecast(history)` is a thin alias kept for backward compatibility
+with the old free-function names.</div>
+        
+
+        
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="strategies_forecaster.js.html">strategies/forecaster.js</a>, <a href="strategies_forecaster.js.html#line1">line 1</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+
+
+
+<section>
+
+<header>
+    
+        <h2>strategies/hypothesis-test.js</h2>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+            <div class="description">Hypothesis-test strategy hierarchy.
+
+Wraps the suite of statistical tests consumed by hurstify
+(significance, constancy, structural break, bootstrap CI) under a
+polymorphic `HypothesisTest` base class. Concrete subclasses expose a
+uniform `run(data, opts)` interface so callers (e.g. dashboards,
+notebooks) can dispatch by name without bespoke branching.
+
+- <a href="KsSignificanceTest.html">KsSignificanceTest</a>: KS-distance significance on the
+  minimized statistic returned by `Hurstify.estimateSingle`.
+- <a href="ConstancyTest.html">ConstancyTest</a>: likelihood-ratio test for `q = 0` vs `q > 0`
+  under the 1D Kalman filter state-space model.
+- <a href="CusumBreakTest.html">CusumBreakTest</a>: one-sided CUSUM structural-break detector.
+- <a href="BootstrapConfidenceInterval.html">BootstrapConfidenceInterval</a>: percentile bootstrap CI for an
+  arbitrary estimator.</div>
+        
+
+        
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="strategies_hypothesis-test.js.html">strategies/hypothesis-test.js</a>, <a href="strategies_hypothesis-test.js.html#line1">line 1</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+
+
+
+<section>
+
+<header>
+    
+        <h2>strategies/index.js</h2>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+            <div class="description">Public surface for the strategy hierarchy.
+
+Every reusable abstraction in hurstify lives under this directory:
+
+- `Registry<T>`: keyed lookup for strategy families.
+- `Sampler`: increment samplers used by `Hurstify.estimate`.
+- `KsObjective`: KS-distance objectives minimized over `H`.
+- `Kernel`: fractional-integration kernels.
+- `StochasticModel`: rough-volatility simulators.
+- `Forecaster`: H-series forecasters.
+- `HypothesisTest`: KS / constancy / CUSUM / bootstrap tests.
+
+This module re-exports every class and helper so consumers only need
+a single import line.</div>
+        
+
+        
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="strategies_index.js.html">strategies/index.js</a>, <a href="strategies_index.js.html#line1">line 1</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+
+
+
+<section>
+
+<header>
+    
+        <h2>strategies/kernel.js</h2>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+            <div class="description">Kernel strategy hierarchy for fractional integration.
+
+Replaces the ad-hoc fractional-kernel implementations scattered
+across `stochastic-generators.js`, `models/rbergomi.js`, `models/fou.js`
+and `models/mpre.js` with a single polymorphic interface:
+
+- <a href="RiemannLiouvilleKernel.html">RiemannLiouvilleKernel</a> — the standard `K(t) = sqrt(2H) *
+  t^{H - 0.5}` kernel used by rBergomi and exact-OU simulators.
+- <a href="TimeVaryingKernel.html">TimeVaryingKernel</a> — kernel whose exponent `H` itself
+  varies in time; consumed by `MultifractionalPreModel`.
+
+Subclasses implement <a href="Kernel.html#evaluate">Kernel#evaluate</a>; the estimator /
+simulator only ever invokes that one method.</div>
+        
+
+        
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="strategies_kernel.js.html">strategies/kernel.js</a>, <a href="strategies_kernel.js.html#line1">line 1</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+
+
+
+<section>
+
+<header>
+    
+        <h2>strategies/ks-objective.js</h2>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+            <div class="description">KS-objective strategy hierarchy.
+
+The Hurstify estimator minimizes a Kolmogorov–Smirnov-based objective
+over the trial Hurst parameter `H`. The objective depends on the
+number of scales and whether the caller supplied per-scale weights;
+the concrete classes below cover every supported configuration.
+
+All three concrete classes implement the same evaluate(...) method so
+the estimator dispatches polymorphically without branching on the
+scale count.
+
+- <a href="PairwiseKsObjective.html">PairwiseKsObjective</a>: single pair (two scales).
+- <a href="MultiScaleKsObjective.html">MultiScaleKsObjective</a>: arithmetic mean over all `K(K-1)/2`
+  unordered scale pairs.
+- <a href="WeightedMultiScaleKsObjective.html">WeightedMultiScaleKsObjective</a>: weighted generalization with
+  a normalization that keeps the value in `[0, 1]`.</div>
+        
+
+        
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="strategies_ks-objective.js.html">strategies/ks-objective.js</a>, <a href="strategies_ks-objective.js.html#line1">line 1</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+
+
+
+<section>
+
+<header>
+    
+        <h2>strategies/model.js</h2>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+            <div class="description">Stochastic-model strategy hierarchy.
+
+Normalizes the rough-volatility model zoo under a single
+`StochasticModel` base class. Every concrete simulator
+(rBergomi, rFSV, fOU, mPRE) now exposes the same `simulate(opts)`
+entry point returning a uniform `SimulationResult`, plus a `price()`
+entry point where the model admits an analytical price SDE.
+
+- <a href="RoughBergomiModel.html">RoughBergomiModel</a>
+- <a href="RoughFsvModel.html">RoughFsvModel</a>
+- <a href="FractionalOuModel.html">FractionalOuModel</a> (abstract base)
+  - <a href="EulerMaruyamaFractionalOuModel.html">EulerMaruyamaFractionalOuModel</a> (default)
+  - <a href="ExactFractionalOuModel.html">ExactFractionalOuModel</a> (Riemann-Liouville integral)
+- <a href="MultifractionalPreModel.html">MultifractionalPreModel</a> (abstract base)
+  - <a href="LocalHolderMultifractionalPreModel.html">LocalHolderMultifractionalPreModel</a> (default)
+  - <a href="ExactMultifractionalPreModel.html">ExactMultifractionalPreModel</a> (time-varying kernel)
+
+The choice between Euler / exact is made at the ctor (subclass
+selection), not via a `opts.discretization` branch.</div>
+        
+
+        
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="strategies_model.js.html">strategies/model.js</a>, <a href="strategies_model.js.html#line1">line 1</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+
+
+
+<section>
+
+<header>
+    
+        <h2>strategies/registry.js</h2>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+            <div class="description">Generic keyed registry for strategy instances.
+
+A single `Registry<T>` is shared by every strategy family
+(optimizers, samplers, kernels, models, forecasters, KS objectives,
+hypothesis tests) so the codebase has exactly one place to look up
+a string key and get a fresh instance back.
+
+Conventions:
+
+- Factories return a *new* instance per call so no mutable state is
+  shared between strategies created from the same key.
+- `register()` overwrites any existing entry; there is no de-duplication.
+- `list()` returns a snapshot of the keys; the underlying object is
+  not exposed to callers.</div>
+        
+
+        
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="strategies_registry.js.html">strategies/registry.js</a>, <a href="strategies_registry.js.html#line1">line 1</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+
+
+
+<section>
+
+<header>
+    
+        <h2>strategies/sampler.js</h2>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+            <div class="description">Sampler strategy hierarchy for the Hurstify estimator.
+
+Samplers consume the raw increment array at a given scale and return a
+sub-sample of size `n`. They encapsulate the variance-reduction step
+(see `Hurstify.estimate`) and let callers plug in paper-faithful
+block random permutation without modifying the estimator itself.
+
+The concrete subclasses are:
+
+- <a href="ReservoirSampler.html">ReservoirSampler</a> — Floyd's Algorithm R reservoir sampler.
+- <a href="BlockPermutationSampler.html">BlockPermutationSampler</a> — random block permutation followed
+  by a reservoir draw. This is the paper-faithful RK-SAVR pipeline.
+- <a href="IdentitySampler.html">IdentitySampler</a> — returns the input unchanged. Useful in
+  tests and for callers who pre-size their inputs to `n`.
+
+Subclasses implement <a href="Sampler.html#draw">Sampler#draw</a>; everything else is shared.</div>
+        
+
+        
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="strategies_sampler.js.html">strategies/sampler.js</a>, <a href="strategies_sampler.js.html#line1">line 1</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Hurstify.html">Hurstify</a></li><li><a href="Optimizer.html">Optimizer</a></li></ul><h3>Global</h3><ul><li><a href="global.html#LogLevel">LogLevel</a></li><li><a href="global.html#REGISTRY">REGISTRY</a></li><li><a href="global.html#adaptiveGridSearch">adaptiveGridSearch</a></li><li><a href="global.html#aggregateDailyRV">aggregateDailyRV</a></li><li><a href="global.html#arfima">arfima</a></li><li><a href="global.html#asymptoticVariance">asymptoticVariance</a></li><li><a href="global.html#blockPermutation">blockPermutation</a></li><li><a href="global.html#bootstrapCI">bootstrapCI</a></li><li><a href="global.html#brentMinimize">brentMinimize</a></li><li><a href="global.html#buildScaleProfile">buildScaleProfile</a></li><li><a href="global.html#centerSeries">centerSeries</a></li><li><a href="global.html#computeRV">computeRV</a></li><li><a href="global.html#computeRVParkinson">computeRVParkinson</a></li><li><a href="global.html#computeScalePairDistance">computeScalePairDistance</a></li><li><a href="global.html#confidenceInterval">confidenceInterval</a></li><li><a href="global.html#constancyTest">constancyTest</a></li><li><a href="global.html#correlatedGaussian">correlatedGaussian</a></li><li><a href="global.html#createAttentionModel">createAttentionModel</a></li><li><a href="global.html#createLSTM">createLSTM</a></li><li><a href="global.html#createWindows">createWindows</a></li><li><a href="global.html#cusumTest">cusumTest</a></li><li><a href="global.html#debug">debug</a></li><li><a href="global.html#defaultSampler">defaultSampler</a></li><li><a href="global.html#detectBreakpoints">detectBreakpoints</a></li><li><a href="global.html#differentialEvolution">differentialEvolution</a></li><li><a href="global.html#downsample">downsample</a></li><li><a href="global.html#error">error</a></li><li><a href="global.html#exactOU">exactOU</a></li><li><a href="global.html#extractSeries">extractSeries</a></li><li><a href="global.html#fOU">fOU</a></li><li><a href="global.html#fractionalIntegral">fractionalIntegral</a></li><li><a href="global.html#fractionalKernel">fractionalKernel</a></li><li><a href="global.html#generateFBM">generateFBM</a></li><li><a href="global.html#generateFGN">generateFGN</a></li><li><a href="global.html#generateIntradayPrices">generateIntradayPrices</a></li><li><a href="global.html#generateSPXLogVol">generateSPXLogVol</a></li><li><a href="global.html#generateVIXLogVol">generateVIXLogVol</a></li><li><a href="global.html#getLogLevel">getLogLevel</a></li><li><a href="global.html#getModel">getModel</a></li><li><a href="global.html#getOptimizer">getOptimizer</a></li><li><a href="global.html#holtWintersForecast">holtWintersForecast</a></li><li><a href="global.html#info">info</a></li><li><a href="global.html#kalmanFilter">kalmanFilter</a></li><li><a href="global.html#ksCriticalValue">ksCriticalValue</a></li><li><a href="global.html#ksDistance">ksDistance</a></li><li><a href="global.html#ksDistanceRescaled">ksDistanceRescaled</a></li><li><a href="global.html#ksPvalue">ksPvalue</a></li><li><a href="global.html#listModels">listModels</a></li><li><a href="global.html#logTransform">logTransform</a></li><li><a href="global.html#logVolDebias">logVolDebias</a></li><li><a href="global.html#mPRE">mPRE</a></li><li><a href="global.html#mPREExact">mPREExact</a></li><li><a href="global.html#nelderMead">nelderMead</a></li><li><a href="global.html#normalQuantile">normalQuantile</a></li><li><a href="global.html#parseCSV">parseCSV</a></li><li><a href="global.html#parseJSON">parseJSON</a></li><li><a href="global.html#preavgReturns">preavgReturns</a></li><li><a href="global.html#preprocessPipeline">preprocessPipeline</a></li><li><a href="global.html#rBergomi">rBergomi</a></li><li><a href="global.html#rBergomiPrice">rBergomiPrice</a></li><li><a href="global.html#rFSV">rFSV</a></li><li><a href="global.html#rFSVPrice">rFSVPrice</a></li><li><a href="global.html#randn">randn</a></li><li><a href="global.html#randnBatch">randnBatch</a></li><li><a href="global.html#random">random</a></li><li><a href="global.html#randomSample">randomSample</a></li><li><a href="global.html#realizedKernel">realizedKernel</a></li><li><a href="global.html#registerModel">registerModel</a></li><li><a href="global.html#registerOptimizer">registerOptimizer</a></li><li><a href="global.html#resetSeed">resetSeed</a></li><li><a href="global.html#resolveOptimizer">resolveOptimizer</a></li><li><a href="global.html#safeOptimizer">safeOptimizer</a></li><li><a href="global.html#seriesToCSV">seriesToCSV</a></li><li><a href="global.html#setLogLevel">setLogLevel</a></li><li><a href="global.html#setSeed">setSeed</a></li><li><a href="global.html#shuffle">shuffle</a></li><li><a href="global.html#significanceTest">significanceTest</a></li><li><a href="global.html#simulatedAnnealing">simulatedAnnealing</a></li><li><a href="global.html#standardError">standardError</a></li><li><a href="global.html#standardizeSeries">standardizeSeries</a></li><li><a href="global.html#trainTestSplit">trainTestSplit</a></li><li><a href="global.html#validateNoGaps">validateNoGaps</a></li><li><a href="global.html#vectorizedKsObjective">vectorizedKsObjective</a></li><li><a href="global.html#warn">warn</a></li><li><a href="global.html#weightedKsObjective">weightedKsObjective</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="ArfimaForecaster.html">ArfimaForecaster</a></li><li><a href="AttentionForecaster.html">AttentionForecaster</a></li><li><a href="BlockPermutationSampler.html">BlockPermutationSampler</a></li><li><a href="BootstrapConfidenceInterval.html">BootstrapConfidenceInterval</a></li><li><a href="ConstancyTest.html">ConstancyTest</a></li><li><a href="CusumBreakTest.html">CusumBreakTest</a></li><li><a href="EulerMaruyamaFractionalOuModel.html">EulerMaruyamaFractionalOuModel</a></li><li><a href="ExactFractionalOuModel.html">ExactFractionalOuModel</a></li><li><a href="ExactMultifractionalPreModel.html">ExactMultifractionalPreModel</a></li><li><a href="Forecaster.html">Forecaster</a></li><li><a href="FractionalOuModel.html">FractionalOuModel</a></li><li><a href="HoltWintersForecaster.html">HoltWintersForecaster</a></li><li><a href="Hurstify.html">Hurstify</a></li><li><a href="HurstifyError.html">HurstifyError</a></li><li><a href="HypothesisTest.html">HypothesisTest</a></li><li><a href="IdentitySampler.html">IdentitySampler</a></li><li><a href="Kernel.html">Kernel</a></li><li><a href="KsObjective.html">KsObjective</a></li><li><a href="KsSignificanceTest.html">KsSignificanceTest</a></li><li><a href="LocalHolderMultifractionalPreModel.html">LocalHolderMultifractionalPreModel</a></li><li><a href="LstmForecaster.html">LstmForecaster</a></li><li><a href="MultiScaleKsObjective.html">MultiScaleKsObjective</a></li><li><a href="MultifractionalPreModel.html">MultifractionalPreModel</a></li><li><a href="Optimizer.html">Optimizer</a></li><li><a href="PairwiseKsObjective.html">PairwiseKsObjective</a></li><li><a href="Registry_Registry.html">Registry</a></li><li><a href="ReservoirSampler.html">ReservoirSampler</a></li><li><a href="RiemannLiouvilleKernel.html">RiemannLiouvilleKernel</a></li><li><a href="RoughBergomiModel.html">RoughBergomiModel</a></li><li><a href="RoughFsvModel.html">RoughFsvModel</a></li><li><a href="Sampler.html">Sampler</a></li><li><a href="StochasticModel.html">StochasticModel</a></li><li><a href="TimeVaryingKernel.html">TimeVaryingKernel</a></li><li><a href="WeightedMultiScaleKsObjective.html">WeightedMultiScaleKsObjective</a></li></ul><h3>Global</h3><ul><li><a href="global.html#HurstifyErrorCode">HurstifyErrorCode</a></li><li><a href="global.html#LogLevel">LogLevel</a></li><li><a href="global.html#NORMAL_QUANTILE_COEFFS">NORMAL_QUANTILE_COEFFS</a></li><li><a href="global.html#aggregateDailyRealizedVariance">aggregateDailyRealizedVariance</a></li><li><a href="global.html#applyLogTransform">applyLogTransform</a></li><li><a href="global.html#applyPreprocessingPipeline">applyPreprocessingPipeline</a></li><li><a href="global.html#buildScaleProfile">buildScaleProfile</a></li><li><a href="global.html#centerSeries">centerSeries</a></li><li><a href="global.html#chooseKsObjective">chooseKsObjective</a></li><li><a href="global.html#computeFractionalIntegral">computeFractionalIntegral</a></li><li><a href="global.html#computeFractionalKernel">computeFractionalKernel</a></li><li><a href="global.html#computeKsDistance">computeKsDistance</a></li><li><a href="global.html#computeKsDistanceRescaled">computeKsDistanceRescaled</a></li><li><a href="global.html#computeRealizedKernel">computeRealizedKernel</a></li><li><a href="global.html#computeRealizedVariance">computeRealizedVariance</a></li><li><a href="global.html#computeRealizedVarianceParkinson">computeRealizedVarianceParkinson</a></li><li><a href="global.html#createSlidingWindows">createSlidingWindows</a></li><li><a href="global.html#debiasLogVolatility">debiasLogVolatility</a></li><li><a href="global.html#debug">debug</a></li><li><a href="global.html#defaultSampler">defaultSampler</a></li><li><a href="global.html#detectCusumBreakpoints">detectCusumBreakpoints</a></li><li><a href="global.html#downsampleSeries">downsampleSeries</a></li><li><a href="global.html#error">error</a></li><li><a href="global.html#extractSeries">extractSeries</a></li><li><a href="global.html#forecasterRegistry">forecasterRegistry</a></li><li><a href="global.html#fractionalDifference">fractionalDifference</a></li><li><a href="global.html#generateCorrelatedGaussian">generateCorrelatedGaussian</a></li><li><a href="global.html#generateFractionalBrownianMotion">generateFractionalBrownianMotion</a></li><li><a href="global.html#generateFractionalNoise">generateFractionalNoise</a></li><li><a href="global.html#generateGaussianBatch">generateGaussianBatch</a></li><li><a href="global.html#generateIntradayPrices">generateIntradayPrices</a></li><li><a href="global.html#generateSpxLogVolatility">generateSpxLogVolatility</a></li><li><a href="global.html#generateVixLogVolatility">generateVixLogVolatility</a></li><li><a href="global.html#getAsymptoticVariance">getAsymptoticVariance</a></li><li><a href="global.html#getBinomialCoeffs">getBinomialCoeffs</a></li><li><a href="global.html#getConfidenceInterval">getConfidenceInterval</a></li><li><a href="global.html#getForecaster">getForecaster</a></li><li><a href="global.html#getLogLevel">getLogLevel</a></li><li><a href="global.html#getModel">getModel</a></li><li><a href="global.html#getRandomSample">getRandomSample</a></li><li><a href="global.html#getStandardError">getStandardError</a></li><li><a href="global.html#info">info</a></li><li><a href="global.html#kalmanLogLikelihood">kalmanLogLikelihood</a></li><li><a href="global.html#kernelWeight">kernelWeight</a></li><li><a href="global.html#ksCriticalValue">ksCriticalValue</a></li><li><a href="global.html#ksPvalue">ksPvalue</a></li><li><a href="global.html#listForecasters">listForecasters</a></li><li><a href="global.html#listModels">listModels</a></li><li><a href="global.html#log">log</a></li><li><a href="global.html#modelRegistry">modelRegistry</a></li><li><a href="global.html#mulberry32">mulberry32</a></li><li><a href="global.html#nextGaussian">nextGaussian</a></li><li><a href="global.html#nextRandom">nextRandom</a></li><li><a href="global.html#normalCdf">normalCdf</a></li><li><a href="global.html#normalQuantile">normalQuantile</a></li><li><a href="global.html#optimizerRegistry">optimizerRegistry</a></li><li><a href="global.html#parseCsv">parseCsv</a></li><li><a href="global.html#parseJson">parseJson</a></li><li><a href="global.html#permuteBlocks">permuteBlocks</a></li><li><a href="global.html#preaverageReturns">preaverageReturns</a></li><li><a href="global.html#registerForecaster">registerForecaster</a></li><li><a href="global.html#registerModel">registerModel</a></li><li><a href="global.html#resetRandomSeed">resetRandomSeed</a></li><li><a href="global.html#runAdaptiveGridSearch">runAdaptiveGridSearch</a></li><li><a href="global.html#runBrent">runBrent</a></li><li><a href="global.html#runDifferentialEvolution">runDifferentialEvolution</a></li><li><a href="global.html#runKalmanFilter">runKalmanFilter</a></li><li><a href="global.html#runNelderMead">runNelderMead</a></li><li><a href="global.html#runSimulatedAnnealing">runSimulatedAnnealing</a></li><li><a href="global.html#seriesToCsv">seriesToCsv</a></li><li><a href="global.html#setLogLevel">setLogLevel</a></li><li><a href="global.html#setRandomSeed">setRandomSeed</a></li><li><a href="global.html#shuffleArray">shuffleArray</a></li><li><a href="global.html#splitCSVLine">splitCSVLine</a></li><li><a href="global.html#splitTrainTest">splitTrainTest</a></li><li><a href="global.html#standardizeSeries">standardizeSeries</a></li><li><a href="global.html#validateNoGaps">validateNoGaps</a></li><li><a href="global.html#warn">warn</a></li><li><a href="global.html#xavierInit">xavierInit</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Wed Aug 26 2026 15:26:41 GMT+0530 (India Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Fri Aug 28 2026 00:37:11 GMT+0530 (India Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

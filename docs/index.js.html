@@ -29,67 +29,61 @@
             <pre class="prettyprint source linenums"><code>/**
  * @fileoverview Public entry point for the hurstify package.
  *
- * This module re-exports every user-facing API of the hurstify library. It is
- * the only file consumers should normally import from when using the package
- * (`import {Hurstify} from 'hurstify';`). The intent is to keep a stable surface
- * even when internal modules are split, renamed, or rearranged.
+ * This module re-exports every user-facing API of the hurstify library.
+ * It is the only file consumers should normally import from when using
+ * the package (`import {Hurstify} from 'hurstify';`). The intent is to
+ * keep a stable surface even when internal modules are split, renamed,
+ * or rearranged.
  *
- * ## Architecture
+ * ## Architecture (v2.0.0)
  *
- * The library follows a layered, single-responsibility design:
+ * The library is now organized around a polymorphic strategy hierarchy
+ * under `lib/strategies/`. Each strategy family has its own base class
+ * and concrete subclasses; the `Hurstify` estimator injects the right
+ * combination at construction time.
  *
  *   lib/
  *   ├── index.js                 &lt;- this file, the public surface
- *   &lt;-- hurstify.js                &lt;- Hurstify class (the estimator)
+ *   ├── hurstify.js              &lt;- Hurstify class (the estimator)
+ *   ├── errors.js                &lt;- HurstifyError + error code enum
  *   ├── stats.js                 &lt;- KS distance, permutation, sampling
- *   ├── random.js                &lt;- fBm/fGn generation, Box-Muller, kernels
- *   ├── prng.js                  &lt;- Seedable mulberry32 PRNG + global handle
+ *   ├── prng.js                  &lt;- Seedable mulberry32 PRNG + helpers
  *   ├── logger.js                &lt;- Minimal leveled logger
- *   ├── inference.js             &lt;- High-level inference facade
- *   ├── inference/asymptotic.js  &lt;- Asymptotic variance, CIs
- *   ├── inference/filtering.js   &lt;- Kalman filter, constancy test
- *   ├── inference/math.js        &lt;- Internal normal-quantile approximation
- *   ├── optimization/            &lt;- Brent, Nelder-Mead, SA, DE, AGS, registry
- *   ├── models/                  &lt;- Rough volatility simulators + forecasters
- *   └── data/                    &lt;- Loaders, preprocessing, noise correction
- *
- * The Hurstify estimator itself depends only on `stats.js`,
- * `optimization/index.js`, and `logger.js`. Inference, models, and the data
- * pipeline are independent consumers that may be used standalone.
- *
- * ## Design rationale
- *
- * - **Zero runtime dependencies.** Everything is implemented in pure ES2022+
- *   JavaScript so the library is portable across Node.js, browsers, and the
- *   bundled IIFE/CJS/ESM distributions.
- * - **Seeded, deterministic PRNG.** `setSeed`/`random` in `prng.js` lets users
- *   make simulations reproducible. Math.random() is used as a fallback.
- * - **Pluggable optimizers.** Estimators delegate the 1D minimization problem
- *   to factories registered in `optimization/registry.js`. Callers can plug
- *   in custom optimizers at runtime.
+ *   ├── inference/               &lt;- Asymptotic variance, Kalman, math
+ *   ├── strategies/              &lt;- Sampler, KsObjective, Kernel,
+ *   │                               StochasticModel, Forecaster,
+ *   │                               HypothesisTest, Registry&lt;T>
+ *   ├── optimization/            &lt;- Brent, Nelder-Mead, SA, DE, AGS
+ *   └── models/                  &lt;- Strategy-class re-exports +
+ *                                   registries
  *
  * @see {@link Hurstify} for the main estimator class.
- * @see {@link module:stats} for the statistical primitives.
- * @see {@link module:optimization} for the optimizer registry.
- * @see ./hurstify.js
- * @see ./stats.js
- * @see ./inference.js
- * @see ./models/index.js
- * @see ./optimization/index.js
+ * @see {@link Sampler}, {@link KsObjective}, {@link Optimizer} for the
+ *   pluggable strategy families.
  */
 
 export {Hurstify} from './hurstify.js';
-export {ksDistance, shuffle, randomSample, blockPermutation} from './stats.js';
+export {HurstifyError, HurstifyErrorCode} from './errors.js';
+
 export {
-  generateFGN,
-  generateFBM,
-  randn,
-  randnBatch,
-  correlatedGaussian,
-  fractionalKernel,
-  fractionalIntegral,
-} from './random.js';
-export {setSeed, resetSeed, random} from './prng.js';
+  computeKsDistance,
+  shuffleArray,
+  getRandomSample,
+  permuteBlocks,
+} from './stats.js';
+
+export {
+  nextGaussian,
+  generateGaussianBatch,
+  generateCorrelatedGaussian,
+  generateFractionalNoise,
+  generateFractionalBrownianMotion,
+  computeFractionalKernel,
+  computeFractionalIntegral,
+} from './stochastic-generators.js';
+
+export {setRandomSeed, resetRandomSeed, nextRandom} from './prng.js';
+
 export {
   LogLevel,
   setLogLevel,
@@ -99,67 +93,102 @@ export {
   warn,
   error,
 } from './logger.js';
+
 export {
-  asymptoticVariance,
-  standardError,
-  confidenceInterval,
-  kalmanFilter,
+  getAsymptoticVariance,
+  getStandardError,
+  getConfidenceInterval,
+  runKalmanFilter,
+  detectCusumBreakpoints,
   ksCriticalValue,
   ksPvalue,
-  significanceTest,
-  cusumTest,
-  detectBreakpoints,
-  constancyTest,
-  bootstrapCI,
 } from './inference.js';
+
 export {
-  rBergomi,
-  rBergomiPrice,
-  rFSV,
-  rFSVPrice,
-  fOU,
-  exactOU,
-  mPRE,
-  mPREExact,
-  arfima,
-  holtWintersForecast,
-  createLSTM,
-  createAttentionModel,
+  RoughBergomiModel,
+  RoughFsvModel,
+  FractionalOuModel,
+  EulerMaruyamaFractionalOuModel,
+  ExactFractionalOuModel,
+  MultifractionalPreModel,
+  LocalHolderMultifractionalPreModel,
+  ExactMultifractionalPreModel,
+  ArfimaForecaster,
+  HoltWintersForecaster,
+  LstmForecaster,
+  AttentionForecaster,
   getModel,
   registerModel,
   listModels,
+  getForecaster,
+  registerForecaster,
+  listForecasters,
+  modelRegistry,
+  forecasterRegistry,
 } from './models/index.js';
 
 export {
-  parseCSV,
+  parseCsv,
   extractSeries,
-  parseJSON,
+  parseJson,
   validateNoGaps,
-  downsample,
-  computeRV,
-  computeRVParkinson,
-  aggregateDailyRV,
-  logTransform,
+  downsampleSeries,
+  computeRealizedVariance,
+  computeRealizedVarianceParkinson,
+  aggregateDailyRealizedVariance,
+  applyLogTransform,
   centerSeries,
   standardizeSeries,
-  preprocessPipeline,
-  trainTestSplit,
-  createWindows,
-  generateVIXLogVol,
-  generateSPXLogVol,
+  applyPreprocessingPipeline,
+  splitTrainTest,
+  createSlidingWindows,
+  generateVixLogVolatility,
+  generateSpxLogVolatility,
   generateIntradayPrices,
-  seriesToCSV,
+  seriesToCsv,
+  preaverageReturns,
+  computeRealizedKernel,
+  debiasLogVolatility,
 } from './data/index.js';
+
 export {
-  brentMinimize,
-  nelderMead,
-  simulatedAnnealing,
-  differentialEvolution,
-  adaptiveGridSearch,
-  safeOptimizer,
-  getOptimizer,
-  registerOptimizer,
+  Optimizer,
+  runBrent,
+  runNelderMead,
+  runSimulatedAnnealing,
+  runDifferentialEvolution,
+  runAdaptiveGridSearch,
+  optimizerRegistry,
+  BrentOptimizer,
+  AdaptiveGridSearchOptimizer,
+  NelderMeadOptimizer,
+  SimulatedAnnealingOptimizer,
+  DifferentialEvolutionOptimizer,
 } from './optimization/index.js';
+
+export {
+  Registry,
+  Sampler,
+  ReservoirSampler,
+  BlockPermutationSampler,
+  IdentitySampler,
+  defaultSampler,
+  KsObjective,
+  PairwiseKsObjective,
+  MultiScaleKsObjective,
+  WeightedMultiScaleKsObjective,
+  chooseKsObjective,
+  Kernel,
+  RiemannLiouvilleKernel,
+  TimeVaryingKernel,
+  StochasticModel,
+  Forecaster,
+  HypothesisTest,
+  KsSignificanceTest,
+  ConstancyTest,
+  CusumBreakTest,
+  BootstrapConfidenceInterval,
+} from './strategies/index.js';
 </code></pre>
         </article>
     </section>
@@ -170,13 +199,13 @@ export {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Hurstify.html">Hurstify</a></li><li><a href="Optimizer.html">Optimizer</a></li></ul><h3>Global</h3><ul><li><a href="global.html#LogLevel">LogLevel</a></li><li><a href="global.html#REGISTRY">REGISTRY</a></li><li><a href="global.html#adaptiveGridSearch">adaptiveGridSearch</a></li><li><a href="global.html#aggregateDailyRV">aggregateDailyRV</a></li><li><a href="global.html#arfima">arfima</a></li><li><a href="global.html#asymptoticVariance">asymptoticVariance</a></li><li><a href="global.html#blockPermutation">blockPermutation</a></li><li><a href="global.html#bootstrapCI">bootstrapCI</a></li><li><a href="global.html#brentMinimize">brentMinimize</a></li><li><a href="global.html#buildScaleProfile">buildScaleProfile</a></li><li><a href="global.html#centerSeries">centerSeries</a></li><li><a href="global.html#computeRV">computeRV</a></li><li><a href="global.html#computeRVParkinson">computeRVParkinson</a></li><li><a href="global.html#computeScalePairDistance">computeScalePairDistance</a></li><li><a href="global.html#confidenceInterval">confidenceInterval</a></li><li><a href="global.html#constancyTest">constancyTest</a></li><li><a href="global.html#correlatedGaussian">correlatedGaussian</a></li><li><a href="global.html#createAttentionModel">createAttentionModel</a></li><li><a href="global.html#createLSTM">createLSTM</a></li><li><a href="global.html#createWindows">createWindows</a></li><li><a href="global.html#cusumTest">cusumTest</a></li><li><a href="global.html#debug">debug</a></li><li><a href="global.html#defaultSampler">defaultSampler</a></li><li><a href="global.html#detectBreakpoints">detectBreakpoints</a></li><li><a href="global.html#differentialEvolution">differentialEvolution</a></li><li><a href="global.html#downsample">downsample</a></li><li><a href="global.html#error">error</a></li><li><a href="global.html#exactOU">exactOU</a></li><li><a href="global.html#extractSeries">extractSeries</a></li><li><a href="global.html#fOU">fOU</a></li><li><a href="global.html#fractionalIntegral">fractionalIntegral</a></li><li><a href="global.html#fractionalKernel">fractionalKernel</a></li><li><a href="global.html#generateFBM">generateFBM</a></li><li><a href="global.html#generateFGN">generateFGN</a></li><li><a href="global.html#generateIntradayPrices">generateIntradayPrices</a></li><li><a href="global.html#generateSPXLogVol">generateSPXLogVol</a></li><li><a href="global.html#generateVIXLogVol">generateVIXLogVol</a></li><li><a href="global.html#getLogLevel">getLogLevel</a></li><li><a href="global.html#getModel">getModel</a></li><li><a href="global.html#getOptimizer">getOptimizer</a></li><li><a href="global.html#holtWintersForecast">holtWintersForecast</a></li><li><a href="global.html#info">info</a></li><li><a href="global.html#kalmanFilter">kalmanFilter</a></li><li><a href="global.html#ksCriticalValue">ksCriticalValue</a></li><li><a href="global.html#ksDistance">ksDistance</a></li><li><a href="global.html#ksDistanceRescaled">ksDistanceRescaled</a></li><li><a href="global.html#ksPvalue">ksPvalue</a></li><li><a href="global.html#listModels">listModels</a></li><li><a href="global.html#logTransform">logTransform</a></li><li><a href="global.html#logVolDebias">logVolDebias</a></li><li><a href="global.html#mPRE">mPRE</a></li><li><a href="global.html#mPREExact">mPREExact</a></li><li><a href="global.html#nelderMead">nelderMead</a></li><li><a href="global.html#normalQuantile">normalQuantile</a></li><li><a href="global.html#parseCSV">parseCSV</a></li><li><a href="global.html#parseJSON">parseJSON</a></li><li><a href="global.html#preavgReturns">preavgReturns</a></li><li><a href="global.html#preprocessPipeline">preprocessPipeline</a></li><li><a href="global.html#rBergomi">rBergomi</a></li><li><a href="global.html#rBergomiPrice">rBergomiPrice</a></li><li><a href="global.html#rFSV">rFSV</a></li><li><a href="global.html#rFSVPrice">rFSVPrice</a></li><li><a href="global.html#randn">randn</a></li><li><a href="global.html#randnBatch">randnBatch</a></li><li><a href="global.html#random">random</a></li><li><a href="global.html#randomSample">randomSample</a></li><li><a href="global.html#realizedKernel">realizedKernel</a></li><li><a href="global.html#registerModel">registerModel</a></li><li><a href="global.html#registerOptimizer">registerOptimizer</a></li><li><a href="global.html#resetSeed">resetSeed</a></li><li><a href="global.html#resolveOptimizer">resolveOptimizer</a></li><li><a href="global.html#safeOptimizer">safeOptimizer</a></li><li><a href="global.html#seriesToCSV">seriesToCSV</a></li><li><a href="global.html#setLogLevel">setLogLevel</a></li><li><a href="global.html#setSeed">setSeed</a></li><li><a href="global.html#shuffle">shuffle</a></li><li><a href="global.html#significanceTest">significanceTest</a></li><li><a href="global.html#simulatedAnnealing">simulatedAnnealing</a></li><li><a href="global.html#standardError">standardError</a></li><li><a href="global.html#standardizeSeries">standardizeSeries</a></li><li><a href="global.html#trainTestSplit">trainTestSplit</a></li><li><a href="global.html#validateNoGaps">validateNoGaps</a></li><li><a href="global.html#vectorizedKsObjective">vectorizedKsObjective</a></li><li><a href="global.html#warn">warn</a></li><li><a href="global.html#weightedKsObjective">weightedKsObjective</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="ArfimaForecaster.html">ArfimaForecaster</a></li><li><a href="AttentionForecaster.html">AttentionForecaster</a></li><li><a href="BlockPermutationSampler.html">BlockPermutationSampler</a></li><li><a href="BootstrapConfidenceInterval.html">BootstrapConfidenceInterval</a></li><li><a href="ConstancyTest.html">ConstancyTest</a></li><li><a href="CusumBreakTest.html">CusumBreakTest</a></li><li><a href="EulerMaruyamaFractionalOuModel.html">EulerMaruyamaFractionalOuModel</a></li><li><a href="ExactFractionalOuModel.html">ExactFractionalOuModel</a></li><li><a href="ExactMultifractionalPreModel.html">ExactMultifractionalPreModel</a></li><li><a href="Forecaster.html">Forecaster</a></li><li><a href="FractionalOuModel.html">FractionalOuModel</a></li><li><a href="HoltWintersForecaster.html">HoltWintersForecaster</a></li><li><a href="Hurstify.html">Hurstify</a></li><li><a href="HurstifyError.html">HurstifyError</a></li><li><a href="HypothesisTest.html">HypothesisTest</a></li><li><a href="IdentitySampler.html">IdentitySampler</a></li><li><a href="Kernel.html">Kernel</a></li><li><a href="KsObjective.html">KsObjective</a></li><li><a href="KsSignificanceTest.html">KsSignificanceTest</a></li><li><a href="LocalHolderMultifractionalPreModel.html">LocalHolderMultifractionalPreModel</a></li><li><a href="LstmForecaster.html">LstmForecaster</a></li><li><a href="MultiScaleKsObjective.html">MultiScaleKsObjective</a></li><li><a href="MultifractionalPreModel.html">MultifractionalPreModel</a></li><li><a href="Optimizer.html">Optimizer</a></li><li><a href="PairwiseKsObjective.html">PairwiseKsObjective</a></li><li><a href="Registry_Registry.html">Registry</a></li><li><a href="ReservoirSampler.html">ReservoirSampler</a></li><li><a href="RiemannLiouvilleKernel.html">RiemannLiouvilleKernel</a></li><li><a href="RoughBergomiModel.html">RoughBergomiModel</a></li><li><a href="RoughFsvModel.html">RoughFsvModel</a></li><li><a href="Sampler.html">Sampler</a></li><li><a href="StochasticModel.html">StochasticModel</a></li><li><a href="TimeVaryingKernel.html">TimeVaryingKernel</a></li><li><a href="WeightedMultiScaleKsObjective.html">WeightedMultiScaleKsObjective</a></li></ul><h3>Global</h3><ul><li><a href="global.html#HurstifyErrorCode">HurstifyErrorCode</a></li><li><a href="global.html#LogLevel">LogLevel</a></li><li><a href="global.html#NORMAL_QUANTILE_COEFFS">NORMAL_QUANTILE_COEFFS</a></li><li><a href="global.html#aggregateDailyRealizedVariance">aggregateDailyRealizedVariance</a></li><li><a href="global.html#applyLogTransform">applyLogTransform</a></li><li><a href="global.html#applyPreprocessingPipeline">applyPreprocessingPipeline</a></li><li><a href="global.html#buildScaleProfile">buildScaleProfile</a></li><li><a href="global.html#centerSeries">centerSeries</a></li><li><a href="global.html#chooseKsObjective">chooseKsObjective</a></li><li><a href="global.html#computeFractionalIntegral">computeFractionalIntegral</a></li><li><a href="global.html#computeFractionalKernel">computeFractionalKernel</a></li><li><a href="global.html#computeKsDistance">computeKsDistance</a></li><li><a href="global.html#computeKsDistanceRescaled">computeKsDistanceRescaled</a></li><li><a href="global.html#computeRealizedKernel">computeRealizedKernel</a></li><li><a href="global.html#computeRealizedVariance">computeRealizedVariance</a></li><li><a href="global.html#computeRealizedVarianceParkinson">computeRealizedVarianceParkinson</a></li><li><a href="global.html#createSlidingWindows">createSlidingWindows</a></li><li><a href="global.html#debiasLogVolatility">debiasLogVolatility</a></li><li><a href="global.html#debug">debug</a></li><li><a href="global.html#defaultSampler">defaultSampler</a></li><li><a href="global.html#detectCusumBreakpoints">detectCusumBreakpoints</a></li><li><a href="global.html#downsampleSeries">downsampleSeries</a></li><li><a href="global.html#error">error</a></li><li><a href="global.html#extractSeries">extractSeries</a></li><li><a href="global.html#forecasterRegistry">forecasterRegistry</a></li><li><a href="global.html#fractionalDifference">fractionalDifference</a></li><li><a href="global.html#generateCorrelatedGaussian">generateCorrelatedGaussian</a></li><li><a href="global.html#generateFractionalBrownianMotion">generateFractionalBrownianMotion</a></li><li><a href="global.html#generateFractionalNoise">generateFractionalNoise</a></li><li><a href="global.html#generateGaussianBatch">generateGaussianBatch</a></li><li><a href="global.html#generateIntradayPrices">generateIntradayPrices</a></li><li><a href="global.html#generateSpxLogVolatility">generateSpxLogVolatility</a></li><li><a href="global.html#generateVixLogVolatility">generateVixLogVolatility</a></li><li><a href="global.html#getAsymptoticVariance">getAsymptoticVariance</a></li><li><a href="global.html#getBinomialCoeffs">getBinomialCoeffs</a></li><li><a href="global.html#getConfidenceInterval">getConfidenceInterval</a></li><li><a href="global.html#getForecaster">getForecaster</a></li><li><a href="global.html#getLogLevel">getLogLevel</a></li><li><a href="global.html#getModel">getModel</a></li><li><a href="global.html#getRandomSample">getRandomSample</a></li><li><a href="global.html#getStandardError">getStandardError</a></li><li><a href="global.html#info">info</a></li><li><a href="global.html#kalmanLogLikelihood">kalmanLogLikelihood</a></li><li><a href="global.html#kernelWeight">kernelWeight</a></li><li><a href="global.html#ksCriticalValue">ksCriticalValue</a></li><li><a href="global.html#ksPvalue">ksPvalue</a></li><li><a href="global.html#listForecasters">listForecasters</a></li><li><a href="global.html#listModels">listModels</a></li><li><a href="global.html#log">log</a></li><li><a href="global.html#modelRegistry">modelRegistry</a></li><li><a href="global.html#mulberry32">mulberry32</a></li><li><a href="global.html#nextGaussian">nextGaussian</a></li><li><a href="global.html#nextRandom">nextRandom</a></li><li><a href="global.html#normalCdf">normalCdf</a></li><li><a href="global.html#normalQuantile">normalQuantile</a></li><li><a href="global.html#optimizerRegistry">optimizerRegistry</a></li><li><a href="global.html#parseCsv">parseCsv</a></li><li><a href="global.html#parseJson">parseJson</a></li><li><a href="global.html#permuteBlocks">permuteBlocks</a></li><li><a href="global.html#preaverageReturns">preaverageReturns</a></li><li><a href="global.html#registerForecaster">registerForecaster</a></li><li><a href="global.html#registerModel">registerModel</a></li><li><a href="global.html#resetRandomSeed">resetRandomSeed</a></li><li><a href="global.html#runAdaptiveGridSearch">runAdaptiveGridSearch</a></li><li><a href="global.html#runBrent">runBrent</a></li><li><a href="global.html#runDifferentialEvolution">runDifferentialEvolution</a></li><li><a href="global.html#runKalmanFilter">runKalmanFilter</a></li><li><a href="global.html#runNelderMead">runNelderMead</a></li><li><a href="global.html#runSimulatedAnnealing">runSimulatedAnnealing</a></li><li><a href="global.html#seriesToCsv">seriesToCsv</a></li><li><a href="global.html#setLogLevel">setLogLevel</a></li><li><a href="global.html#setRandomSeed">setRandomSeed</a></li><li><a href="global.html#shuffleArray">shuffleArray</a></li><li><a href="global.html#splitCSVLine">splitCSVLine</a></li><li><a href="global.html#splitTrainTest">splitTrainTest</a></li><li><a href="global.html#standardizeSeries">standardizeSeries</a></li><li><a href="global.html#validateNoGaps">validateNoGaps</a></li><li><a href="global.html#warn">warn</a></li><li><a href="global.html#xavierInit">xavierInit</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Wed Aug 26 2026 15:26:41 GMT+0530 (India Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Fri Aug 28 2026 00:37:11 GMT+0530 (India Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

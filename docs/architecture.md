@@ -1,224 +1,289 @@
 # Architecture Guide
 
-This document describes the high-level architecture of the RK-SAVR library.
+This document describes the high-level architecture of the **hurstify**
+library — a zero-dependency JavaScript implementation of the RK-SAVR
+estimator (Angelini & Bianchi, 2025) for the Hurst parameter of
+rough-volatility processes.
 
 ## Overview
 
-RK-SAVR is a modular JavaScript library for estimating the Hurst parameter of rough volatility models. The codebase follows a clean separation of concerns with distinct modules for core estimation, statistics, optimization, inference, and data generation.
+hurstify is organised around a **strategy-injection architecture**: every
+reusable abstraction is a polymorphic base class under `lib/strategies/`,
+and the `Hurstify` estimator wires concrete strategies together at
+construction time. The codebase keeps a clean separation of concerns
+across statistics, optimisation, inference, stochastic simulation, and
+forecasting.
 
 ## Module Structure
 
 ```
 lib/
-├── index.js              # Central export hub
-├── rksavr.js             # Main RKSAVR class
-├── stats.js              # Statistical utilities (KS distance, sampling)
-├── optimization/         # Multiple optimizer implementations
-├── inference/            # Statistical inference (variance, filtering)
-├── data/                 # Data loading and preprocessing
-├── models/               # Rough volatility model simulators
-├── random.js             # Random number generation (fBm, fGn)
-├── prng.js               # Seeded PRNG (mulberry32)
-├── logger.js             # Logging framework
-├── fbm.js                # Fractional Brownian motion utilities
-└── data/                 # Data utilities
+├── index.js               # Central export hub (the only file consumers import from)
+├── hurstify.js            # Hurstify estimator class (strategy injection + main pipeline)
+├── errors.js              # HurstifyError + error-code enum
+├── stats.js               # KS distance, block permutation, reservoir sampling
+├── stochastic-generators.js  # Hosking-method fGn/fBm + log-volatility generators
+├── prng.js                # Seedable mulberry32 PRNG + helpers
+├── logger.js              # Minimal leveled logger
+├── strategies/            # Polymorphic base classes for every reusable abstraction
+│   ├── registry.js        # Generic Registry<T>
+│   ├── sampler.js         # Sampler + Reservoir / BlockPermutation / Identity samplers
+│   ├── ks-objective.js    # KsObjective + Pairwise / MultiScale / WeightedMultiScale
+│   ├── kernel.js          # Kernel + RiemannLiouville / TimeVarying kernels
+│   ├── model.js           # StochasticModel + RoughBergomi / RoughFsv / FractionalOu /
+│   │                      #   EulerMaruyamaFractionalOu / ExactFractionalOu /
+│   │                      #   MultifractionalPre / LocalHolder- / ExactMultifractionalPre
+│   ├── forecaster.js      # Forecaster + Arfima / HoltWinters / Lstm / Attention
+│   └── hypothesis-test.js # HypothesisTest + KsSignificanceTest / ConstancyTest /
+│                          #   CusumBreakTest / BootstrapConfidenceInterval
+├── optimization/          # Brent, Nelder-Mead, SA, DE, AGS + shared optimizerRegistry
+├── inference/             # Asymptotic variance, Kalman filter, math helpers
+├── data/                  # Loaders, preprocessing, noise correction, synthetic data
+└── models/                # Strategy-class re-exports + stochasticModel / forecaster registries
 ```
 
 ## Core Components
 
-### RKSAVR Class (`lib/rksavr.js`)
+### `Hurstify` Class (`lib/hurstify.js`)
 
-The main estimator class that orchestrates the entire estimation pipeline:
+The main estimator class that orchestrates the seven-step RK-SAVR
+pipeline:
 
-1. **Increment Computation**: Extracts increments at two scales (Z_{t,a} = X_{t+a} - X_t)
-2. **Block Permutation**: Decorrelates serial dependence while preserving marginal distributions
-3. **Subsampling**: Samples T increments per scale
-4. **Rescaling**: Rescales increments by a^{-H}
-5. **KS Minimization**: Finds H that minimizes the KS distance
-6. **Variance Reduction**: Averages over K independent iterations
+1. **Segmentation** — slice the input window.
+2. **Increments** — compute `Z_{t,a} = X_{t+a} − X_t` at the configured scales.
+3. **Block permutation** — decorrelate serial dependence while preserving marginals.
+4. **Subsampling** — draw `T` increments per scale via Floyd's reservoir sampler.
+5. **Rescaling** — apply `a^(−H)`; under the null of self-similarity the
+   rescaled samples are i.i.d.
+6. **KS minimisation** — find `H ∈ (hMin, hMax)` minimising the
+   two-sample KS distance between rescaled samples.
+7. **Variance reduction** — average across `K` iterations.
 
-**Key Methods:**
-- `estimate(data)` - Single-window estimation
-- `rolling(data, windowSize, step, progressCb)` - Rolling window estimation
-- `rollingMultiScale(...)` - Multi-scale rolling estimation
-- `estimateSingleWithDiagnostics(data)` - Returns H and minimized KS distance
+`Sampler`, `KsObjective`, and `Optimizer` strategies are injected at
+construction time; look them up by key through the polymorphic
+`optimizerRegistry` or pass your own concrete subclass.
+
+**Public methods:**
+
+| Method                                        | Purpose                           |
+| --------------------------------------------- | --------------------------------- |
+| `estimate(data)`                              | Single-shot `H` estimate.         |
+| `estimateSingleWithDiagnostics(data)`         | Returns `{H, D, se, ci, pValue}`. |
+| `rolling(data, windowSize, step, onProgress)` | Sliding-window `H` trajectory.    |
+| `rollingMultiScale(...)`                      | Multi-scale rolling estimates.    |
 
 ### Statistics (`lib/stats.js`)
 
-Provides core statistical functions:
+Core statistical primitives:
 
-- `ksDistance(sample1, sample2)` - Two-sample KS distance
-- `ksDistanceRescaled(sortedA, sortedB, factorA, factorB)` - Zero-allocation rescaled KS
-- `shuffle(array)` - Fisher-Yates shuffle
-- `blockPermutation(data, blockSize)` - Block random permutation
-- `randomSample(array, n)` - Floyd's reservoir sampling
+- `computeKsDistance(a, b)` — two-sample KS distance.
+- `ksDistanceRescaled(...)` — zero-allocation rescaled KS used inside the
+  inner loop of every optimiser evaluation.
+- `shuffleArray(arr)` — Fisher-Yates shuffle.
+- `permuteBlocks(arr, blockSize, offset)` — paper-faithful block
+  permutation with optional random phase offset.
+- `getRandomSample(arr, n)` — Floyd's reservoir sampler.
 
-### Optimization (`lib/optimization/`)
+### Strategy Hierarchy (`lib/strategies/`)
 
-Multiple optimization algorithms for KS distance minimization:
+Every reusable abstraction is a polymorphic base class with a
+single-method contract; concrete subclasses dispatch through it:
 
-| Optimizer | Use Case | Complexity |
-|-----------|----------|------------|
-| Brent's Method | 1D smooth functions | O(1) iterations |
-| Nelder-Mead | Multi-dimensional | O(n) per iteration |
-| Simulated Annealing | Global optimization | O(n * maxIter) |
-| Differential Evolution | Population-based | O(popSize * maxIter) |
-| Adaptive Grid Search | Coarse-to-fine | O(gridSize + refineIters) |
+| Base class        | Concrete subclasses                                                                                                                                            | Polymorphic entry                   |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| `Sampler`         | `ReservoirSampler`, `BlockPermutationSampler`, `IdentitySampler`                                                                                               | `sample(data, n)`                   |
+| `KsObjective`     | `PairwiseKsObjective`, `MultiScaleKsObjective`, `WeightedMultiScaleKsObjective`                                                                                | `value(window, scales, weights, h)` |
+| `Kernel`          | `RiemannLiouvilleKernel`, `TimeVaryingKernel`                                                                                                                  | `weight(t)`                         |
+| `StochasticModel` | `RoughBergomiModel`, `RoughFsvModel`, `FractionalOuModel` (+ `EulerMaruyama-`/`Exact-` discretisations), `MultifractionalPreModel` (+ `LocalHolder-`/`Exact-`) | `simulate(opts)`                    |
+| `Forecaster`      | `ArfimaForecaster`, `HoltWintersForecaster`, `LstmForecaster`, `AttentionForecaster`                                                                           | `forecast(series, opts)`            |
+| `HypothesisTest`  | `KsSignificanceTest`, `ConstancyTest`, `CusumBreakTest`, `BootstrapConfidenceInterval`                                                                         | `run(...)`                          |
 
-**Registry Pattern:** Optimizers are registered via `registerOptimizerFactory()` and retrieved via `getOptimizerFactory()`.
+### Optimisation (`lib/optimization/`)
+
+Multiple optimisation algorithms for KS-distance minimisation:
+
+| Optimizer              | Use case            | Notes                       |
+| ---------------------- | ------------------- | --------------------------- |
+| Brent's method         | 1D smooth functions | Default.                    |
+| Nelder-Mead            | Multi-dimensional   | Simplex method.             |
+| Simulated annealing    | Global optimisation | Adaptive cooling.           |
+| Differential evolution | Population-based    | Crossover + mutation.       |
+| Adaptive grid search   | Coarse-to-fine      | Grid then Brent refinement. |
+
+All five share the same polymorphic `Optimizer` interface and are
+look-up-by-key through `optimizerRegistry`.
 
 ### Inference (`lib/inference/`)
 
 Statistical inference for uncertainty quantification:
 
-- **Asymptotic Variance** (`asymptotic.js`): Proposition 2.9 formula
-- **Confidence Intervals** (`asymptotic.js`): Based on asymptotic normality
-- **Kalman Filtering** (`filtering.js`): State-space modeling of H(t)
-- **CUSUM Test** (`filtering.js`): Structural break detection
-- **Constancy Test** (`filtering.js`): Likelihood ratio test for q=0
-- **Bootstrap CI** (`filtering.js`): Non-parametric confidence intervals
+- **Asymptotic variance** (`asymptotic.js`) — Proposition 2.9 formula
+  `Var(Ĥ) = (2πe)/(ln a)² · (1/√n + 1/√m)²`.
+- **Confidence intervals** (`asymptotic.js`) — based on asymptotic normality.
+- **Kalman filtering** (`filtering.js`) — state-space smoothing of `H(t)`.
+- **CUSUM test** (`filtering.js`) — structural-break detection.
+- **Constancy test** (`filtering.js`) — likelihood-ratio test of
+  `q = 0` vs. `q > 0` in the Kalman state equation.
+- **Bootstrap CI** (`filtering.js`) — non-parametric confidence intervals.
 
-### Models (`lib/models/`)
+### Stochastic Models (`lib/strategies/model.js`)
 
-Rough volatility model simulators:
+Rough-volatility simulators, each a `StochasticModel` subclass:
 
-| Model | File | Description |
-|-------|------|-------------|
-| rBergomi | `rbergomi.js` | Rough Bergomi with async coupling |
-| rFSV | `rfsv.js` | Rough fractional stochastic volatility |
-| fOU | `fou.js` | Fractional Ornstein-Uhlenbeck |
-| MPRE | `mpre.js` | Multifractional process with random exponent |
-| ARFIMA | `forecasting.js` | Fractional differencing with ARMA |
+| Model                     | Description                                                                              |
+| ------------------------- | ---------------------------------------------------------------------------------------- |
+| `RoughBergomiModel`       | One-factor rough Bergomi with async coupling.                                            |
+| `RoughFsvModel`           | Rough fractional stochastic volatility with Heston dynamics.                             |
+| `FractionalOuModel`       | Fractional Ornstein-Uhlenbeck (Euler-Maruyama and exact discretisations).                |
+| `MultifractionalPreModel` | Multifractional process with stochastic `H(t)` (Local-Holder and exact discretisations). |
 
-### Random Generation (`lib/random.js`)
+### Forecasting (`lib/strategies/forecaster.js`)
 
-Synthetic data generation:
+H-series predictors, each a `Forecaster` subclass:
 
-- `generateFGN(n, H)` - Fractional Gaussian Noise (Hosking's method)
-- `generateFBM(n, H)` - Fractional Brownian Motion
-- `fractionalKernel(H, nSteps, dt)` - Riemann-Liouville kernel
-- `correlatedGaussian(n, rho)` - Correlated normals via Cholesky
+| Forecaster              | Description                            |
+| ----------------------- | -------------------------------------- |
+| `ArfimaForecaster`      | Fractional differencing with ARMA.     |
+| `HoltWintersForecaster` | Triple-exponential smoothing.          |
+| `LstmForecaster`        | Gated recurrent cell with Xavier init. |
+| `AttentionForecaster`   | Self-attention (Q/K/V) forecaster.     |
+
+### Random Generation (`lib/stochastic-generators.js`)
+
+Synthetic-data generators built on the seeded `mulberry32` PRNG:
+
+- `generateFractionalNoise(n, H)` — Hosking's method.
+- `generateFractionalBrownianMotion(n, H)` — integrated fGn.
+- `generateVixStyleLogVolatility(n, params)` — VIX-style log-vol.
+- `generateSpxRvStyleLogVolatility(n, params)` — SPX-RV-style log-vol.
+- `computeFractionalKernel`, `computeFractionalIntegral` — kernel helpers.
 
 ### PRNG (`lib/prng.js`)
 
 Seeded pseudo-random number generator for reproducibility:
 
-- `mulberry32(seed)` - Fast 32-bit PRNG
-- `setSeed(seed)` - Set global seed
-- `random()` - Uniform random number
-- `randn()` - Standard normal via Box-Muller
+- `setRandomSeed(seed)` / `resetRandomSeed()`
+- `uniform()` — uniform random number
+- `nextGaussian()` — standard normal (Box-Muller)
+- `generateGaussianBatch(n)` — vectorised Gaussian batch
+- `generateCorrelatedGaussian(n, rho)` — correlated normals via Cholesky
 
 ## Data Flow
 
 ```
-Raw Data
-    │
-    ▼
-┌─────────────────┐
-│  Preprocessing   │  prices → RV → log-vol → center
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Increment       │  Z_{t,a} = X_{t+a} - X_t
-│  Computation     │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Block           │  Decorrelate serial dependence
-│  Permutation     │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Subsampling     │  Sample T increments per scale
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Rescaling       │  a^{-H} rescaling
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  KS Distance     │  Compute empirical CDFs
-│  Minimization    │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Variance        │  Average over K iterations
-│  Reduction       │
-└────────┬────────┘
-         │
-         ▼
-    H Estimate
+                       ┌──────────────────────┐
+  Raw log-volatility → │  Segmentation        │ → overlapping windows
+  series               └──────────┬───────────┘
+                                     │
+                                     ▼
+                       ┌──────────────────────┐
+                       │  Increment            │  Z_{t,a} = X_{t+a} − X_t
+                       │  Computation          │  at scales a₁, a₂ (or multi-scale)
+                       └──────────┬───────────┘
+                                     │
+                                     ▼
+                       ┌──────────────────────┐
+                       │  Block                │  Decorrelate serial dependence
+                       │  Permutation          │  (preserve marginals)
+                       └──────────┬───────────┘
+                                     │
+                                     ▼
+                       ┌──────────────────────┐
+                       │  Subsampling          │  T increments per scale
+                       │  (Floyd reservoir)    │  via the injected Sampler
+                       └──────────┬───────────┘
+                                     │
+                                     ▼
+                       ┌──────────────────────┐
+                       │  Rescaling            │  a^(−H) so the null of
+                       │                       │  self-similarity is i.i.d.
+                       └──────────┬───────────┘
+                                     │
+                                     ▼
+                       ┌──────────────────────┐
+                       │  KS Distance          │  minimise over H ∈ (hMin, hMax)
+                       │  Minimisation         │  using the injected KsObjective
+                       │                       │  and Optimizer
+                       └──────────┬───────────┘
+                                     │
+                                     ▼
+                       ┌──────────────────────┐
+                       │  Variance             │  average across K iterations
+                       │  Reduction            │
+                       └──────────┬───────────┘
+                                     │
+                                     ▼
+                                Ĥ estimate
 ```
 
 ## Design Patterns
 
-### Registry Pattern
+### Strategy Injection
 
-Optimizers and models use a registry pattern for extensibility:
-
-```javascript
-// Register custom optimizer
-registerOptimizerFactory('my-optimizer', (opts) => {
-  return (f, ax, bx, cx) => { /* ... */ };
-});
-
-// Use registered optimizer
-const rksavr = new RKSAVR({ optimizerType: 'my-optimizer' });
-```
-
-### Builder Pattern
-
-The `RKSAVR` class uses a builder-like constructor for configuration:
+The `Hurstify` constructor accepts concrete strategy instances (or
+look-ups through the polymorphic registries). Consumers plug in their
+own subclass or look up by key:
 
 ```javascript
-const rksavr = new RKSAVR({
+import {Hurstify, optimizerRegistry} from 'hurstify';
+
+// Look up by key (returns a fresh instance each call)
+const Brent = optimizerRegistry.get('brent');
+
+const r = new Hurstify({
   scaleA1: 1,
-  scaleA2: 50,
+  scaleA2: 25,
   sampleSize: 500,
   iterations: 16,
-  optimizerType: 'brent',
-  hMin: 0.01,
-  hMax: 0.5
+  optimizer: Brent,
 });
 ```
 
-### Functional Pipeline
+### `Registry<T>`
 
-Data processing uses a functional pipeline approach:
+A single generic `Registry<T>` (`lib/strategies/registry.js`) backs
+every strategy family — `optimizerRegistry`, `samplerRegistry`,
+`kernelRegistry`, `ksObjectiveRegistry`, `modelRegistry`,
+`forecasterRegistry`. New entries register via `registry.register(key,
+factory)` and resolve via `registry.get(key)`.
+
+### Builder-Style Constructor
+
+`Hurstify` keeps a single flat options object so configuration stays
+readable:
 
 ```javascript
-import { preprocessPipeline } from 'rksavr';
-
-const logVol = preprocessPipeline(prices, {
-  interval: 78,
-  center: true
+const r = new Hurstify({
+  scaleA1: 1,
+  scaleA2: 25,
+  sampleSize: 500,
+  iterations: 16,
+  blockSize: 16,
+  optimizerType: 'brent',
+  hMin: 0.01,
+  hMax: 0.99,
 });
 ```
 
 ## Testing Strategy
 
-- **Unit Tests**: Individual function tests in `tests/`
-- **Integration Tests**: Full pipeline tests
-- **Edge Cases**: Empty inputs, NaN values, flat objectives
-- **Coverage**: c8 with HTML/text reporters
+- **Unit tests** under `tests/unit/` — individual functions and classes.
+- **Integration tests** under `tests/integration/` — end-to-end
+  `Hurstify.estimateSingle` against synthetic fBm paths.
+- **Shared fixtures** under `tests/fixtures/` — reusable fBm helpers.
+- **Coverage** — c8 with HTML and text reporters (`npm run test:coverage`).
 
 ## Performance Considerations
 
-- **Zero-Allocation KS**: `ksDistanceRescaled` applies scaling inline during pointer walk
-- **Seeded PRNG**: Reproducible simulations without global state pollution
-- **Rolling Windows**: Per-window failure handling prevents batch crashes
-- **Optimizer Selection**: Choose based on problem dimensionality and smoothness
-
-## Future Directions
-
-- [ ] TypeScript declarations
-- [ ] Streaming estimator for online H estimation
-- [ ] CLI tool for batch processing
-- [ ] WebSocket demo for real-time visualization
-- [ ] Integration with real-world datasets (VIX, S&P 500 RV)
+- **Zero-allocation KS** — `ksDistanceRescaled` applies `a^(−H)`
+  inline during the pointer walk, eliminating two array allocations
+  per optimiser evaluation.
+- **Seeded PRNG** — reproducible simulations without global-state
+  pollution; `setRandomSeed` resets the mulberry32 stream.
+- **Rolling windows** — per-window failure handling prevents batch
+  crashes; `rollingMultiScale` is pure (no `estimator` mutation) so it
+  is safe to call concurrently.
+- **Optimizer selection** — pick Brent for smooth 1D, Nelder-Mead for
+  multi-dimensional, simulated annealing or differential evolution
+  for non-convex landscapes, adaptive grid search when you have no
+  prior on `H`.
