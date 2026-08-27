@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import {Button} from '@/components/ui/button';
 
 export default function FiguresError({
@@ -20,7 +21,12 @@ export default function FiguresError({
         {error.message ||
           'An unexpected error occurred while generating the figures.'}
       </p>
-      <Button onClick={reset}>Retry</Button>
+      <div className="flex gap-2">
+        <Button onClick={reset}>Retry</Button>
+        <Button asChild variant="secondary">
+          <Link href="/dashboard">Go to dashboard</Link>
+        </Button>
+      </div>
     </div>
   );
 }

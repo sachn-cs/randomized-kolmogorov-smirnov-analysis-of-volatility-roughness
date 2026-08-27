@@ -1,6 +1,8 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
+import {Button} from '@/components/ui/button';
 
 export default function GlobalError({
   error,
@@ -18,12 +20,12 @@ export default function GlobalError({
       <p className="max-w-md text-sm text-muted-foreground">
         {error.message || 'An unexpected error occurred.'}
       </p>
-      <button
-        className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
-        onClick={reset}
-      >
-        Try again
-      </button>
+      <div className="flex gap-2">
+        <Button onClick={reset}>Try again</Button>
+        <Button asChild variant="secondary">
+          <Link href="/dashboard">Go to dashboard</Link>
+        </Button>
+      </div>
     </div>
   );
 }
