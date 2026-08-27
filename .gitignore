@@ -39,3 +39,7 @@ demo/.next/
 
 # Generated experiment outputs
 data/samples/
+
+# Husky v9 internal runtime directory (do not commit;
+# tracked by .husky/_/.gitignore)
+.husky/_
