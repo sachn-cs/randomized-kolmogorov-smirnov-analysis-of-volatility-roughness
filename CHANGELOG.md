@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Dropped unused `jsdoc` devDep**: with the HTML output gone, `jsdoc2md` is the only JSDoc-related tool we still need. `jsdoc@^4.0.5` removed from `devDependencies`; `eslint-plugin-jsdoc` and `jsdoc-type-pratt-parser` (transitive) are unaffected.
 - **`npm run docs` was silently broken**: `jsdoc2md` exited non-zero on the JSDoc type expressions that use TypeScript-style `import('./…').Name` and `() => T` arrow-function syntax (jsdoc's parser doesn't understand them). The old `npm run docs` swallowed the failure because it piped through to `jsdoc --readme`, which printed warnings and exited 0. Dropped the `jsdoc --readme` step in the previous rebrand and replaced the offending expressions with jsdoc-compatible equivalents — `{import('./x.js').Optimizer}` → `{Optimizer}`, `() => T` → `function(): T`. `npm run docs` now succeeds and writes a fresh `API.md` (~2,740 lines). TS still sees the full type via the `.d.ts` shims.
 - **Added `docs/README.md`** as a Markdown-only index for the docs/ folder — links to `getting-started.md`, `architecture.md`, and the published `API.md`; explains how `npm run docs` regenerates the API reference from JSDoc tags.
+- **Removed `MIGRATION.md` and `review.md`** — both predate the strategy-injection refactor and the hurstify rebrand. `MIGRATION.md` documented the now-shipped `rksavr` → `hurstify` migration; `review.md` was a fidelity audit against the old `RKSAVR` class / `lib/rksavr.js` layout and referenced paper-fidelity gaps that have since been addressed. Removed the lingering `MIGRATION.md` link from the v2.0.0 entry in this changelog.
 
 ## [2.0.0] - 2026-08-26
 
@@ -45,7 +46,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 This is the v2.0.0 release of the project under its new name: **hurstify**. The
 rebrand is cosmetic + ergonomic — algorithm behavior and public API are unchanged.
-See [MIGRATION.md](MIGRATION.md) for upgrading from v1.x.
 
 **Highlights**
 
