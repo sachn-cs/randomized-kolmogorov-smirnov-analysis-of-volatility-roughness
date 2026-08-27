@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`npm run test:coverage` failure**: removed the dead `registerStochasticModels` re-export from `lib/strategies/index.js` — the symbol was imported there but never defined in `lib/strategies/model.js` (a leftover from before the registry pattern), so importing `lib/index.js` under Node's native ESM (`NODE_ENV=test` triggers it via c8) threw `SyntaxError`. Tests now run to completion in both `npm test` and `npm run test:coverage`.
 - **README + getting-started install instructions**: dropped the "Option 1 — npm (fastest)" section and the npm-version badge — there is no npm release. Consumers install from source via `git clone` + `npm install`, then link the checkout with `npm link hurstify` from their project. `docs/getting-started.md` updated the same way.
 - **docs/ rebrand**: deleted the JSDoc HTML output (`docs/*.html`, `docs/fonts/`, `docs/scripts/`, `docs/styles/`). The docs/ folder is now markdown-only — handwritten `architecture.md` and `getting-started.md` plus the regenerated `API.md` (the latter is at the repo root for `package.json` `files`). `npm run docs` now only invokes `jsdoc2md`.
+- **Dropped unused `jsdoc` devDep**: with the HTML output gone, `jsdoc2md` is the only JSDoc-related tool we still need. `jsdoc@^4.0.5` removed from `devDependencies`; `eslint-plugin-jsdoc` and `jsdoc-type-pratt-parser` (transitive) are unaffected.
 
 ## [2.0.0] - 2026-08-26
 
