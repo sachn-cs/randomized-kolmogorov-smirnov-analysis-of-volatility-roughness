@@ -24,13 +24,13 @@ export function BrandMark({
     <div className={cn('flex items-center gap-3', className)}>
       <span
         aria-hidden="true"
-        className="relative inline-flex shrink-0 items-center justify-center rounded-md border border-primary/30 bg-primary/10 text-primary shadow-glow"
+        className="relative inline-flex shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground"
         style={{width: size, height: size}}
       >
         <svg
           viewBox="0 0 24 24"
           fill="none"
-          className="h-[60%] w-[60%]"
+          className="h-[62%] w-[62%]"
           aria-hidden="true"
         >
           <circle
@@ -52,7 +52,7 @@ export function BrandMark({
       </span>
       {withWordmark ? (
         <div className="flex flex-col leading-none">
-          <span className="font-serif text-base font-medium tracking-tight text-foreground">
+          <span className="typography-serif text-lg font-normal tracking-tight text-foreground">
             {label}
           </span>
           <span className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">

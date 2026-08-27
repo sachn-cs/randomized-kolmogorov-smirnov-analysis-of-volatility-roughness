@@ -20,38 +20,40 @@ export function SectionCard({
   footer?: React.ReactNode;
   className?: string;
   contentClassName?: string;
-  surface?: 'default' | 'raised' | 'muted';
+  surface?: 'default' | 'raised' | 'flat';
 }) {
   const surfaceClass =
     surface === 'raised'
-      ? 'bg-card shadow-pop border-border/70'
-      : surface === 'muted'
-        ? 'bg-muted/40 border-border/60 shadow-card'
-        : 'bg-card/60 border-border/70 shadow-card';
+      ? 'bg-card border-border shadow-card'
+      : surface === 'flat'
+        ? 'bg-transparent border-border shadow-none'
+        : 'bg-card/70 border-border shadow-card';
 
   return (
     <section
       className={cn(
-        'rounded-xl border backdrop-blur-sm',
+        'rounded-xl border backdrop-blur-[2px]',
         surfaceClass,
         className,
       )}
     >
       {(title || description || eyebrow || actions) && (
-        <header className="flex flex-col gap-3 border-b border-border/60 px-5 py-4 md:flex-row md:items-end md:justify-between">
-          <div className="flex flex-col gap-1.5">
+        <header className="flex flex-col gap-3 border-b border-border/70 px-6 py-5 md:flex-row md:items-start md:justify-between">
+          <div className="flex min-w-0 flex-col gap-1.5">
             {eyebrow ? (
-              <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+              <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
                 {eyebrow}
               </span>
             ) : null}
             {title ? (
-              <h2 className="font-serif text-lg leading-tight tracking-tight">
+              <h2 className="typography-serif text-xl leading-tight tracking-tight">
                 {title}
               </h2>
             ) : null}
             {description ? (
-              <p className="text-sm text-muted-foreground">{description}</p>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                {description}
+              </p>
             ) : null}
           </div>
           {actions ? (
@@ -59,9 +61,9 @@ export function SectionCard({
           ) : null}
         </header>
       )}
-      <div className={cn('px-5 py-5', contentClassName)}>{children}</div>
+      <div className={cn('px-6 py-6', contentClassName)}>{children}</div>
       {footer ? (
-        <footer className="border-t border-border/60 px-5 py-3 text-xs text-muted-foreground">
+        <footer className="border-t border-border/70 px-6 py-3 text-xs text-muted-foreground">
           {footer}
         </footer>
       ) : null}

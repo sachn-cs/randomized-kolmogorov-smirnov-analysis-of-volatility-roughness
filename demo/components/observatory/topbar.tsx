@@ -20,7 +20,7 @@ export function Topbar({
   return (
     <header
       className={cn(
-        'sticky top-0 z-20 flex h-14 items-center justify-between gap-4 border-b border-border/60 bg-background/85 px-6 backdrop-blur-md md:px-10',
+        'sticky top-0 z-20 flex h-14 items-center justify-between gap-4 border-b border-border bg-background/80 px-6 backdrop-blur-md md:px-10',
         className,
       )}
     >
@@ -55,7 +55,7 @@ export function Topbar({
                   {!isLast ? (
                     <ChevronRight
                       aria-hidden="true"
-                      className="h-3 w-3 text-muted-foreground/60"
+                      className="h-3 w-3 text-muted-foreground/50"
                     />
                   ) : null}
                 </li>

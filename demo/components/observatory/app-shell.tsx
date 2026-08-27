@@ -24,7 +24,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import {Button} from '@/components/ui/button';
 import {BrandMark} from '@/components/observatory/brand-mark';
-import {StatusBadge} from '@/components/observatory/status-badge';
 import {Topbar, type Crumb} from '@/components/observatory/topbar';
 import {cn} from '@/lib/utils';
 import {copy} from '@/lib/copy';
@@ -68,8 +67,8 @@ export function AppShell({
 
   return (
     <div className="relative z-10 flex min-h-screen bg-background text-foreground">
-      <aside className="flex w-64 shrink-0 flex-col border-r border-border/60 backdrop-blur-sm">
-        <div className="flex flex-col gap-2 px-5 pt-6">
+      <aside className="flex w-64 shrink-0 flex-col border-r border-border bg-card/30">
+        <div className="flex flex-col gap-2 px-5 pb-2 pt-7">
           <Link
             href="/"
             aria-label={`${copy.brand.name} home`}
@@ -79,8 +78,8 @@ export function AppShell({
           </Link>
         </div>
 
-        <div className="px-3 pt-6">
-          <span className="px-3 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+        <div className="px-5 pt-5">
+          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
             Workspace
           </span>
         </div>
@@ -98,17 +97,10 @@ export function AppShell({
                   className={cn(
                     'group relative flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
                     active
-                      ? 'bg-accent/70 text-foreground'
-                      : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground',
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-foreground/70 hover:bg-accent hover:text-foreground',
                   )}
                 >
-                  <span
-                    aria-hidden="true"
-                    className={cn(
-                      'absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full transition-opacity',
-                      active ? 'bg-primary opacity-100' : 'opacity-0',
-                    )}
-                  />
                   <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
                   <span className="font-medium">{label}</span>
                 </Link>
@@ -123,7 +115,7 @@ export function AppShell({
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="flex w-full items-center justify-between gap-2 rounded-md border border-border/60 bg-card/50 px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent/40 hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="flex w-full items-center justify-between gap-2 rounded-md border border-border bg-card px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
               >
                 <span className="flex items-center gap-2">
                   <span
@@ -136,7 +128,9 @@ export function AppShell({
                     {copy.shell.workspace}
                   </span>
                 </span>
-                <span aria-hidden="true">▾</span>
+                <span aria-hidden="true" className="text-muted-foreground">
+                  ▾
+                </span>
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-56">
@@ -170,7 +164,13 @@ export function AppShell({
           </Button>
 
           <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-            <StatusBadge label={copy.shell.online} tone="live" pulse />
+            <span className="inline-flex items-center gap-1.5">
+              <span
+                aria-hidden="true"
+                className="inline-block h-1.5 w-1.5 rounded-full bg-success"
+              />
+              {copy.shell.online}
+            </span>
             <a
               href="https://github.com/sachncs/hurstify"
               target="_blank"
@@ -187,7 +187,7 @@ export function AppShell({
         <Topbar crumbs={crumbs} actions={actions} />
         <main
           id={MAIN_CONTENT_ID}
-          className="flex-1 overflow-y-auto px-6 pb-12 pt-6 md:px-10 md:pt-10"
+          className="flex-1 overflow-y-auto px-6 pb-16 pt-6 md:px-10 md:pt-8"
           tabIndex={-1}
         >
           {children}

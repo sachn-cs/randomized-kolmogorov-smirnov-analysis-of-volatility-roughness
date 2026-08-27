@@ -17,12 +17,12 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center gap-3 rounded-md border border-dashed border-border/70 bg-muted/20 px-6 py-10 text-center',
+        'flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border bg-muted/30 px-6 py-10 text-center',
         className,
       )}
     >
       {icon ? (
-        <div className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-card text-muted-foreground">
+        <div className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-muted-foreground">
           {icon}
         </div>
       ) : null}

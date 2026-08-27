@@ -5,19 +5,27 @@ import {Badge, type BadgeProps} from '@/components/ui/badge';
 type StatusTone = 'neutral' | 'live' | 'success' | 'warning' | 'destructive';
 
 const toneMap: Record<StatusTone, BadgeProps['variant']> = {
-  neutral: 'secondary',
-  live: 'default',
-  success: 'default',
-  warning: 'secondary',
+  neutral: 'muted',
+  live: 'outline',
+  success: 'outline',
+  warning: 'outline',
   destructive: 'destructive',
 };
 
-const toneRing: Record<StatusTone, string> = {
-  neutral: 'ring-border',
-  live: 'ring-primary/40',
-  success: 'ring-success/40',
-  warning: 'ring-warning/40',
-  destructive: 'ring-destructive/40',
+const dotClass: Record<StatusTone, string> = {
+  neutral: 'bg-muted-foreground/60',
+  live: 'bg-primary',
+  success: 'bg-success',
+  warning: 'bg-warning',
+  destructive: 'bg-destructive',
+};
+
+const ringClass: Record<StatusTone, string> = {
+  neutral: 'border-border text-muted-foreground',
+  live: 'border-primary/40 text-primary',
+  success: 'border-success/40 text-success',
+  warning: 'border-warning/40 text-warning',
+  destructive: 'border-destructive/40 text-destructive',
 };
 
 export function StatusBadge({
@@ -31,12 +39,19 @@ export function StatusBadge({
   pulse?: boolean;
   className?: string;
 }) {
+  if (tone === 'neutral') {
+    return (
+      <Badge variant="muted" className={cn('gap-1.5', className)}>
+        {label}
+      </Badge>
+    );
+  }
   return (
     <Badge
       variant={toneMap[tone]}
       className={cn(
-        'gap-2 rounded-full border-transparent px-2.5 py-0.5 text-[11px] font-medium ring-1 ring-inset',
-        toneRing[tone],
+        'gap-1.5 rounded-full border bg-background/60 px-2.5 text-[11px] font-medium',
+        ringClass[tone],
         className,
       )}
     >
@@ -44,13 +59,7 @@ export function StatusBadge({
         aria-hidden="true"
         className={cn(
           'inline-block h-1.5 w-1.5 rounded-full',
-          tone === 'live' || tone === 'success'
-            ? 'bg-primary shadow-glow'
-            : tone === 'destructive'
-              ? 'bg-destructive'
-              : tone === 'warning'
-                ? 'bg-warning'
-                : 'bg-muted-foreground/60',
+          dotClass[tone],
           pulse && 'animate-pulse',
         )}
       />

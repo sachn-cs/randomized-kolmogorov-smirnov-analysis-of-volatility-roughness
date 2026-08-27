@@ -1,13 +1,22 @@
 import * as React from 'react';
 import {cn} from '@/lib/utils';
 
-type Tone = 'primary' | 'muted' | 'destructive' | 'success';
+type Tone = 'primary' | 'muted' | 'destructive' | 'success' | 'warning';
 
 const toneClass: Record<Tone, string> = {
   primary: 'text-primary',
   muted: 'text-foreground',
   destructive: 'text-destructive',
   success: 'text-success',
+  warning: 'text-warning',
+};
+
+const toneAccent: Record<Tone, string> = {
+  primary: 'bg-primary',
+  muted: 'bg-muted-foreground/40',
+  destructive: 'bg-destructive',
+  success: 'bg-success',
+  warning: 'bg-warning',
 };
 
 export function StatTile({
@@ -17,6 +26,7 @@ export function StatTile({
   hint,
   tone = 'muted',
   emphasis = false,
+  size = 'md',
   className,
 }: {
   label: React.ReactNode;
@@ -25,17 +35,34 @@ export function StatTile({
   hint?: React.ReactNode;
   tone?: Tone;
   emphasis?: boolean;
+  size?: 'sm' | 'md' | 'lg';
   className?: string;
 }) {
+  const valueSize =
+    size === 'lg'
+      ? 'text-3xl md:text-4xl'
+      : size === 'sm'
+        ? 'text-xl md:text-2xl'
+        : 'text-2xl md:text-3xl';
+
   return (
     <div
       className={cn(
-        'group relative flex flex-col gap-2 rounded-lg border border-border/70 bg-card/60 p-4 shadow-card transition-shadow hover:shadow-pop',
-        emphasis && 'border-primary/40 shadow-glow',
+        'relative flex flex-col gap-3 rounded-lg border bg-card p-4 shadow-card transition-shadow hover:shadow-pop md:p-5',
+        emphasis ? 'border-primary/30 ring-1 ring-primary/10' : 'border-border',
         className,
       )}
     >
-      <div className="flex items-center justify-between">
+      {emphasis ? (
+        <span
+          aria-hidden="true"
+          className={cn(
+            'absolute inset-x-4 top-0 h-px rounded-full',
+            toneAccent[tone],
+          )}
+        />
+      ) : null}
+      <div className="flex items-center justify-between gap-2">
         <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
           {label}
         </span>
@@ -48,7 +75,8 @@ export function StatTile({
       <div className="flex items-baseline gap-2">
         <span
           className={cn(
-            'font-mono text-2xl font-semibold tabular-nums leading-none md:text-3xl',
+            'typography-serif font-normal tabular-nums leading-none tracking-tight',
+            valueSize,
             toneClass[tone],
           )}
         >
