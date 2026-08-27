@@ -22,6 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Fixed** `getConfidenceInterval` signature misuse in the demo web worker.
 - **Bumped tests**: 191 → 243.
 
+### Documentation
+
+- **README rewrite**: Restructured the top-level README around a problem/answer elevator pitch, a "Who is this for?" accessibility section, multi-option installation (`npm` vs. from-source), annotated quick-start code blocks, and a "Where to go next" navigation map. The "Configuration" and "API Reference" tables now use a "Plain English" column. The hurstify-specific content (Methodology, Project Structure, Tech Stack, Roadmap, Observatory, References) is preserved and folded into the new layout.
+
 ## [2.0.0] - 2026-08-26
 
 ### Rebrand: `rksavr` → `hurstify`
