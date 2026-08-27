@@ -119,10 +119,6 @@ export {
   runSimulatedAnnealing,
   runDifferentialEvolution,
   runAdaptiveGridSearch,
-  wrapSafeOptimizer,
-  getOptimizer,
-  resolveOptimizer,
-  registerOptimizer,
   optimizerRegistry,
 } from './optimization/index.js';
 

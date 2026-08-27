@@ -22,26 +22,6 @@ export declare class NelderMeadOptimizer extends Optimizer {}
 export declare class SimulatedAnnealingOptimizer extends Optimizer {}
 export declare class DifferentialEvolutionOptimizer extends Optimizer {}
 
-export declare function wrapSafeOptimizer(
-  optimizer: Optimizer,
-): (
-  objective: (h: number) => number,
-  lower: number,
-  upper: number,
-  initial: number,
-) => number;
-
-export declare function getOptimizer(name: string): Optimizer | undefined;
-
-export declare function resolveOptimizer(
-  candidate: string | Optimizer,
-): Optimizer;
-
-export declare function registerOptimizer(
-  name: string,
-  factory: () => Optimizer,
-): void;
-
 export declare const optimizerRegistry: import('./strategies.js').Registry<Optimizer>;
 
 export declare function runBrent(
