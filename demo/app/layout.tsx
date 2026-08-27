@@ -19,6 +19,12 @@ export const metadata: Metadata = {
   },
   description:
     'hurstify — randomized Kolmogorov–Smirnov estimator for rough-volatility Hurst parameters. Pure JavaScript, zero dependencies.',
+  applicationName: 'hurstify',
+  metadataBase: new URL('https://hurstify.dev'),
+  themeColor: [
+    {media: '(prefers-color-scheme: light)', color: '#f0a030'},
+    {media: '(prefers-color-scheme: dark)', color: '#0a0e17'},
+  ],
   openGraph: {
     title: 'hurstify',
     description:
