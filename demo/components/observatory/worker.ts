@@ -6,9 +6,9 @@ import {
   RoughFsvModel,
   FractionalOuModel,
   MultifractionalPreModel,
+  KsSignificanceTest,
   setRandomSeed,
   resetRandomSeed,
-  runSignificanceTest,
   getStandardError,
   getConfidenceInterval,
 } from '../../../lib/index.js';
@@ -16,10 +16,11 @@ import type {WorkerRequest, WorkerMessage} from '@/lib/worker-protocol';
 
 declare const self: DedicatedWorkerGlobalScope;
 
-const _rBergomi = new RoughBergomiModel();
-const _rFSV = new RoughFsvModel();
-const _fOU = new FractionalOuModel();
-const _mPRE = new MultifractionalPreModel();
+const rBergomiModel = new RoughBergomiModel();
+const rFsvModel = new RoughFsvModel();
+const fOuModel = new FractionalOuModel();
+const mpreModel = new MultifractionalPreModel();
+const ksSignificance = new KsSignificanceTest();
 
 /**
  * Generates a synthetic path using the requested model strategy.
@@ -37,22 +38,30 @@ function generatePath(opts: {
   let path: number[];
   switch (opts.model) {
     case 'rBergomi': {
-      const sim = _rBergomi.simulate({nPaths: 1, nSteps: opts.nSteps, h: opts.h});
-      path = Array.from(_rBergomi.price(sim, {nSteps: opts.nSteps, h: opts.h}).prices[0]);
+      const sim = rBergomiModel.simulate({
+        nPaths: 1,
+        nSteps: opts.nSteps,
+        h: opts.h,
+      });
+      path = Array.from(
+        rBergomiModel.price(sim, {nSteps: opts.nSteps, h: opts.h}).prices[0],
+      );
       break;
     }
     case 'rFSV': {
-      const sim = _rFSV.simulate({nSteps: opts.nSteps, h: opts.h});
-      path = Array.from(_rFSV.price(sim, {nSteps: opts.nSteps, h: opts.h}).prices[0]);
+      const sim = rFsvModel.simulate({nSteps: opts.nSteps, h: opts.h});
+      path = Array.from(
+        rFsvModel.price(sim, {nSteps: opts.nSteps, h: opts.h}).prices[0],
+      );
       break;
     }
     case 'fOU': {
-      const sim = _fOU.simulate({nSteps: opts.nSteps, h: opts.h});
+      const sim = fOuModel.simulate({nSteps: opts.nSteps, h: opts.h});
       path = Array.from(sim.paths[0]);
       break;
     }
     case 'mPRE': {
-      const sim = _mPRE.simulate({
+      const sim = mpreModel.simulate({
         nSteps: opts.nSteps,
         hMin: 0.05,
         hMax: 0.95,
@@ -85,14 +94,21 @@ self.onmessage = (e: MessageEvent<WorkerRequest & {id: number}>) => {
         const n =
           ((payload.config as Record<string, unknown>).sampleSize as number) ||
           500;
-        const sig = runSignificanceTest(minimizedD, n, n, 0.05);
+        const sig = ksSignificance.run({D: minimizedD, n, m: n}, {alpha: 0.05});
         const se = getStandardError(
           ((payload.config as Record<string, unknown>).scaleA1 as number) || 1,
           ((payload.config as Record<string, unknown>).scaleA2 as number) || 25,
           n,
           n,
         );
-        const ci = getConfidenceInterval(H, se, 0.05);
+        const ci = getConfidenceInterval(
+          H,
+          ((payload.config as Record<string, unknown>).scaleA1 as number) || 1,
+          ((payload.config as Record<string, unknown>).scaleA2 as number) || 25,
+          n,
+          n,
+          0.05,
+        );
         post({
           type: 'complete',
           id,
