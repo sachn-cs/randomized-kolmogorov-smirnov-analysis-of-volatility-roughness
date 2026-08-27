@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-08-28
+
 ### Refactor: production-readiness cleanup
 
 - **Strategy-injection rewrite** of `Hurstify`: the `Sampler`, `KsObjective`, and `Optimizer` strategies are now injected at construction time. Consumers plug in concrete subclasses or look up by key through the polymorphic `optimizerRegistry`.
@@ -213,6 +215,7 @@ npm install hurstify
 - Basic rolling window estimation.
 - MIT License.
 
-[Unreleased]: https://github.com/sachncs/hurstify/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/sachncs/hurstify/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/sachncs/hurstify/compare/v2.0.0...v2.1.0
 [1.1.0]: https://github.com/sachncs/hurstify/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/sachncs/hurstify/releases/tag/v1.0.0
