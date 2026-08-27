@@ -54,8 +54,9 @@ export default [
       'node_modules/**',
       'dist/**',
       'docs/**',
-      'demo/**',
+      'demo/.next/**',
       'demo/dist/**',
+      'demo/node_modules/**',
       '.next/**',
       '.env',
       '*.log',
@@ -127,4 +128,8 @@ export default [
       'no-console': 'off',
     },
   },
+
+  // Demo (Next.js + shadcn/ui + recharts) — TypeScript-aware linting is
+  // scoped to demo/eslint.config.js; this top-level config only handles
+  // JS lib/tests/experiments.
 ];

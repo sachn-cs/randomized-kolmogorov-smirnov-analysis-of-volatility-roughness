@@ -1,21 +1,16 @@
 'use client';
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableRow,
-} from '@/components/ui/table';
-import { fmt } from '@/lib/format';
+import {Table, TableBody, TableCell, TableRow} from '@/components/ui/table';
+import {fmt} from '@/lib/format';
 
 export function DiagnosticsTable({
   diag,
 }: {
   diag: {
     minimizedD?: number;
-    significance?: { pValue?: number; significant?: boolean };
+    significance?: {pValue?: number; significant?: boolean};
     se?: number;
-    ci?: { lower?: number; upper?: number };
+    ci?: {lower?: number; upper?: number};
   } | null;
 }) {
   const placeholder = '—';
@@ -27,11 +22,15 @@ export function DiagnosticsTable({
             KS Distance D
           </TableCell>
           <TableCell className="font-mono text-primary">
-            {diag?.minimizedD !== undefined ? fmt(diag.minimizedD, 4) : placeholder}
+            {diag?.minimizedD !== undefined
+              ? fmt(diag.minimizedD, 4)
+              : placeholder}
           </TableCell>
         </TableRow>
         <TableRow>
-          <TableCell className="font-mono text-muted-foreground">p-Value</TableCell>
+          <TableCell className="font-mono text-muted-foreground">
+            p-Value
+          </TableCell>
           <TableCell className="font-mono text-secondary">
             {diag?.significance?.pValue !== undefined
               ? fmt(diag.significance.pValue, 4)
@@ -65,7 +64,9 @@ export function DiagnosticsTable({
           </TableCell>
         </TableRow>
         <TableRow>
-          <TableCell className="font-mono text-muted-foreground">95% CI</TableCell>
+          <TableCell className="font-mono text-muted-foreground">
+            95% CI
+          </TableCell>
           <TableCell className="font-mono">
             {diag?.ci?.lower !== undefined && diag?.ci?.upper !== undefined
               ? `[${fmt(diag.ci.lower, 3)}, ${fmt(diag.ci.upper, 3)}]`

@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import type { WorkerMessage, WorkerRequest } from '@/lib/worker-protocol';
+import type {WorkerMessage, WorkerRequest} from '@/lib/worker-protocol';
 
 let counter = 0;
 
@@ -17,28 +17,27 @@ class WorkerClient {
 
   private getWorker(): Worker {
     if (!this.worker) {
-      this.worker = new Worker(
-        new URL('./worker.ts', import.meta.url),
-        { type: 'module' },
-      );
+      this.worker = new Worker(new URL('./worker.ts', import.meta.url), {
+        type: 'module',
+      });
       this.worker.onmessage = (e: MessageEvent<WorkerMessage>) => {
-        const { type, id, ...rest } = e.data as WorkerMessage & {
+        const {type, id, ...rest} = e.data as WorkerMessage & {
           id: number;
         };
         const job = this.pending.get(id);
         if (!job) return;
         if (type === 'progress') {
-          job.onProgress?.((rest as { progress: number }).progress);
+          job.onProgress?.((rest as {progress: number}).progress);
           return;
         }
         if (type === 'complete') {
           this.pending.delete(id);
-          job.resolve((rest as { result: unknown }).result);
+          job.resolve((rest as {result: unknown}).result);
           return;
         }
         if (type === 'error') {
           this.pending.delete(id);
-          job.reject(new Error((rest as { message: string }).message));
+          job.reject(new Error((rest as {message: string}).message));
         }
       };
     }
@@ -57,7 +56,7 @@ class WorkerClient {
         reject,
         onProgress,
       });
-      w.postMessage({ ...req, id });
+      w.postMessage({...req, id});
     });
   }
 

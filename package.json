@@ -22,7 +22,7 @@
     "dev:demo": "next dev demo -p 5173",
     "build:demo": "next build demo",
     "start:demo": "next start demo -p 5173",
-    "lint:demo": "eslint demo --max-warnings 0 || true",
+    "lint:demo": "prettier --check demo/",
     "test": "mocha \"tests/**/*.tests.js\"",
     "test:watch": "npm test -- --watch",
     "test:coverage": "NODE_ENV=test c8 --all --include=lib/* --reporter=html --reporter=text mocha \"tests/**/*.tests.js\"",

@@ -64,6 +64,4 @@ export type WorkerError = {
 };
 
 export type WorkerMessage<T = unknown> =
-  | WorkerProgress
-  | WorkerComplete<T>
-  | WorkerError;
+  WorkerProgress | WorkerComplete<T> | WorkerError;

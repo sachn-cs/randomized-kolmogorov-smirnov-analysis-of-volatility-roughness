@@ -8,17 +8,17 @@ import {
   Tooltip,
   XAxis,
 } from 'recharts';
-import type { ChartConfig } from '@/components/ui/chart';
+import type {ChartConfig} from '@/components/ui/chart';
 
 const config = {
-  path: { label: 'Path', color: 'hsl(35 87% 56%)' },
+  path: {label: 'Path', color: 'hsl(35 87% 56%)'},
 } satisfies ChartConfig;
 
-export function PathChart({ path }: { path: number[] }) {
-  const data = path.map((y, i) => ({ i, y }));
+export function PathChart({path}: {path: number[]}) {
+  const data = path.map((y, i) => ({i, y}));
   return (
     <ResponsiveContainer width="100%" height={320}>
-      <AreaChart data={data} margin={{ top: 4, left: 0, right: 0, bottom: 0 }}>
+      <AreaChart data={data} margin={{top: 4, left: 0, right: 0, bottom: 0}}>
         <defs>
           <linearGradient id="fillPath" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={config.path.color} stopOpacity={0.4} />

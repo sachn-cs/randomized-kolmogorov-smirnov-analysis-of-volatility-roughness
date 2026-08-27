@@ -22,13 +22,13 @@ const COLORS = [
 export function RMSEByHChart({
   results,
 }: {
-  results: Array<{ trueH: number; windowSize: number; rmse: number }>;
+  results: Array<{trueH: number; windowSize: number; rmse: number}>;
 }) {
-  const byWin = new Map<number, Array<{ trueH: number; rmse: number }>>();
+  const byWin = new Map<number, Array<{trueH: number; rmse: number}>>();
   for (const r of results) {
     if (!Number.isFinite(r.rmse)) continue;
     const arr = byWin.get(r.windowSize) ?? [];
-    arr.push({ trueH: r.trueH, rmse: r.rmse });
+    arr.push({trueH: r.trueH, rmse: r.rmse});
     byWin.set(r.windowSize, arr);
   }
   const windows = Array.from(byWin.keys()).sort((a, b) => a - b);
@@ -40,13 +40,13 @@ export function RMSEByHChart({
 
   return (
     <ResponsiveContainer width="100%" height={360}>
-      <LineChart margin={{ top: 8, left: 8, right: 0, bottom: 8 }}>
+      <LineChart margin={{top: 8, left: 8, right: 0, bottom: 8}}>
         <CartesianGrid stroke="hsl(220 22% 28% / 0.4)" strokeDasharray="2 4" />
         <XAxis
           dataKey="trueH"
           type="number"
           domain={['auto', 'auto']}
-          tick={{ fontSize: 10, fill: 'hsl(220 18% 70%)' }}
+          tick={{fontSize: 10, fill: 'hsl(220 18% 70%)'}}
           label={{
             value: 'True H',
             position: 'insideBottom',
@@ -59,7 +59,7 @@ export function RMSEByHChart({
           type="number"
           scale="log"
           domain={['auto', 'auto']}
-          tick={{ fontSize: 10, fill: 'hsl(220 18% 70%)' }}
+          tick={{fontSize: 10, fill: 'hsl(220 18% 70%)'}}
           width={48}
           label={{
             value: 'RMSE',
@@ -77,7 +77,7 @@ export function RMSEByHChart({
             fontSize: 11,
           }}
         />
-        <Legend wrapperStyle={{ fontSize: 11 }} />
+        <Legend wrapperStyle={{fontSize: 11}} />
         {traces.map((t) => (
           <Line
             key={t.windowSize}
@@ -87,7 +87,7 @@ export function RMSEByHChart({
             name={`W=${t.windowSize}`}
             stroke={t.color}
             strokeWidth={2}
-            dot={{ r: 4, fill: t.color }}
+            dot={{r: 4, fill: t.color}}
           />
         ))}
       </LineChart>

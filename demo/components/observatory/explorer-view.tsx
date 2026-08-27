@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { AppShell } from '@/components/observatory/app-shell';
+import {AppShell} from '@/components/observatory/app-shell';
 import {
   Card,
   CardContent,
@@ -9,16 +9,16 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { useWorker } from '@/components/observatory/worker-client';
-import { ResultsTable } from '@/components/observatory/results-table';
-import { RMSEByHChart } from '@/components/observatory/charts/rmse-by-h-chart';
-import { OptimizerBar } from '@/components/observatory/charts/optimizer-bar';
+import {Button} from '@/components/ui/button';
+import {Input} from '@/components/ui/input';
+import {Label} from '@/components/ui/label';
+import {Checkbox} from '@/components/ui/checkbox';
+import {Badge} from '@/components/ui/badge';
+import {Progress} from '@/components/ui/progress';
+import {useWorker} from '@/components/observatory/worker-client';
+import {ResultsTable} from '@/components/observatory/results-table';
+import {RMSEByHChart} from '@/components/observatory/charts/rmse-by-h-chart';
+import {OptimizerBar} from '@/components/observatory/charts/optimizer-bar';
 
 type Result = Parameters<typeof ResultsTable>[0]['results'][number];
 
@@ -54,9 +54,9 @@ function ExplorerView() {
   const [winsText, setWinsText] = React.useState('250, 500, 1000');
   const [trials, setTrials] = React.useState(5);
   const [pathLength, setPathLength] = React.useState(1500);
-  const [selectedOpts, setSelectedOpts] = React.useState<string[]>(
-    [...ALL_OPTIMIZERS],
-  );
+  const [selectedOpts, setSelectedOpts] = React.useState<string[]>([
+    ...ALL_OPTIMIZERS,
+  ]);
   const [results, setResults] = React.useState<Result[]>([]);
   const [progress, setProgress] = React.useState(0);
   const [status, setStatus] = React.useState('idle');
@@ -80,7 +80,7 @@ function ExplorerView() {
       .filter((n) => !isNaN(n));
 
     try {
-      const { results } = await worker.dispatch<{ results: Result[] }>(
+      const {results} = await worker.dispatch<{results: Result[]}>(
         {
           cmd: 'explorer',
           payload: {
@@ -150,7 +150,10 @@ function ExplorerView() {
 
           <div className="space-y-2">
             <Label>Window Sizes (comma-separated)</Label>
-            <Input value={winsText} onChange={(e) => setWinsText(e.target.value)} />
+            <Input
+              value={winsText}
+              onChange={(e) => setWinsText(e.target.value)}
+            />
           </div>
 
           <div className="space-y-2">
@@ -213,7 +216,9 @@ function ExplorerView() {
         </Badge>
       </div>
 
-      {progress > 0 && progress < 1 ? <Progress value={progress * 100} /> : null}
+      {progress > 0 && progress < 1 ? (
+        <Progress value={progress * 100} />
+      ) : null}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>

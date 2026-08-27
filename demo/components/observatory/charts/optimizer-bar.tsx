@@ -21,7 +21,7 @@ const COLORS = [
 export function OptimizerBar({
   results,
 }: {
-  results: Array<{ optimizer: string; rmse: number }>;
+  results: Array<{optimizer: string; rmse: number}>;
 }) {
   const byOpt = new Map<string, number[]>();
   for (const r of results) {
@@ -37,11 +37,11 @@ export function OptimizerBar({
 
   return (
     <ResponsiveContainer width="100%" height={360}>
-      <BarChart data={data} margin={{ top: 8, left: 8, right: 0, bottom: 8 }}>
+      <BarChart data={data} margin={{top: 8, left: 8, right: 0, bottom: 8}}>
         <CartesianGrid stroke="hsl(220 22% 28% / 0.4)" strokeDasharray="2 4" />
         <XAxis
           dataKey="optimizer"
-          tick={{ fontSize: 11, fill: 'hsl(220 18% 70%)' }}
+          tick={{fontSize: 11, fill: 'hsl(220 18% 70%)'}}
           label={{
             value: 'Optimizer',
             position: 'insideBottom',
@@ -54,7 +54,7 @@ export function OptimizerBar({
           type="number"
           scale="log"
           domain={['auto', 'auto']}
-          tick={{ fontSize: 11, fill: 'hsl(220 18% 70%)' }}
+          tick={{fontSize: 11, fill: 'hsl(220 18% 70%)'}}
           width={48}
           label={{
             value: 'Mean RMSE',

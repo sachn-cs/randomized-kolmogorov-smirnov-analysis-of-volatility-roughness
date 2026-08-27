@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { fmt } from '@/lib/format';
+import {fmt} from '@/lib/format';
 
 type Result = {
   trueH: number;
@@ -20,7 +20,7 @@ type Result = {
   avgTime: number;
 };
 
-export function ResultsTable({ results }: { results: Result[] }) {
+export function ResultsTable({results}: {results: Result[]}) {
   return (
     <Table>
       <TableHeader>
@@ -49,9 +49,7 @@ export function ResultsTable({ results }: { results: Result[] }) {
             <TableCell className="font-mono text-muted-foreground">
               {fmt(r.failRate, 2)}
             </TableCell>
-            <TableCell className="font-mono">
-              {Math.round(r.avgTime)}
-            </TableCell>
+            <TableCell className="font-mono">{Math.round(r.avgTime)}</TableCell>
           </TableRow>
         ))}
       </TableBody>

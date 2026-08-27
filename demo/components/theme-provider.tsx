@@ -13,7 +13,7 @@ const ThemeContext = React.createContext<ThemeContextValue | undefined>(
   undefined,
 );
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
+export function ThemeProvider({children}: {children: React.ReactNode}) {
   const [theme, setTheme] = React.useState<Theme>('dark');
 
   React.useEffect(() => {
@@ -21,7 +21,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme }}>
+    <ThemeContext.Provider value={{theme, setTheme}}>
       {children}
     </ThemeContext.Provider>
   );

@@ -2,21 +2,21 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
-import { Activity, Search, BarChart3 } from 'lucide-react';
+import {usePathname} from 'next/navigation';
+import {cn} from '@/lib/utils';
+import {Activity, Search, BarChart3} from 'lucide-react';
 
 const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: Activity },
-  { href: '/explorer', label: 'Explorer', icon: Search },
-  { href: '/figures', label: 'Figures', icon: BarChart3 },
+  {href: '/dashboard', label: 'Dashboard', icon: Activity},
+  {href: '/explorer', label: 'Explorer', icon: Search},
+  {href: '/figures', label: 'Figures', icon: BarChart3},
 ] as const;
 
 export function SidebarNav() {
   const pathname = usePathname();
   return (
     <nav className="flex flex-col gap-1">
-      {navItems.map(({ href, label, icon: Icon }) => {
+      {navItems.map(({href, label, icon: Icon}) => {
         const active = pathname.startsWith(href);
         return (
           <Link

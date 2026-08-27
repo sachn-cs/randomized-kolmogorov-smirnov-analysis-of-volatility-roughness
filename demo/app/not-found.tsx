@@ -7,7 +7,10 @@ export default function NotFound() {
       <p className="max-w-sm text-sm text-muted-foreground">
         That page is not part of the observatory. Return to the dashboard.
       </p>
-      <Link className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground" href="/dashboard">
+      <Link
+        className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+        href="/dashboard"
+      >
         Go to dashboard
       </Link>
     </div>
