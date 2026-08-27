@@ -4,6 +4,8 @@ import './globals.css';
 import {ThemeProvider} from '@/components/theme-provider';
 import {Toaster} from '@/components/ui/sonner';
 import {TooltipProvider} from '@/components/ui/tooltip';
+import {SkipToContentLink} from '@/components/skip-to-content-link';
+import {MAIN_CONTENT_ID} from '@/components/observatory/app-shell';
 import {siteUrl} from '@/lib/site-url';
 
 const geistSans = Geist({subsets: ['latin'], variable: '--font-geist-sans'});
@@ -60,6 +62,9 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
       suppressHydrationWarning
     >
       <body>
+        <SkipToContentLink targetId={MAIN_CONTENT_ID}>
+          Skip to main content
+        </SkipToContentLink>
         <ThemeProvider>
           <TooltipProvider delayDuration={150}>
             {children}

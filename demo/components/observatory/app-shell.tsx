@@ -11,6 +11,8 @@ const navItems = [
   {href: '/figures', label: 'Figures', icon: BarChart3},
 ] as const;
 
+export const MAIN_CONTENT_ID = 'main-content';
+
 export function AppShell({children}: {children: React.ReactNode}) {
   const {theme, toggleTheme} = useTheme();
   const isDark = theme === 'dark';
@@ -94,7 +96,9 @@ export function AppShell({children}: {children: React.ReactNode}) {
         </div>
       </aside>
 
-      <main className="flex-1 overflow-y-auto p-12">{children}</main>
+      <main id={MAIN_CONTENT_ID} className="flex-1 overflow-y-auto p-12">
+        {children}
+      </main>
     </div>
   );
 }
