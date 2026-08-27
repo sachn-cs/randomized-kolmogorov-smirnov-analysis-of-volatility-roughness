@@ -10,7 +10,7 @@
  */
 
 import {Hurstify} from '../lib/hurstify.js';
-import {runConstancyTest} from '../lib/inference.js';
+import {ConstancyTest} from '../lib/inference.js';
 import {
   generateVixLogVolatility,
   generateSpxLogVolatility,
@@ -20,6 +20,8 @@ import {setRandomSeed} from '../lib/prng.js';
 import {writeFileSync} from 'fs';
 import {fileURLToPath} from 'url';
 import {dirname, join} from 'path';
+
+const constancyTest = new ConstancyTest();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -47,7 +49,7 @@ export function runConstancyExperiment(
     .filter((r) => r.H !== null)
     .map((r) => r.H);
 
-  const constancy = runConstancyTest(estimates, kalmanOpts);
+  const constancy = constancyTest.run(estimates, kalmanOpts);
   return {estimates, constancy};
 }
 
