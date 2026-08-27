@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **CI `npm ci` peer-dependency conflict**: `typescript@^7.0.2` was incompatible with the `typescript@"">=4.8.4 <6.1.0"` peer requirement declared by `@typescript-eslint/eslint-plugin@8.68.0` and `@typescript-eslint/parser@8.68.0` (typescript-eslint 8.x does not yet support TypeScript 7 — see [issue #10940](https://github.com/typescript-eslint/typescript-eslint/issues/10940)). Removed the three unused packages (`@typescript-eslint/eslint-plugin`, `@typescript-eslint/parser`, `typescript-eslint`) from `devDependencies` and dropped the `lint:demo:ts` script. `demo/eslint.config.mjs` is preserved as a stub for the day upstream ships TS 7 support.
+- **`npm install` deprecation warnings**: forced `glob@^13.0.0` via the existing `overrides` block (the old `glob@10.x` was being pulled in transitively by `mocha@11.8.0` and is unsupported with publicized CVEs), and bumped `recharts` from `^2.15.0` to `^3.10.1` — the 1.x/2.x branches are no longer active, and v3 is compatible with the demo's chart usage (`LineChart`, `BarChart`, `AreaChart`, `CartesianGrid`, `XAxis`/`YAxis`, `Tooltip`, `Legend`, `ReferenceLine`, `ResponsiveContainer`). Demo `npm run build:demo` verified after the bump.
 
 ## [2.0.0] - 2026-08-26
 
