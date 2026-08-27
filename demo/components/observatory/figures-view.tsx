@@ -28,23 +28,16 @@ import {
 } from '@/components/observatory/hooks/use-experiment-history';
 
 const FIGURES = [
-  {value: 'fig-ks-curve', label: 'Fig 1 · KS Curve'},
-  {value: 'fig-multi-scale', label: 'Fig 2 · Multi-Scale'},
+  {value: 'fig-ks-curve', label: 'Fig 1 · KS curve'},
+  {value: 'fig-multi-scale', label: 'Fig 2 · Multi-scale'},
   {value: 'fig-rolling', label: 'Fig 3 · Rolling'},
-  {value: 'fig-bias-variance', label: 'Fig 4 · Bias / Variance'},
+  {value: 'fig-bias-variance', label: 'Fig 4 · Bias / variance'},
 ] as const;
 
 export default function FiguresPage() {
   return (
-    <AppShell
-      actions={
-        <>
-          <StatusBadge label="Figures" tone="neutral" />
-          <StatusBadge label="PNG export" tone="neutral" />
-        </>
-      }
-    >
-      <div className="flex flex-col gap-8">
+    <AppShell>
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-10">
         <PageHeader
           eyebrow="Diagnostics"
           title={copy.figures.title}
@@ -82,7 +75,7 @@ function FiguresView() {
       onValueChange={(v) => setTab(v as (typeof FIGURES)[number]['value'])}
       className="flex flex-col gap-6"
     >
-      <TabsList className="flex h-auto w-fit flex-wrap gap-1 bg-muted/40 p-1">
+      <TabsList className="flex h-auto w-fit flex-wrap gap-1">
         {FIGURES.map((f) => (
           <TabsTrigger
             key={f.value}
@@ -110,62 +103,34 @@ function FiguresView() {
   );
 }
 
-function CommonFigureInputs({
-  trueH,
-  setTrueH,
-  n,
-  setN,
-  windowSize,
-  setWindowSize,
+function FigureControls({children}: {children: React.ReactNode}) {
+  return (
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {children}
+    </div>
+  );
+}
+
+function Field({
+  label,
+  htmlFor,
+  children,
+  hint,
 }: {
-  trueH: number;
-  setTrueH: (v: number) => void;
-  n: number;
-  setN: (v: number) => void;
-  windowSize: number;
-  setWindowSize: (v: number) => void;
+  label: string;
+  htmlFor: string;
+  children: React.ReactNode;
+  hint?: string;
 }) {
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-      <div className="space-y-2">
-        <Label htmlFor="figure-true-h">True H</Label>
-        <Input
-          id="figure-true-h"
-          aria-label="True Hurst parameter"
-          type="number"
-          min={0.01}
-          max={0.99}
-          step={0.01}
-          value={trueH}
-          onChange={(e) => setTrueH(parseFloat(e.target.value))}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="figure-n">Path Length</Label>
-        <Input
-          id="figure-n"
-          aria-label="Path length"
-          type="number"
-          min={500}
-          max={10000}
-          step={100}
-          value={n}
-          onChange={(e) => setN(parseInt(e.target.value, 10))}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="figure-window">Window Size</Label>
-        <Input
-          id="figure-window"
-          aria-label="Sliding window size"
-          type="number"
-          min={100}
-          max={5000}
-          step={50}
-          value={windowSize}
-          onChange={(e) => setWindowSize(parseInt(e.target.value, 10))}
-        />
-      </div>
+    <div className="space-y-2">
+      <Label htmlFor={htmlFor}>{label}</Label>
+      {children}
+      {hint ? (
+        <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+          {hint}
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -221,14 +186,46 @@ function Figure1() {
         </>
       }
     >
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
-        <CommonFigureInputs
-          {...{trueH, setTrueH, n, setN, windowSize, setWindowSize}}
-        />
-        <div className="space-y-2">
-          <Label htmlFor="fig2-res">H Resolution</Label>
+      <FigureControls>
+        <Field label="True H" htmlFor="fig1-true-h">
           <Input
-            id="fig2-res"
+            id="fig1-true-h"
+            aria-label="True Hurst parameter"
+            type="number"
+            min={0.01}
+            max={0.99}
+            step={0.01}
+            value={trueH}
+            onChange={(e) => setTrueH(parseFloat(e.target.value))}
+          />
+        </Field>
+        <Field label="Path length" htmlFor="fig1-n">
+          <Input
+            id="fig1-n"
+            aria-label="Path length"
+            type="number"
+            min={500}
+            max={10000}
+            step={100}
+            value={n}
+            onChange={(e) => setN(parseInt(e.target.value, 10))}
+          />
+        </Field>
+        <Field label="Window size" htmlFor="fig1-window">
+          <Input
+            id="fig1-window"
+            aria-label="Sliding window size"
+            type="number"
+            min={100}
+            max={5000}
+            step={50}
+            value={windowSize}
+            onChange={(e) => setWindowSize(parseInt(e.target.value, 10))}
+          />
+        </Field>
+        <Field label="H resolution" htmlFor="fig1-res">
+          <Input
+            id="fig1-res"
             aria-label="H resolution"
             type="number"
             min={0.001}
@@ -237,11 +234,10 @@ function Figure1() {
             value={res}
             onChange={(e) => setRes(parseFloat(e.target.value))}
           />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="fig2-a1">Scale A1</Label>
+        </Field>
+        <Field label="Scale A1" htmlFor="fig1-a1">
           <Input
-            id="fig2-a1"
+            id="fig1-a1"
             aria-label="Scale A1"
             type="number"
             min={1}
@@ -249,11 +245,10 @@ function Figure1() {
             value={a1}
             onChange={(e) => setA1(parseInt(e.target.value, 10))}
           />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="fig2-a2">Scale A2</Label>
+        </Field>
+        <Field label="Scale A2" htmlFor="fig1-a2">
           <Input
-            id="fig2-a2"
+            id="fig1-a2"
             aria-label="Scale A2"
             type="number"
             min={2}
@@ -261,8 +256,9 @@ function Figure1() {
             value={a2}
             onChange={(e) => setA2(parseInt(e.target.value, 10))}
           />
-        </div>
-      </div>
+        </Field>
+      </FigureControls>
+
       <div id="fig1-chart" className="mt-6 flex flex-col gap-3">
         <EmptyChart
           ready={chartData !== null}
@@ -271,15 +267,82 @@ function Figure1() {
           height={320}
         >
           <div className="flex items-center justify-between font-mono text-xs text-muted-foreground">
-            <span>KS curve</span>
+            <span>KS curve · D(H)</span>
             <span className="text-primary">Ĥ ≈ {fmt(chartData?.minH)}</span>
           </div>
-          <div className="rounded-md border border-border/60 bg-card/40 p-3 text-xs text-muted-foreground">
-            Re-render to update the chart with current parameters.
-          </div>
+          {chartData ? <KSCurveChart data={chartData} /> : null}
         </EmptyChart>
       </div>
     </SectionCard>
+  );
+}
+
+function KSCurveChart({
+  data,
+}: {
+  data: {hs: number[]; ds: number[]; minH: number};
+}) {
+  // Lightweight inline SVG so we don't add a recharts dep just for this tab.
+  const w = 720;
+  const h = 280;
+  const pad = {top: 12, right: 16, bottom: 28, left: 36};
+  const x = (v: number) =>
+    pad.left +
+    ((v - data.hs[0]) / (data.hs.at(-1)! - data.hs[0])) *
+      (w - pad.left - pad.right);
+  const yMax = Math.max(...data.ds);
+  const y = (v: number) =>
+    h - pad.bottom - (v / (yMax || 1)) * (h - pad.top - pad.bottom);
+  const pts = data.hs.map((xv, i) => `${x(xv)},${y(data.ds[i])}`).join(' ');
+  return (
+    <svg
+      viewBox={`0 0 ${w} ${h}`}
+      className="h-[280px] w-full"
+      role="img"
+      aria-label="KS distance curve"
+    >
+      <line
+        x1={pad.left}
+        y1={h - pad.bottom}
+        x2={w - pad.right}
+        y2={h - pad.bottom}
+        stroke="var(--color-chart-axis)"
+        strokeWidth={1}
+      />
+      <line
+        x1={pad.left}
+        y1={pad.top}
+        x2={pad.left}
+        y2={h - pad.bottom}
+        stroke="var(--color-chart-axis)"
+        strokeWidth={1}
+      />
+      <polyline
+        fill="none"
+        stroke="var(--color-chart-series-1)"
+        strokeWidth={2}
+        points={pts}
+      />
+      <line
+        x1={x(data.minH)}
+        y1={pad.top}
+        x2={x(data.minH)}
+        y2={h - pad.bottom}
+        stroke="var(--color-chart-series-2)"
+        strokeDasharray="4 4"
+        strokeWidth={1}
+      />
+      <text
+        x={w - pad.right}
+        y={pad.top + 12}
+        textAnchor="end"
+        fontSize={11}
+        fill="var(--color-chart-axis)"
+        fontFamily="var(--font-mono)"
+      >
+        Ĥ ≈ {fmt(data.minH)}
+      </text>
+    </svg>
   );
 }
 
@@ -350,20 +413,57 @@ function Figure2() {
         </>
       }
     >
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        <CommonFigureInputs
-          {...{trueH, setTrueH, n, setN, windowSize, setWindowSize}}
-        />
-        <div className="space-y-2">
-          <Label htmlFor="fig3-scales">Scales</Label>
+      <FigureControls>
+        <Field label="True H" htmlFor="fig2-true-h">
           <Input
-            id="fig3-scales"
+            id="fig2-true-h"
+            aria-label="True Hurst parameter"
+            type="number"
+            min={0.01}
+            max={0.99}
+            step={0.01}
+            value={trueH}
+            onChange={(e) => setTrueH(parseFloat(e.target.value))}
+          />
+        </Field>
+        <Field label="Path length" htmlFor="fig2-n">
+          <Input
+            id="fig2-n"
+            aria-label="Path length"
+            type="number"
+            min={500}
+            max={10000}
+            step={100}
+            value={n}
+            onChange={(e) => setN(parseInt(e.target.value, 10))}
+          />
+        </Field>
+        <Field label="Window size" htmlFor="fig2-window">
+          <Input
+            id="fig2-window"
+            aria-label="Sliding window size"
+            type="number"
+            min={100}
+            max={5000}
+            step={50}
+            value={windowSize}
+            onChange={(e) => setWindowSize(parseInt(e.target.value, 10))}
+          />
+        </Field>
+        <Field
+          label="Scales"
+          htmlFor="fig2-scales"
+          hint="Comma-separated integers"
+        >
+          <Input
+            id="fig2-scales"
             aria-label="Multi-scale values (comma-separated)"
             value={scalesText}
             onChange={(e) => setScalesText(e.target.value)}
           />
-        </div>
-      </div>
+        </Field>
+      </FigureControls>
+
       <div id="fig2-chart" className="mt-6">
         <EmptyChart
           ready={grid !== null}
@@ -421,12 +521,44 @@ function Figure3() {
         </>
       }
     >
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
-        <CommonFigureInputs
-          {...{trueH, setTrueH, n, setN, windowSize, setWindowSize}}
-        />
-        <div className="space-y-2">
-          <Label htmlFor="fig3-step">Step</Label>
+      <FigureControls>
+        <Field label="True H" htmlFor="fig3-true-h">
+          <Input
+            id="fig3-true-h"
+            aria-label="True Hurst parameter"
+            type="number"
+            min={0.01}
+            max={0.99}
+            step={0.01}
+            value={trueH}
+            onChange={(e) => setTrueH(parseFloat(e.target.value))}
+          />
+        </Field>
+        <Field label="Path length" htmlFor="fig3-n">
+          <Input
+            id="fig3-n"
+            aria-label="Path length"
+            type="number"
+            min={500}
+            max={10000}
+            step={100}
+            value={n}
+            onChange={(e) => setN(parseInt(e.target.value, 10))}
+          />
+        </Field>
+        <Field label="Window size" htmlFor="fig3-window">
+          <Input
+            id="fig3-window"
+            aria-label="Sliding window size"
+            type="number"
+            min={100}
+            max={5000}
+            step={50}
+            value={windowSize}
+            onChange={(e) => setWindowSize(parseInt(e.target.value, 10))}
+          />
+        </Field>
+        <Field label="Step" htmlFor="fig3-step">
           <Input
             id="fig3-step"
             aria-label="Rolling step size"
@@ -436,9 +568,8 @@ function Figure3() {
             value={step}
             onChange={(e) => setStep(parseInt(e.target.value, 10))}
           />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="fig3-iterations">Iterations</Label>
+        </Field>
+        <Field label="Iterations" htmlFor="fig3-iterations">
           <Input
             id="fig3-iterations"
             aria-label="Variance-reduction iterations"
@@ -448,8 +579,9 @@ function Figure3() {
             value={iterations}
             onChange={(e) => setIterations(parseInt(e.target.value, 10))}
           />
-        </div>
-      </div>
+        </Field>
+      </FigureControls>
+
       <div id="fig3-chart" className="mt-6">
         <EmptyChart
           ready={rolling.length > 0}
@@ -541,27 +673,32 @@ function Figure4() {
         </>
       }
     >
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <div className="space-y-2">
-          <Label htmlFor="fig4-hs">H values</Label>
+      <FigureControls>
+        <Field
+          label="H values"
+          htmlFor="fig4-hs"
+          hint="Comma-separated decimals"
+        >
           <Input
             id="fig4-hs"
             aria-label="H values to sweep (comma-separated)"
             value={hsText}
             onChange={(e) => setHsText(e.target.value)}
           />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="fig4-ws">Window sizes</Label>
+        </Field>
+        <Field
+          label="Window sizes"
+          htmlFor="fig4-ws"
+          hint="Comma-separated integers"
+        >
           <Input
             id="fig4-ws"
             aria-label="Window sizes to sweep (comma-separated)"
             value={wsText}
             onChange={(e) => setWsText(e.target.value)}
           />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="fig4-trials">Trials / config</Label>
+        </Field>
+        <Field label="Trials per config" htmlFor="fig4-trials">
           <Input
             id="fig4-trials"
             aria-label="Trials per config"
@@ -571,8 +708,9 @@ function Figure4() {
             value={trials}
             onChange={(e) => setTrials(parseInt(e.target.value, 10))}
           />
-        </div>
-      </div>
+        </Field>
+      </FigureControls>
+
       <div id="fig4-chart" className="mt-6">
         <EmptyChart
           ready={series.length > 0}
