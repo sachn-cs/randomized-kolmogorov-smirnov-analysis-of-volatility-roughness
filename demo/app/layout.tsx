@@ -25,6 +25,12 @@ export const metadata: Metadata = {
     {media: '(prefers-color-scheme: light)', color: '#f0a030'},
     {media: '(prefers-color-scheme: dark)', color: '#0a0e17'},
   ],
+  other: {
+    // Tells the browser to use light/dark UA colors (scrollbars,
+    // form controls) so they match the user's manual theme choice
+    // even before the React tree mounts.
+    'color-scheme': 'light dark',
+  },
   openGraph: {
     title: 'hurstify',
     description:
@@ -44,7 +50,12 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${instrumentSerif.variable}`}
+      // `dark` class is added/removed by ThemeProvider on the client.
+      // Server can't read localStorage; ThemeProvider hydrates the
+      // class on mount. We default to `dark` for SSR so first paint
+      // matches the historical look; ThemeProvider flips it client-side
+      // when the persisted preference is `light`.
+      className={`dark ${geistSans.variable} ${instrumentSerif.variable}`}
       suppressHydrationWarning
     >
       <body>
