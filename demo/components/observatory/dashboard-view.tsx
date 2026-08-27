@@ -232,8 +232,10 @@ function DashboardView() {
           </div>
 
           <div className="space-y-2">
-            <Label>True H — {trueH.toFixed(2)}</Label>
+            <Label htmlFor="true-h-slider">True H — {trueH.toFixed(2)}</Label>
             <Slider
+              id="true-h-slider"
+              aria-label="True Hurst parameter"
               min={0.01}
               max={0.49}
               step={0.01}
