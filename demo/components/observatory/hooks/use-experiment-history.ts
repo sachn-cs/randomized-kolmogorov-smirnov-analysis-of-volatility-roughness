@@ -91,30 +91,39 @@ function notify() {
 /**
  * Subscribe to the persisted experiment history.
  * Returns a stable, sorted-by-most-recent list.
+ *
+ * The initial state is always `[]` (matching SSR) — localStorage is read
+ * inside `useEffect` so the first client render matches the server, and
+ * we avoid hydration mismatches. The flag `ready` flips to `true` once
+ * the storage has been primed so views can defer reading `entries` until
+ * after hydration.
  */
 export function useExperimentHistory(): {
   entries: ExperimentEntry[];
+  ready: boolean;
   record: (entry: ExperimentEntry) => void;
   clear: () => void;
 } {
-  ensurePrimed();
-  const [entries, setEntries] = React.useState<ExperimentEntry[]>(
-    () => cache ?? [],
-  );
-
-  // Track the initial snapshot so we can diff after mount without re-running
-  // on every entries change. The effect must only run once.
-  const initialRef = React.useRef(entries);
+  const [entries, setEntries] = React.useState<ExperimentEntry[]>([]);
+  const [ready, setReady] = React.useState(false);
 
   React.useEffect(() => {
+    ensurePrimed();
     const cb = (next: ExperimentEntry[]) => setEntries(next);
     subscribers.add(cb);
-    // Re-sync after mount in case another tab wrote between SSR and hydrate.
+    // Sync from localStorage. We always do this — even if `cache` was
+    // primed by another hook on the same page — so this hook is safe to
+    // call from multiple components.
     const fresh = readStorage();
-    if (JSON.stringify(fresh) !== JSON.stringify(initialRef.current)) {
-      setEntries(fresh);
+    if (JSON.stringify(fresh) !== JSON.stringify(cache ?? [])) {
       cache = fresh;
+      notify();
+    } else if (cache && cache !== fresh) {
+      // Make sure React state is in sync if cache was populated externally.
+      setEntries(cache);
     }
+    setEntries(cache ?? []);
+    setReady(true);
     return () => {
       subscribers.delete(cb);
     };
@@ -132,7 +141,7 @@ export function useExperimentHistory(): {
     notify();
   }, []);
 
-  return {entries, record, clear};
+  return {entries, ready, record, clear};
 }
 
 /** Generate a stable id without requiring crypto.randomUUID at call time. */
