@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {Hurstify, generateFBM, setSeed, resetSeed} from '../../../lib/index.js';
+import {Hurstify, generateFractionalBrownianMotion, setRandomSeed, resetRandomSeed} from '../../../lib/index.js';
 import {fmt} from '@/lib/format';
 import {HTrajChart} from '@/components/observatory/charts/h-traj-chart';
 import {HeatmapGrid} from '@/components/observatory/charts/heatmap-grid';
@@ -147,9 +147,9 @@ function Figure1() {
   } | null>(null);
 
   const render = React.useCallback(() => {
-    setSeed(42);
-    const path = generateFBM(n, trueH);
-    resetSeed();
+    setRandomSeed(42);
+    const path = generateFractionalBrownianMotion(n, trueH);
+    resetRandomSeed();
     const slice = path.slice(0, windowSize);
     const inc1 = Hurstify.getIncrements(slice, a1);
     const inc2 = Hurstify.getIncrements(slice, a2);
@@ -239,9 +239,9 @@ function Figure2() {
       .split(',')
       .map((s) => parseInt(s.trim(), 10))
       .filter((s) => !isNaN(s));
-    setSeed(42);
-    const path = generateFBM(n, trueH);
-    resetSeed();
+    setRandomSeed(42);
+    const path = generateFractionalBrownianMotion(n, trueH);
+    resetRandomSeed();
     const slice = path.slice(0, windowSize);
     const estimator = new Hurstify({scales, sampleSize: Math.min(300, windowSize)});
     const raw = estimator.profile(slice, {scales});
@@ -314,9 +314,9 @@ function Figure3() {
   );
 
   const render = React.useCallback(() => {
-    setSeed(42);
-    const path = generateFBM(n, trueH);
-    resetSeed();
+    setRandomSeed(42);
+    const path = generateFractionalBrownianMotion(n, trueH);
+    resetRandomSeed();
     const estimator = new Hurstify({
       scaleA1: 1,
       scaleA2: 25,
@@ -402,9 +402,9 @@ function Figure4() {
       for (const w of ws) {
         const errors: number[] = [];
         for (let t = 0; t < trials; t++) {
-          setSeed(t + 1);
-          const path = generateFBM(Math.min(2000, w), h);
-          resetSeed();
+          setRandomSeed(t + 1);
+          const path = generateFractionalBrownianMotion(Math.min(2000, w), h);
+          resetRandomSeed();
           const estimator = new Hurstify({sampleSize: Math.min(300, w)});
           try {
             const H = estimator.estimateSingle(path.slice(0, w));

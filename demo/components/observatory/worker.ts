@@ -1,55 +1,70 @@
 /// <reference lib="webworker" />
 import {
   Hurstify,
-  generateFBM,
-  rBergomiPrice,
-  rFSVPrice,
-  fOU,
-  mPRE,
-  setSeed,
-  resetSeed,
-  significanceTest,
-  confidenceInterval,
-  standardError,
+  generateFractionalBrownianMotion,
+  RoughBergomiModel,
+  RoughFsvModel,
+  FractionalOuModel,
+  MultifractionalPreModel,
+  setRandomSeed,
+  resetRandomSeed,
+  runSignificanceTest,
+  getStandardError,
+  getConfidenceInterval,
 } from '../../../lib/index.js';
 import type {WorkerRequest, WorkerMessage} from '@/lib/worker-protocol';
 
 declare const self: DedicatedWorkerGlobalScope;
 
+const _rBergomi = new RoughBergomiModel();
+const _rFSV = new RoughFsvModel();
+const _fOU = new FractionalOuModel();
+const _mPRE = new MultifractionalPreModel();
+
+/**
+ * Generates a synthetic path using the requested model strategy.
+ *
+ * @param {Object} opts Generation options.
+ * @return {number[]} Generated path.
+ */
 function generatePath(opts: {
   model: string;
   nSteps: number;
   h: number;
   seed: number;
 }): number[] {
-  setSeed(opts.seed || 42);
+  setRandomSeed(opts.seed || 42);
   let path: number[];
   switch (opts.model) {
-    case 'rBergomi':
-      path = Array.from(
-        rBergomiPrice({nPaths: 1, nSteps: opts.nSteps, h: opts.h}).prices[0],
-      );
+    case 'rBergomi': {
+      const sim = _rBergomi.simulate({nPaths: 1, nSteps: opts.nSteps, h: opts.h});
+      path = Array.from(_rBergomi.price(sim, {nSteps: opts.nSteps, h: opts.h}).prices[0]);
       break;
-    case 'rFSV':
-      path = Array.from(rFSVPrice({nSteps: opts.nSteps, h: opts.h}).prices);
+    }
+    case 'rFSV': {
+      const sim = _rFSV.simulate({nSteps: opts.nSteps, h: opts.h});
+      path = Array.from(_rFSV.price(sim, {nSteps: opts.nSteps, h: opts.h}).prices[0]);
       break;
-    case 'fOU':
-      path = Array.from(fOU({nSteps: opts.nSteps, h: opts.h}).path);
+    }
+    case 'fOU': {
+      const sim = _fOU.simulate({nSteps: opts.nSteps, h: opts.h});
+      path = Array.from(sim.paths[0]);
       break;
-    case 'mPRE':
-      path = Array.from(
-        mPRE({
-          nSteps: opts.nSteps,
-          hMin: 0.05,
-          hMax: 0.95,
-          h0: opts.h,
-        }).path,
-      );
+    }
+    case 'mPRE': {
+      const sim = _mPRE.simulate({
+        nSteps: opts.nSteps,
+        hMin: 0.05,
+        hMax: 0.95,
+        h0: opts.h,
+      });
+      path = Array.from(sim.paths[0]);
       break;
+    }
     default:
-      path = Array.from(generateFBM(opts.nSteps, opts.h));
+      path = Array.from(generateFractionalBrownianMotion(opts.nSteps, opts.h));
   }
-  resetSeed();
+  resetRandomSeed();
   return path;
 }
 
@@ -70,14 +85,14 @@ self.onmessage = (e: MessageEvent<WorkerRequest & {id: number}>) => {
         const n =
           ((payload.config as Record<string, unknown>).sampleSize as number) ||
           500;
-        const sig = significanceTest(minimizedD, n, n, 0.05);
-        const se = standardError(
+        const sig = runSignificanceTest(minimizedD, n, n, 0.05);
+        const se = getStandardError(
           ((payload.config as Record<string, unknown>).scaleA1 as number) || 1,
           ((payload.config as Record<string, unknown>).scaleA2 as number) || 25,
           n,
           n,
         );
-        const ci = confidenceInterval(H, se, 0.05);
+        const ci = getConfidenceInterval(H, se, 0.05);
         post({
           type: 'complete',
           id,
@@ -186,6 +201,11 @@ self.onmessage = (e: MessageEvent<WorkerRequest & {id: number}>) => {
   }
 };
 
+/**
+ * Posts a typed message to the worker host.
+ *
+ * @param {WorkerMessage} msg Typed message.
+ */
 function post(msg: WorkerMessage) {
   (self as unknown as DedicatedWorkerGlobalScope).postMessage(msg);
 }
