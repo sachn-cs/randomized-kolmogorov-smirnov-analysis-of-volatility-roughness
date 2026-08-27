@@ -245,6 +245,21 @@ describe('Hurstify', function () {
     expect(results[1].error).to.not.equal(null);
   });
 
+  it('rollingMultiScale must not mutate estimator.scales or estimator.weights', function () {
+    setRandomSeed(7);
+    const path = generateFractionalBrownianMotion(1024, 0.1);
+    const estimator = new Hurstify({
+      sampleSize: 200,
+      iterations: 4,
+    });
+    const beforeScales = estimator.scales;
+    const beforeWeights = estimator.weights;
+    estimator.rollingMultiScale(path, 256, [1, 5, 10], [1, 0.8, 0.5], 100);
+    expect(estimator.scales).to.equal(beforeScales);
+    expect(estimator.weights).to.equal(beforeWeights);
+    resetRandomSeed();
+  });
+
   it('should reject invalid configuration in constructor', function () {
     expect(() => new Hurstify({hMin: 0.5, hMax: 0.2})).to.throw(/hMin/);
     expect(() => new Hurstify({iterations: 0})).to.throw(/iterations/);
