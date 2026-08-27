@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Refactor: production-readiness cleanup
+
+- **Strategy-injection rewrite** of `Hurstify`: the `Sampler`, `KsObjective`, and `Optimizer` strategies are now injected at construction time. Consumers plug in concrete subclasses or look up by key through the polymorphic `optimizerRegistry`.
+- **Strategy hierarchy** for `Sampler`, `KsObjective`, `Kernel`, `StochasticModel`, `Forecaster`, `HypothesisTest` lives under `lib/strategies/`. Each base class defines the polymorphic entry point; every concrete subclass dispatches through it.
+- **Stochastic models** `FractionalOuModel` and `MultifractionalPreModel` are now abstract bases; the Euler-Maruyama / exact-Riemann-Liouville branches are split into concrete subclasses (`EulerMaruyamaFractionalOuModel`, `ExactFractionalOuModel`, `LocalHolderMultifractionalPreModel`, `ExactMultifractionalPreModel`). The `opts.discretization` switch is gone.
+- **Generic `Registry<T>`** replaces the ad- `REGISTRY` and `MODEL_REGISTRY` objects. All four strategy families use the same implementation.
+- **Removed thin wrappers**: `stubSampler`, `wrapSafeOptimizer`, `getOptimizer`, `resolveOptimizer`, `registerOptimizer`, `runConstancyTest`, `runSignificanceTest`, `runCusumTest`, `bootstrapConfidenceInterval`, `constancyTestVia`, `void runKalmanFilter`, `void constancyTestVia`. Consumers use the strategy classes directly.
+- **Removed `_` prefix / suffix** from every identifier across the library (including method names `_sigmoid`/`_tanh`/`_step`/`_matVecMul`/`_softmax`, field names `_step` etc., and the `stub_` test-double). `_` is forbidden everywhere now.
+- **Removed all `@private` JSDoc annotations** (12 occurrences). ESLint-compatible workarounds (referencing the param in the throw message) replace them where the param is genuinely unused.
+- **Inlined** sigmoid / tanh as one-liners in the LSTM cell-update math; deleted `this._sigmoid` / `this._tanh` class fields.
+- **Fixed state-mutation bug** in `rollingMultiScale`: the method no longer mutates `estimator.scales` / `estimator.weights` / `estimator.#objective`. A new private `#estimateAt(window, scales, weights, sampleSize)` helper takes everything as parameters and is safe to call concurrently. Regression test asserts no mutation.
+- **Consolidated `kalmanLogLikelihood`** — single source of truth in `lib/strategies/hypothesis-test.js` (was duplicated in `lib/inference/filtering.js`).
+- **Fixed** `getConfidenceInterval` signature misuse in the demo web worker.
+- **Bumped tests**: 191 → 243.
+
 ## [2.0.0] - 2026-08-26
 
 ### Rebrand: `rksavr` → `hurstify`
@@ -16,6 +31,7 @@ rebrand is cosmetic + ergonomic — algorithm behavior and public API are unchan
 See [MIGRATION.md](MIGRATION.md) for upgrading from v1.x.
 
 **Highlights**
+
 - New package name on npm: `hurstify`.
 - Demo rewritten as a Next.js 16 + shadcn/ui (new-york) **Observatory**.
 - Per-module TypeScript declarations in `lib/*.d.ts`.
@@ -27,10 +43,12 @@ See [MIGRATION.md](MIGRATION.md) for upgrading from v1.x.
 - 191 tests still passing under the new name.
 
 **Migration**
+
 ```bash
 npm uninstall rksavr
 npm install hurstify
 ```
+
 ```diff
 -import { RKSAVR } from 'rksavr';
 +import { RKSAVR } from 'hurstify';
@@ -39,6 +57,7 @@ npm install hurstify
 ## [2.0.0] - hurstify rebrand
 
 ### Changed
+
 - **Brand**: Package renamed from `rksavr` to **`hurstify`**. GitHub repo renamed.
 - **Demo**: Vite + Plotly.js SPA ported to **Next.js 16** with **shadcn/ui** (new-york preset), **Tailwind v4**, and **Recharts**. The interactive observatory now lives at `demo/` and runs from `npm run dev:demo` / `npm run build:demo`.
 - **Toolchain**: Babel bumped to **v8**, ESLint to **10.9.1**, Rollup to **4.63.0**. Node engines floor raised to **>=24** (CI matrix now `[24, 26]`).
@@ -47,11 +66,13 @@ npm install hurstify
 - **Tests**: Reorganized into `tests/unit/`, `tests/integration/`, `tests/fixtures/`.
 
 ### Added
+
 - **Code-quality gates**: Husky pre-commit, lint-staged on changed files, commitlint enforcing Conventional Commits.
 - **CODEOWNERS** for `lib/` and `demo/` directories.
 - **Open Graph metadata** in the observatory layout for sharing on socials.
 
 ### Preserved
+
 - Public API surface is unchanged: all 190 tests pass under the new name.
 - Rollup builds ESM + CJS + IIFE bundles under the new banner.
 - Algorithm behavior is bit-identical to v1.x — rebrand was cosmetic + ergonomics.
@@ -59,6 +80,7 @@ npm install hurstify
 ### Added
 
 #### Production Package Infrastructure
+
 - **Build System** (`rollup.dist.config.js`): Rollup with Babel producing ESM, ES5, CJS, and IIFE bundles.
 - **Dual-Format Publishing** (`package.json`): Conditional exports for `import` and `require`, `files` whitelist, zero runtime dependencies.
 - **StandardJS Linting**: Replaced ESLint with `standard` + `snazzy` for zero-config linting.
@@ -72,6 +94,7 @@ npm install hurstify
 - **Community Files**: `LICENSE`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, issue/PR templates, `FUNDING.yml`, `dependabot.yml`.
 
 #### Paper Fidelity & Core Fixes
+
 - **Asymptotic Variance** (`lib/inference/asymptotic.js`): Corrected to Proposition 2.9 formula `(2πe)/(ln a)² · (1/√n + 1/√m)²`.
 - **Block Random Permutation** (`lib/stats.js`): Paper-faithful implementation with optional random phase offset, preserving marginal distributions while stripping autocorrelation.
 - **Configurable H Bounds** (`lib/rksavr.js`): `hMin`/`hMax` constructor options passed to optimizers and clamped on results.
@@ -81,27 +104,32 @@ npm install hurstify
 - **CUSUM / Breakpoint Detection** (`lib/inference.js`): Structural break detection in H(t) series.
 
 #### Algorithmic Optimizations
+
 - **Zero-Allocation Rescaled KS** (`lib/stats.js:ksDistanceRescaled`): Applies `scale^(-H)` inline during the pointer walk — eliminates two array allocations per optimizer evaluation.
 - **Fixed `getIncrementsMulti`** (`lib/rksavr.js`): Replaced buggy single-pass loop with correct per-scale computation.
 - **`estimateSingleWithDiagnostics`** (`lib/rksavr.js`): Returns both H and minimized KS distance D.
 
 #### Restored Modules
+
 - **Noise Correction** (`lib/noise.js`): `preavgReturns`, `realizedKernel` (Bartlett/Parzen/Tukey-Hanning), `logVolDebias`.
 - **Forecasting** (`lib/models/forecasting.js`): `holtWintersForecast`, `createLSTM` (16/8-dim, Xavier init, full gates), `createAttentionModel` (Q/K/V self-attention).
 - **Central Export Hub** (`lib/index.js`): Single entry point re-exporting all public APIs.
 
 ### Changed
+
 - **CJS Bundle**: Renamed to `dist/index.cjs` so `require()` works under `"type": "module"`.
 - **Demo Dependencies**: `chart.js` and `plotly.js-dist-min` moved from `dependencies` to `devDependencies`.
 - **README.md**: Updated repo links, added development workflow, testing, building, and publishing sections.
 
 ### Fixed
+
 - `significanceTest` no longer approximates D from variance; it requires the actual minimized KS distance.
 - `blockPermutation` random phase no longer drops prefix elements when offset > 0.
 - `bootstrapCI` now uses the seeded PRNG instead of `Math.random()`.
 - Removed stale `dist/index.cjs.js` build artifacts.
 
 ### Removed
+
 - **ESLint**: Replaced by StandardJS (`standard`).
 - **Node.js Native Test Runner**: Replaced by Mocha + Chai.
 - **`test/rksavr.test.js`**: Migrated to `tests/rksavr.tests.js`.
@@ -111,12 +139,14 @@ npm install hurstify
 ### Added
 
 #### Algorithmic Kernels (Section 1)
+
 - **Nelder-Mead Optimizer** (`lib/optimization.js:nelderMead`): Multi-dimensional simplex method for non-smooth KS distance minimization.
 - **Simulated Annealing** (`lib/optimization.js:simulatedAnnealing`): Global optimizer with adaptive cooling to prevent local minima.
 - **Differential Evolution** (`lib/optimization.js:differentialEvolution`): Population-based evolutionary optimizer with crossover.
 - **Adaptive Grid Search** (`lib/optimization.js:adaptiveGridSearch`): Coarse grid initialization followed by Brent refinement.
 
 #### Multi-Scale Scaling (Section 1.2)
+
 - **Vectorized KS Objective** (`lib/rksavr.js:vectorizedKsObjective`): Compare all scale pairs in a single objective call.
 - **Weighted KS Distance** (`lib/stats.js:weightedKsDistance`): Per-scale weighting for heterogeneous scale importance.
 - **Scaling Profile** (`lib/stats.js:scalingProfile`): Full multi-scale distance vector for diagnostics.
@@ -124,6 +154,7 @@ npm install hurstify
 - **Optimizer Selection**: `optimizerType` config option ('brent', 'nelder-mead', 'annealing', 'de', 'ags').
 
 #### Statistical Robustness (Section 2)
+
 - **Asymptotic Variance** (`lib/inference.js:asymptoticVariance`): Prop 2.9 formula $\frac{2\pi e}{(\ln a)^2}(\frac{1}{\sqrt{n}}+\frac{1}{\sqrt{m}})^2$.
 - **Standard Error & CI** (`lib/inference.js:standardError`, `confidenceInterval`): Analytic confidence intervals.
 - **Bootstrap CI** (`lib/inference.js:bootstrapCI`): Non-parametric empirical confidence intervals.
@@ -139,6 +170,7 @@ npm install hurstify
 - **Optimal Sampling** (`lib/noise.js:optimalSamplingInterval`): Noise-adaptive interval selection.
 
 #### Financial Engineering (Section 3)
+
 - **rBergomi Model** (`lib/models/rbergomi.js`): One-factor rough Bergomi with async coupling.
 - **rFSV Model** (`lib/models/rfsv.js`): Rough fractional stochastic volatility with Heston dynamics.
 - **fOU Process** (`lib/models/fou.js`): Fractional Ornstein-Uhlenbeck with exact OU discretization.
@@ -149,6 +181,7 @@ npm install hurstify
 - **Holt-Winters** (`lib/models/forecasting.js:holtWintersForecast`): Exponential smoothing forecast.
 
 ### Changed
+
 - `lib/rksavr.js`: Refactored with multi-scale support, optimizer selection, and new objective functions.
 - `lib/stats.js`: Added weighted KS, scaling profile, and bootstrap utilities.
 - `lib/optimization.js`: Restructured as multi-optimizer suite with consistent API.
@@ -157,6 +190,7 @@ npm install hurstify
 ## [1.0.0] - 2026-05-03
 
 ### Added
+
 - Initial RK-SAVR implementation with Brent's method optimizer.
 - KS distance and random sampling utilities.
 - Fractional Brownian motion generator (Hosking's method).
