@@ -33,7 +33,11 @@ export function HeatmapGrid({
   };
 
   return (
-    <div className="flex flex-col gap-2">
+    <div
+      role="img"
+      aria-label={`Heatmap of KS distance across ${scales.length}×${scales.length} scale pairs`}
+      className="flex flex-col gap-2"
+    >
       <div
         className="grid gap-1"
         style={{gridTemplateColumns: `auto repeat(${scales.length}, 1fr)`}}

@@ -36,53 +36,62 @@ export function OptimizerBar({
   }));
 
   return (
-    <ResponsiveContainer width="100%" height={360}>
-      <BarChart data={data} margin={{top: 8, left: 8, right: 0, bottom: 8}}>
-        <CartesianGrid stroke="hsl(220 22% 28% / 0.4)" strokeDasharray="2 4" />
-        <XAxis
-          dataKey="optimizer"
-          tick={{fontSize: 11, fill: 'hsl(220 18% 70%)'}}
-          label={{
-            value: 'Optimizer',
-            position: 'insideBottom',
-            offset: -2,
-            fill: 'hsl(220 18% 70%)',
-            fontSize: 11,
-          }}
-        />
-        <YAxis
-          type="number"
-          scale="log"
-          domain={['auto', 'auto']}
-          tick={{fontSize: 11, fill: 'hsl(220 18% 70%)'}}
-          width={48}
-          label={{
-            value: 'Mean RMSE',
-            angle: -90,
-            position: 'insideLeft',
-            fill: 'hsl(220 18% 70%)',
-            fontSize: 11,
-          }}
-        />
-        <Tooltip
-          contentStyle={{
-            background: 'hsl(220 40% 9%)',
-            border: '1px solid hsl(220 22% 28%)',
-            fontFamily: 'var(--font-geist-mono)',
-            fontSize: 11,
-          }}
-        />
-        <Bar dataKey="rmse">
-          {data.map((_, i) => (
-            <Bar
-              key={i}
-              dataKey="rmse"
-              fill={COLORS[i % COLORS.length]}
-              isAnimationActive={false}
-            />
-          ))}
-        </Bar>
-      </BarChart>
-    </ResponsiveContainer>
+    <div
+      role="img"
+      aria-label={`Optimizer comparison: mean RMSE across ${data.length} optimizers`}
+      className="h-[360px]"
+    >
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data} margin={{top: 8, left: 8, right: 0, bottom: 8}}>
+          <CartesianGrid
+            stroke="hsl(220 22% 28% / 0.4)"
+            strokeDasharray="2 4"
+          />
+          <XAxis
+            dataKey="optimizer"
+            tick={{fontSize: 11, fill: 'hsl(220 18% 70%)'}}
+            label={{
+              value: 'Optimizer',
+              position: 'insideBottom',
+              offset: -2,
+              fill: 'hsl(220 18% 70%)',
+              fontSize: 11,
+            }}
+          />
+          <YAxis
+            type="number"
+            scale="log"
+            domain={['auto', 'auto']}
+            tick={{fontSize: 11, fill: 'hsl(220 18% 70%)'}}
+            width={48}
+            label={{
+              value: 'Mean RMSE',
+              angle: -90,
+              position: 'insideLeft',
+              fill: 'hsl(220 18% 70%)',
+              fontSize: 11,
+            }}
+          />
+          <Tooltip
+            contentStyle={{
+              background: 'hsl(220 40% 9%)',
+              border: '1px solid hsl(220 22% 28%)',
+              fontFamily: 'var(--font-geist-mono)',
+              fontSize: 11,
+            }}
+          />
+          <Bar dataKey="rmse">
+            {data.map((_, i) => (
+              <Bar
+                key={i}
+                dataKey="rmse"
+                fill={COLORS[i % COLORS.length]}
+                isAnimationActive={false}
+              />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
   );
 }
