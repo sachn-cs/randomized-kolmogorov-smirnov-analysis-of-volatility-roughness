@@ -19,6 +19,7 @@ temp/
 
 # Next.js
 demo/.next/
+demo/next-env.d.ts
 *.tsbuildinfo
 
 # Package artifacts
