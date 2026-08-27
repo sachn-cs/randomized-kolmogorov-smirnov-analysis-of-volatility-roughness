@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import {toast} from 'sonner';
-import {Activity, Play, RotateCcw, Sparkles} from 'lucide-react';
+import {Play, RotateCcw, Sparkles} from 'lucide-react';
 import {AppShell} from '@/components/observatory/app-shell';
 import {PageHeader} from '@/components/observatory/page-header';
 import {SectionCard} from '@/components/observatory/section-card';
@@ -80,22 +80,10 @@ const STATUS_TONE: Record<
 
 export default function DashboardPage() {
   return (
-    <AppShell
-      actions={
-        <>
-          <StatusBadge label="Single window" tone="neutral" />
-          <Button asChild size="sm" variant="outline">
-            <a href="#estimator-inputs">
-              <Sparkles className="h-4 w-4" aria-hidden="true" />
-              Configure
-            </a>
-          </Button>
-        </>
-      }
-    >
-      <div className="flex flex-col gap-8">
+    <AppShell>
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-10">
         <PageHeader
-          eyebrow="Flagship"
+          eyebrow={copy.brand.productLine}
           title={copy.estimator.title}
           subtitle={copy.estimator.subtitle}
           meta={
@@ -257,6 +245,8 @@ function DashboardView() {
 
   React.useEffect(() => {
     runGenerate();
+    // runGenerate is the only effect target — generate once on mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const metrics = React.useMemo(() => {
@@ -290,61 +280,38 @@ function DashboardView() {
       : null;
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-        <div className="flex flex-wrap items-center gap-2">
-          <StatusBadge
-            label={
-              status === 'error'
-                ? `Error: ${errorMsg}`
-                : status.charAt(0).toUpperCase() + status.slice(1)
-            }
-            tone={STATUS_TONE[status]}
-            pulse={status === 'generating' || status === 'estimating'}
-          />
-          {runtimeMs !== null ? (
-            <StatusBadge label={`Runtime · ${runtimeMs} ms`} tone="neutral" />
-          ) : null}
-          {reliability ? <ReliabilityBadge reliability={reliability} /> : null}
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={runGenerate}
-            disabled={status === 'generating' || status === 'estimating'}
-          >
-            <Sparkles className="h-4 w-4" aria-hidden="true" />
-            {copy.estimator.actions.generate}
-          </Button>
-          <Button
-            size="sm"
-            onClick={runEstimation}
-            disabled={!path.length || status === 'estimating'}
-          >
-            <Play className="h-4 w-4" aria-hidden="true" />
-            {copy.estimator.actions.run}
-          </Button>
-          <Button variant="ghost" size="sm" onClick={reset}>
-            <RotateCcw className="h-4 w-4" aria-hidden="true" />
-            {copy.estimator.actions.reset}
-          </Button>
-        </div>
-      </div>
-
-      {progress > 0 && progress < 1 ? (
-        <Progress value={progress * 100} className="h-1.5" />
-      ) : null}
-
+    <div className="flex flex-col gap-10">
       <SectionCard
-        eyebrow="Inputs"
+        eyebrow="Setup"
         title="Configure the experiment"
-        description="Pick a model, true Hurst, and estimator settings."
+        description="Pick a model, true Hurst, and estimator settings, then run the pipeline."
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={runGenerate}
+              disabled={status === 'generating' || status === 'estimating'}
+            >
+              <Sparkles className="h-4 w-4" aria-hidden="true" />
+              {copy.estimator.actions.generate}
+            </Button>
+            <Button
+              size="sm"
+              onClick={runEstimation}
+              disabled={!path.length || status === 'estimating'}
+            >
+              <Play className="h-4 w-4" aria-hidden="true" />
+              {copy.estimator.actions.run}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={reset}>
+              <RotateCcw className="h-4 w-4" aria-hidden="true" />
+              {copy.estimator.actions.reset}
+            </Button>
+          </div>
+        }
       >
-        <div
-          id="estimator-inputs"
-          className="grid grid-cols-1 gap-6 lg:grid-cols-2"
-        >
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="space-y-2">
             <Label htmlFor="dashboard-model">Model</Label>
             <Select value={model} onValueChange={(v) => setModel(v as Model)}>
@@ -380,7 +347,7 @@ function DashboardView() {
             </Select>
           </div>
 
-          <div className="space-y-3 lg:col-span-2">
+          <div className="space-y-3">
             <div className="flex items-baseline justify-between">
               <Label htmlFor="dashboard-h-slider">True H</Label>
               <span className="font-mono text-sm tabular-nums text-primary">
@@ -395,21 +362,26 @@ function DashboardView() {
               step={0.01}
               value={[trueH]}
               onValueChange={(v) => setTrueH(v[0])}
+              className="mt-3"
             />
+            <div className="flex justify-between font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+              <span>0.01 · smooth-ish</span>
+              <span>rough</span>
+            </div>
           </div>
         </div>
 
         <Separator className="my-6" />
 
         <Accordion type="single" collapsible className="w-full">
-          <AccordionItem value="advanced" className="border-border/60">
-            <AccordionTrigger className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground hover:no-underline">
+          <AccordionItem value="advanced" className="border-border">
+            <AccordionTrigger className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground hover:no-underline">
               Advanced (path length · window · sample size · iterations)
             </AccordionTrigger>
             <AccordionContent>
               <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                 <div className="space-y-2">
-                  <Label htmlFor="dashboard-path-length">Path Length</Label>
+                  <Label htmlFor="dashboard-path-length">Path length</Label>
                   <Input
                     id="dashboard-path-length"
                     aria-label="Path length"
@@ -422,7 +394,7 @@ function DashboardView() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="dashboard-window-size">Window Size</Label>
+                  <Label htmlFor="dashboard-window-size">Window size</Label>
                   <Input
                     id="dashboard-window-size"
                     aria-label="Sliding window size"
@@ -437,7 +409,7 @@ function DashboardView() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="dashboard-sample-size">Sample Size</Label>
+                  <Label htmlFor="dashboard-sample-size">Sample size</Label>
                   <Input
                     id="dashboard-sample-size"
                     aria-label="Sample size"
@@ -470,59 +442,81 @@ function DashboardView() {
             </AccordionContent>
           </AccordionItem>
         </Accordion>
+
+        <div className="mt-6 flex flex-wrap items-center gap-2">
+          <StatusBadge
+            label={
+              status === 'error'
+                ? `Error: ${errorMsg}`
+                : status.charAt(0).toUpperCase() + status.slice(1)
+            }
+            tone={STATUS_TONE[status]}
+            pulse={status === 'generating' || status === 'estimating'}
+          />
+          {runtimeMs !== null ? (
+            <StatusBadge label={`Runtime · ${runtimeMs} ms`} tone="neutral" />
+          ) : null}
+          {reliability ? <ReliabilityBadge reliability={reliability} /> : null}
+        </div>
+
+        {progress > 0 && progress < 1 ? (
+          <Progress value={progress * 100} className="mt-4" />
+        ) : null}
       </SectionCard>
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
-        <StatTile
-          label={copy.metrics.meanH}
-          value={fmt(metrics.avg, 3)}
-          tone="primary"
-          emphasis
-        />
-        <StatTile
-          label={copy.metrics.trueH}
-          value={fmt(trueH, 2)}
-          tone="muted"
-        />
-        <StatTile
-          label={copy.metrics.bias}
-          value={fmt(metrics.bias, 4)}
-          tone={
-            metrics.bias === null
-              ? 'muted'
-              : Math.abs(metrics.bias) > 0.05
-                ? 'destructive'
-                : 'success'
-          }
-        />
-        <StatTile
-          label={copy.metrics.rmse}
-          value={fmt(metrics.rmse, 4)}
-          tone={
-            metrics.rmse === null
-              ? 'muted'
-              : metrics.rmse > 0.1
-                ? 'destructive'
-                : 'muted'
-          }
-        />
-        <StatTile
-          label={copy.metrics.stdDev}
-          value={fmt(metrics.std, 4)}
-          tone="muted"
-        />
-        <StatTile
-          label={copy.metrics.ciWidth}
-          value={ciWidth === null ? '—' : fmt(ciWidth, 4)}
-          tone="muted"
-        />
-      </div>
+      <section className="flex flex-col gap-4">
+        <header className="flex items-baseline justify-between">
+          <h2 className="typography-serif text-lg tracking-tight">
+            Live diagnostics
+          </h2>
+          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+            {path.length.toLocaleString()} samples
+          </span>
+        </header>
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+          <StatTile
+            label={copy.metrics.meanH}
+            value={fmt(metrics.avg, 3)}
+            tone="primary"
+            emphasis
+          />
+          <StatTile
+            label={copy.metrics.bias}
+            value={fmt(metrics.bias, 4)}
+            tone={
+              metrics.bias === null
+                ? 'muted'
+                : Math.abs(metrics.bias) > 0.05
+                  ? 'destructive'
+                  : 'success'
+            }
+          />
+          <StatTile
+            label={copy.metrics.rmse}
+            value={fmt(metrics.rmse, 4)}
+            tone={
+              metrics.rmse === null
+                ? 'muted'
+                : metrics.rmse > 0.1
+                  ? 'destructive'
+                  : 'muted'
+            }
+          />
+          <StatTile
+            label={copy.metrics.ciWidth}
+            value={ciWidth === null ? '—' : fmt(ciWidth, 4)}
+            tone="muted"
+          />
+        </div>
+      </section>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <SectionCard
           eyebrow="Path"
           title="Synthetic path"
           description="Realization of the configured rough-volatility model."
+          surface="default"
         >
           <EmptyChart
             ready={path.length > 0}
@@ -557,7 +551,6 @@ function DashboardView() {
           <DiagnosticsTable diag={diag} />
         ) : (
           <EmptyState
-            icon={<Activity className="h-4 w-4" aria-hidden="true" />}
             title={copy.estimator.emptyRollingTitle}
             description={copy.estimator.emptyRollingDescription}
           />
