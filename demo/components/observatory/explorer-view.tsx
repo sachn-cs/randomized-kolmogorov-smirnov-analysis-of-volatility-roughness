@@ -28,6 +28,7 @@ import {RMSEByHChart} from '@/components/observatory/charts/rmse-by-h-chart';
 import {OptimizerBar} from '@/components/observatory/charts/optimizer-bar';
 import {fmt} from '@/lib/format';
 import {copy} from '@/lib/copy';
+import {cn} from '@/lib/utils';
 import {
   useExperimentHistory,
   nextId,
@@ -45,20 +46,8 @@ const ALL_OPTIMIZERS = [
 
 export default function ExplorerPage() {
   return (
-    <AppShell
-      actions={
-        <>
-          <StatusBadge label="Benchmark lab" tone="neutral" />
-          <Button asChild size="sm" variant="outline">
-            <a href="#search-space">
-              <Workflow className="h-4 w-4" aria-hidden="true" />
-              Configure
-            </a>
-          </Button>
-        </>
-      }
-    >
-      <div className="flex flex-col gap-8">
+    <AppShell>
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-10">
         <PageHeader
           eyebrow="Sweeps"
           title={copy.explorer.title}
@@ -143,7 +132,6 @@ function ExplorerView() {
       setResults(results);
       setStatus('complete');
 
-      // Record top optimizer to history.
       const valid = results.filter((r) => Number.isFinite(r.rmse));
       if (valid.length > 0) {
         const top = [...valid].sort((a, b) => a.rmse - b.rmse)[0];
@@ -175,20 +163,34 @@ function ExplorerView() {
     return [...valid].sort((a, b) => a.rmse - b.rmse).slice(0, 3);
   }, [results]);
 
+  const totalRuns =
+    trueHs.length * windowSizes.length * selectedOpts.length * trials;
+
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-10">
       <SectionCard
         eyebrow="Search space"
         title={copy.explorer.searchSpace}
         description="Configure the grid and the optimizers to compare."
+        actions={
+          <Button
+            onClick={runGrid}
+            disabled={
+              status === 'running' ||
+              selectedOpts.length === 0 ||
+              windowSizes.length === 0
+            }
+            size="sm"
+          >
+            <Play className="h-4 w-4" aria-hidden="true" />
+            {copy.explorer.actions.run}
+          </Button>
+        }
       >
-        <div
-          id="search-space"
-          className="grid grid-cols-1 gap-6 lg:grid-cols-3"
-        >
-          <div className="space-y-3">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+          <div className="lg:col-span-5 space-y-3">
             <Label>H range</Label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-3">
               <div className="space-y-1">
                 <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
                   Start
@@ -234,7 +236,7 @@ function ExplorerView() {
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="lg:col-span-4 space-y-2">
             <Label htmlFor="explorer-wins">Window sizes</Label>
             <Input
               id="explorer-wins"
@@ -243,50 +245,57 @@ function ExplorerView() {
               value={winsText}
               onChange={(e) => setWinsText(e.target.value)}
             />
+            <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+              Comma-separated integers
+            </p>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="explorer-pathlen">Path length</Label>
-            <Input
-              id="explorer-pathlen"
-              aria-label="Path length"
-              type="number"
-              min={500}
-              max={5000}
-              step={100}
-              value={pathLength}
-              onChange={(e) => setPathLength(parseInt(e.target.value, 10))}
-            />
+          <div className="lg:col-span-3 grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="explorer-pathlen">Path length</Label>
+              <Input
+                id="explorer-pathlen"
+                aria-label="Path length"
+                type="number"
+                min={500}
+                max={5000}
+                step={100}
+                value={pathLength}
+                onChange={(e) => setPathLength(parseInt(e.target.value, 10))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="explorer-trials">Trials</Label>
+              <Input
+                id="explorer-trials"
+                aria-label="Trials per config"
+                type="number"
+                min={1}
+                max={20}
+                value={trials}
+                onChange={(e) => setTrials(parseInt(e.target.value, 10))}
+              />
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="explorer-trials">Trials / config</Label>
-            <Input
-              id="explorer-trials"
-              aria-label="Trials per config"
-              type="number"
-              min={1}
-              max={20}
-              value={trials}
-              onChange={(e) => setTrials(parseInt(e.target.value, 10))}
-            />
-          </div>
-
-          <div className="space-y-3 lg:col-span-2">
+          <div className="lg:col-span-12 space-y-3">
             <Label>Optimizers</Label>
-            <div className="flex flex-wrap gap-4">
-              {ALL_OPTIMIZERS.map((o) => (
-                <label
-                  key={o.id}
-                  className="flex cursor-pointer items-center gap-2 rounded-md border border-border/60 bg-card/40 px-3 py-2 text-xs transition-colors hover:border-primary/40"
-                >
-                  <Checkbox
-                    checked={selectedOpts.includes(o.id)}
-                    onCheckedChange={() => toggleOpt(o.id)}
-                  />
-                  <span className="font-medium">{o.label}</span>
-                </label>
-              ))}
+            <div className="flex flex-wrap gap-2.5">
+              {ALL_OPTIMIZERS.map((o) => {
+                const checked = selectedOpts.includes(o.id);
+                return (
+                  <label
+                    key={o.id}
+                    className="flex cursor-pointer items-center gap-2 rounded-md border border-border bg-card px-3 py-2 text-xs transition-colors hover:border-primary/50 has-[button[data-state=checked]]:border-primary has-[button[data-state=checked]]:bg-primary/5"
+                  >
+                    <Checkbox
+                      checked={checked}
+                      onCheckedChange={() => toggleOpt(o.id)}
+                    />
+                    <span className="font-medium">{o.label}</span>
+                  </label>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -294,9 +303,13 @@ function ExplorerView() {
         <Separator className="my-6" />
 
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-3">
             <StatusBadge
-              label={status === 'idle' ? 'Ready' : status}
+              label={
+                status === 'idle'
+                  ? 'Ready'
+                  : status.charAt(0).toUpperCase() + status.slice(1)
+              }
               tone={
                 status === 'running'
                   ? 'live'
@@ -309,37 +322,24 @@ function ExplorerView() {
               pulse={status === 'running'}
             />
             <span className="font-mono text-xs text-muted-foreground">
-              {trueHs.length} H values × {windowSizes.length} windows ×{' '}
-              {selectedOpts.length} optimizers × {trials} trials ={' '}
-              <span className="text-foreground">
-                {trueHs.length *
-                  windowSizes.length *
-                  selectedOpts.length *
-                  trials}
-              </span>{' '}
+              <span className="text-foreground">{trueHs.length}</span> H ·{' '}
+              <span className="text-foreground">{windowSizes.length}</span>{' '}
+              windows ·{' '}
+              <span className="text-foreground">{selectedOpts.length}</span>{' '}
+              optimizers · <span className="text-foreground">{trials}</span>{' '}
+              trials ={' '}
+              <span className="text-primary">{totalRuns.toLocaleString()}</span>{' '}
               runs
             </span>
           </div>
-          <Button
-            onClick={runGrid}
-            disabled={
-              status === 'running' ||
-              selectedOpts.length === 0 ||
-              windowSizes.length === 0
-            }
-            size="sm"
-          >
-            <Play className="h-4 w-4" aria-hidden="true" />
-            {copy.explorer.actions.run}
-          </Button>
         </div>
 
         {progress > 0 && progress < 1 ? (
-          <Progress value={progress * 100} className="mt-4 h-1.5" />
+          <Progress value={progress * 100} className="mt-4" />
         ) : null}
       </SectionCard>
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <SectionCard
           eyebrow="RMSE × H"
           title="RMSE per H"
@@ -375,7 +375,7 @@ function ExplorerView() {
         description="Top three configurations by RMSE."
         actions={
           topConfigs.length > 0 ? (
-            <Button asChild size="sm" variant="outline">
+            <Button asChild size="sm" variant="ghost">
               <a href="#results-table">View all results</a>
             </Button>
           ) : null
@@ -392,16 +392,21 @@ function ExplorerView() {
             {topConfigs.map((r, i) => (
               <div
                 key={`${r.optimizer}-${r.windowSize}-${r.trueH}`}
-                className="relative flex flex-col gap-4 rounded-lg border border-border/70 bg-card/60 p-4 shadow-card"
+                className="relative flex flex-col gap-4 rounded-lg border border-border bg-card p-5 shadow-card"
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+                  <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
                     Rank #{i + 1}
                   </span>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="h-7 px-2">
-                        <Copy className="h-3 w-3" aria-hidden="true" />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        aria-label="Copy configuration"
+                      >
+                        <Copy className="h-3.5 w-3.5" aria-hidden="true" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
@@ -432,40 +437,17 @@ function ExplorerView() {
                   </DropdownMenu>
                 </div>
                 <StatTile
+                  size="sm"
                   label={copy.metrics.rmse}
                   value={fmt(r.rmse, 4)}
                   tone="primary"
                   emphasis={i === 0}
                 />
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div>
-                    <div className="font-mono uppercase tracking-wider text-muted-foreground">
-                      Optimizer
-                    </div>
-                    <div className="font-mono">{r.optimizer}</div>
-                  </div>
-                  <div>
-                    <div className="font-mono uppercase tracking-wider text-muted-foreground">
-                      Window
-                    </div>
-                    <div className="font-mono tabular-nums">{r.windowSize}</div>
-                  </div>
-                  <div>
-                    <div className="font-mono uppercase tracking-wider text-muted-foreground">
-                      True H
-                    </div>
-                    <div className="font-mono tabular-nums">
-                      {fmt(r.trueH, 2)}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="font-mono uppercase tracking-wider text-muted-foreground">
-                      Bias
-                    </div>
-                    <div className="font-mono tabular-nums">
-                      {fmt(r.bias, 4)}
-                    </div>
-                  </div>
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <KV label="Optimizer" value={r.optimizer} />
+                  <KV label="Window" value={r.windowSize} mono />
+                  <KV label="True H" value={fmt(r.trueH, 2)} mono />
+                  <KV label="Bias" value={fmt(r.bias, 4)} mono />
                 </div>
               </div>
             ))}
@@ -475,7 +457,7 @@ function ExplorerView() {
 
       <SectionCard
         eyebrow="All results"
-        title="Results"
+        title="Results table"
         description="Per-configuration RMSE, bias, fail rate, and average runtime."
       >
         <div id="results-table">
@@ -490,6 +472,32 @@ function ExplorerView() {
           )}
         </div>
       </SectionCard>
+    </div>
+  );
+}
+
+function KV({
+  label,
+  value,
+  mono = false,
+}: {
+  label: string;
+  value: React.ReactNode;
+  mono?: boolean;
+}) {
+  return (
+    <div>
+      <div className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+        {label}
+      </div>
+      <div
+        className={cn(
+          mono ? 'font-mono tabular-nums' : 'font-medium',
+          'text-foreground',
+        )}
+      >
+        {value}
+      </div>
     </div>
   );
 }
