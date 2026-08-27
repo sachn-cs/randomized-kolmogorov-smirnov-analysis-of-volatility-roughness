@@ -54,4 +54,17 @@ describe('Registry', function () {
     expect(() => reg.register('', () => ({}))).to.throw();
     expect(() => reg.register('a', null)).to.throw();
   });
+
+  it('resolve does not invoke prototype-inherited members', function () {
+    const reg = new Registry();
+    expect(reg.resolve('toString')).to.equal(undefined);
+    expect(reg.resolve('hasOwnProperty')).to.equal(undefined);
+    expect(reg.resolve('__proto__')).to.equal(undefined);
+  });
+
+  it('resolve returns undefined when value is not a function', function () {
+    const reg = new Registry();
+    reg.factories['bad'] = 42;
+    expect(reg.resolve('bad')).to.equal(undefined);
+  });
 });
