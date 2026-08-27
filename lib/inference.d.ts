@@ -2,80 +2,104 @@
  * Type declarations for `lib/inference.js`.
  */
 
-export interface SignificanceTest {
-  statistic: number;
-  pValue: number;
-  significant: boolean;
-  criticalValue: number;
-}
-
 export interface ConfidenceInterval {
   lower: number;
   upper: number;
-  level: number;
-}
-
-export interface KalmanState {
-  mean: number;
-  variance: number;
 }
 
 export interface KalmanResult {
-  states: KalmanState[];
   filtered: number[];
-  smoothed?: number[];
+  predictions: number[];
 }
 
-export interface CUSUMResult {
-  statistic: number;
-  breakpoints: number[];
-  significant: boolean;
+export interface CusumResult {
+  breakDetected: boolean;
+  maxCusum: number;
+  breakIndex: number;
 }
 
 export interface ConstancyResult {
-  statistic: number;
+  lrStat: number;
   pValue: number;
   constant: boolean;
 }
 
-export declare function asymptoticVariance(
+export interface SignificanceResult {
+  significant: boolean;
+  pValue: number;
+  statistic: number;
+  criticalValue: number;
+}
+
+export interface BootstrapCiResult {
+  lower: number;
+  upper: number;
+  pointEstimate: number;
+}
+
+export declare function getAsymptoticVariance(
   a1: number,
   a2: number,
   n: number,
   m: number,
 ): number;
-export declare function standardError(
+
+export declare function getStandardError(
   a1: number,
   a2: number,
   n: number,
   m: number,
 ): number;
-export declare function confidenceInterval(
+
+export declare function getConfidenceInterval(
   h: number,
-  se: number,
-  alpha?: number,
-): ConfidenceInterval;
-export declare function kalmanFilter(
-  series: number[],
-  options: {q: number; r: number},
-): KalmanResult;
-export declare function ksCriticalValue(alpha: number, n: number): number;
-export declare function ksPvalue(d: number, n: number): number;
-export declare function significanceTest(
-  d: number,
+  a1: number,
+  a2: number,
   n: number,
   m: number,
   alpha?: number,
-): SignificanceTest;
-export declare function cusumTest(
-  series: number[],
-  options?: {threshold?: number},
-): CUSUMResult;
-export declare function detectBreakpoints(series: number[]): number[];
-export declare function constancyTest(series: number[]): ConstancyResult;
-export declare function bootstrapCI(
-  estimator: (data: number[]) => number,
-  data: number[],
-  B: number,
-  alpha?: number,
 ): ConfidenceInterval;
+
+export declare function runKalmanFilter(
+  series: number[],
+  options: {q?: number; r?: number},
+): KalmanResult;
+
+export declare function ksCriticalValue(
+  n: number,
+  m: number,
+  alpha?: number,
+): number;
+
+export declare function ksPvalue(D: number, n: number, m: number): number;
+
+export declare function runSignificanceTest(
+  D: number,
+  n: number,
+  m: number,
+  alpha?: number,
+): SignificanceResult;
+
+export declare function runCusumTest(
+  hHistory: number[],
+  targetH: number,
+  threshold?: number,
+): CusumResult;
+
+export declare function detectCusumBreakpoints(
+  hHistory: number[],
+  windowSize?: number,
+  threshold?: number,
+): Array<{index: number; H_before: number; H_after: number}>;
+
+export declare function runConstancyTest(
+  series: number[],
+  options?: {q?: number; r?: number},
+): ConstancyResult;
+
+export declare function bootstrapConfidenceInterval(
+  estimator: (data: number[]) => number,
+  window: number[],
+  nBoot?: number,
+  alpha?: number,
+): BootstrapCiResult;

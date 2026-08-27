@@ -1,72 +1,141 @@
 /**
- * Type declarations for `lib/data/index.js`.
+ * Type declarations for the data pipeline layer.
  */
 
 export interface ParseOptions {
-  delimiter?: string;
-  hasHeader?: boolean;
+  dateField?: string;
+  numericFields?: string[];
 }
 
-export interface SeriesPoint {
-  [key: string]: number | string;
+export interface DataPoint {
+  date: Date;
+  value: number;
 }
 
-export interface DataWindow {
-  start: number;
-  end: number;
-  data: number[];
+export interface SeriesRow {
+  [key: string]: string | number | Date;
+}
+
+export interface Bar {
+  open: number;
+  high: number;
+  low: number;
+  close: number;
 }
 
 export interface PreprocessOptions {
-  logTransform?: boolean;
+  interval?: number;
   center?: boolean;
-  standardize?: boolean;
-  downsampleFactor?: number;
 }
 
-export declare function parseCSV(
+export interface IntradayPricesOptions {
+  seed?: number;
+  noiseStd?: number;
+  drift?: number;
+}
+
+export interface NoiseOptions {
+  windowSize?: number;
+  kernelType?: 'bartlett' | 'parzen' | 'tukey-hanning';
+  bandwidth?: number | null;
+}
+
+export declare function parseCsv(
   csv: string,
   opts?: ParseOptions,
-): SeriesPoint[];
+): SeriesRow[];
+
 export declare function extractSeries(
-  rows: SeriesPoint[],
+  rows: SeriesRow[],
   field: string,
-): number[];
-export declare function parseJSON(input: string): unknown;
+  opts?: {sortByDate?: boolean; dateField?: string},
+): DataPoint[];
+
+export declare function parseJson(json: string): unknown[];
+
 export declare function validateNoGaps(
-  series: number[],
-  maxGap?: number,
-): boolean;
-export declare function downsample(series: number[], factor: number): number[];
-export declare function computeRV(returns: number[]): number;
-export declare function computeRVParkinson(
-  high: number[],
-  low: number[],
+  series: DataPoint[],
+  maxGapMs: number,
+): {valid: boolean; maxGap: number; gaps: number[]};
+
+export declare function downsampleSeries(
+  series: DataPoint[],
+  intervalMs: number,
+): DataPoint[];
+
+export declare function computeRealizedVariance(
+  prices: number[],
+  interval?: number,
+): number[];
+
+export declare function computeRealizedVarianceParkinson(
+  bars: Bar[],
+): number[];
+
+export declare function aggregateDailyRealizedVariance(
+  intradayRVs: number[],
 ): number;
-export declare function aggregateDailyRV(
-  intraday: number[],
-  nPerDay: number,
-): number[];
-export declare function logTransform(series: number[]): number[];
+
+export declare function applyLogTransform(rv: number[]): number[];
+
 export declare function centerSeries(series: number[]): number[];
+
 export declare function standardizeSeries(series: number[]): number[];
-export declare function preprocessPipeline(
-  series: number[],
-  opts: PreprocessOptions,
+
+export declare function applyPreprocessingPipeline(
+  prices: number[],
+  opts?: PreprocessOptions,
 ): number[];
-export declare function trainTestSplit<T>(
-  data: T[],
-  ratio: number,
+
+export declare function splitTrainTest<T>(
+  series: T[],
+  trainRatio?: number,
 ): {train: T[]; test: T[]};
-export declare function createWindows(
-  series: number[],
-  size: number,
+
+export declare function createSlidingWindows<T>(
+  series: T[],
+  windowSize: number,
   step?: number,
-): DataWindow[];
-export declare function generateVIXLogVol(n: number): number[];
-export declare function generateSPXLogVol(n: number): number[];
-export declare function generateIntradayPrices(n: number, h: number): number[];
-export declare function seriesToCSV(
-  series: number[],
-  fields?: string[],
+): T[][];
+
+export declare function generateVixLogVolatility(
+  nDays: number,
+  h?: number,
+  opts?: IntradayPricesOptions,
+): number[];
+
+export declare function generateSpxLogVolatility(
+  nDays: number,
+  h?: number,
+  opts?: IntradayPricesOptions,
+): number[];
+
+export declare function generateIntradayPrices(
+  nIntraday?: number,
+  nDays?: number,
+  h?: number,
+  opts?: IntradayPricesOptions,
+): number[][];
+
+export declare function seriesToCsv(
+  series: DataPoint[],
+  dateHeader?: string,
+  valueHeader?: string,
 ): string;
+
+export declare function preaverageReturns(
+  prices: number[],
+  windowSize?: number,
+): number[];
+
+export declare function computeRealizedKernel(
+  returns: number[],
+  kernelType?: 'bartlett' | 'parzen' | 'tukey-hanning',
+  bandwidth?: number | null,
+): number;
+
+export declare function debiasLogVolatility(
+  rawHEstimates: number[],
+  sigmaObs: number,
+  sigmaLatent: number,
+): number[];

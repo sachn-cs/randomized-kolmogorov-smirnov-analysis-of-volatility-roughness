@@ -1,9 +1,14 @@
 /**
- * Type declarations for the Optimizer strategy hierarchy.
+ * Type declarations for the optimizer strategy hierarchy.
  */
 
-export declare class Optimizer {
-  minimize(
+export interface BrentResult {
+  x: number;
+  f: number;
+}
+
+export declare abstract class Optimizer {
+  abstract minimize(
     objective: (h: number) => number,
     lower: number,
     upper: number,
@@ -17,7 +22,7 @@ export declare class NelderMeadOptimizer extends Optimizer {}
 export declare class SimulatedAnnealingOptimizer extends Optimizer {}
 export declare class DifferentialEvolutionOptimizer extends Optimizer {}
 
-export declare function safeOptimizer(
+export declare function wrapSafeOptimizer(
   optimizer: Optimizer,
 ): (
   objective: (h: number) => number,
@@ -37,12 +42,9 @@ export declare function registerOptimizer(
   factory: () => Optimizer,
 ): void;
 
-export interface BrentResult {
-  x: number;
-  f: number;
-}
+export declare const optimizerRegistry: import('./strategies.js').Registry<Optimizer>;
 
-export declare function brentMinimize(
+export declare function runBrent(
   f: (x: number) => number,
   ax: number,
   bx: number,
@@ -50,7 +52,7 @@ export declare function brentMinimize(
   tol?: number,
 ): BrentResult;
 
-export declare function nelderMead(
+export declare function runNelderMead(
   f: (xs: number[]) => number,
   x0: number[],
   opts?: {
@@ -63,19 +65,19 @@ export declare function nelderMead(
   },
 ): {x: number[]; f: number};
 
-export declare function simulatedAnnealing(
+export declare function runSimulatedAnnealing(
   f: (xs: number[]) => number,
   x0: number[],
   opts?: {maxIter?: number; coolingRate?: number; stepSize?: number},
 ): {x: number[]; f: number};
 
-export declare function differentialEvolution(
+export declare function runDifferentialEvolution(
   f: (xs: number[]) => number,
   x0: number[],
-  opts?: {maxIter?: number; popSize?: number; crossover?: number; f?: number},
+  opts?: {maxIter?: number; popSize?: number; cr?: number; f?: number},
 ): {x: number[]; f: number};
 
-export declare function adaptiveGridSearch(
+export declare function runAdaptiveGridSearch(
   f: (x: number) => number,
   min: number,
   max: number,

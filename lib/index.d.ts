@@ -1,21 +1,34 @@
 /**
- * Type re-exports for hurstify (formerly rksavr).
- * Hand-written: tracks the public API in `lib/index.js` exactly.
+ * Type re-exports for the hurstify public API.
+ *
+ * v2.0.0 is a hard break from v1.x. Every public function has been
+ * renamed to follow Google's verb-noun convention; legacy names are
+ * gone.
  */
 
 export {Hurstify} from './hurstify.js';
-export {ksDistance, shuffle, randomSample, blockPermutation} from './stats.js';
-export type {Increments} from './stats.js';
+export type {HurstifyConfig} from './hurstify.js';
+export {HurstifyError, HurstifyErrorCode} from './errors.js';
+
 export {
-  generateFGN,
-  generateFBM,
-  randn,
-  randnBatch,
-  correlatedGaussian,
-  fractionalKernel,
-  fractionalIntegral,
+  computeKsDistance,
+  shuffleArray,
+  getRandomSample,
+  permuteBlocks,
+} from './stats.js';
+
+export {
+  nextGaussian,
+  generateGaussianBatch,
+  generateCorrelatedGaussian,
+  generateFractionalNoise,
+  generateFractionalBrownianMotion,
+  computeFractionalKernel,
+  computeFractionalIntegral,
 } from './stochastic-generators.js';
-export {setSeed, resetSeed, random} from './prng.js';
+
+export {setRandomSeed, resetRandomSeed, nextRandom} from './prng.js';
+
 export {
   LogLevel,
   setLogLevel,
@@ -25,63 +38,123 @@ export {
   warn,
   error,
 } from './logger.js';
+
 export {
-  asymptoticVariance,
-  standardError,
-  confidenceInterval,
-  kalmanFilter,
+  getAsymptoticVariance,
+  getStandardError,
+  getConfidenceInterval,
+  runKalmanFilter,
   ksCriticalValue,
   ksPvalue,
-  significanceTest,
-  cusumTest,
-  detectBreakpoints,
-  constancyTest,
-  bootstrapCI,
+  runSignificanceTest,
+  runCusumTest,
+  detectCusumBreakpoints,
+  runConstancyTest,
+  bootstrapConfidenceInterval,
 } from './inference.js';
+
 export {
-  rBergomi,
-  rBergomiPrice,
-  rFSV,
-  rFSVPrice,
-  fOU,
-  exactOU,
-  mPRE,
-  mPREExact,
-  arfima,
-  holtWintersForecast,
-  createLSTM,
-  createAttentionModel,
+  RoughBergomiModel,
+  RoughFsvModel,
+  FractionalOuModel,
+  MultifractionalPreModel,
+  ArfimaForecaster,
+  HoltWintersForecaster,
+  LstmForecaster,
+  AttentionForecaster,
   getModel,
   registerModel,
   listModels,
+  getForecaster,
+  registerForecaster,
+  listForecasters,
+  modelRegistry,
+  forecasterRegistry,
 } from './models/index.js';
+
+export type {
+  RoughBergomiOptions,
+  RoughFsvOptions,
+  FractionalOuOptions,
+  MultifractionalPreOptions,
+  ArfimaOptions,
+  HoltWintersOptions,
+  LstmOptions,
+  AttentionOptions,
+} from './models/index.js';
+
 export {
-  parseCSV,
+  parseCsv,
   extractSeries,
-  parseJSON,
+  parseJson,
   validateNoGaps,
-  downsample,
-  computeRV,
-  computeRVParkinson,
-  aggregateDailyRV,
-  logTransform,
+  downsampleSeries,
+  computeRealizedVariance,
+  computeRealizedVarianceParkinson,
+  aggregateDailyRealizedVariance,
+  applyLogTransform,
   centerSeries,
   standardizeSeries,
-  preprocessPipeline,
-  trainTestSplit,
-  createWindows,
-  generateVIXLogVol,
-  generateSPXLogVol,
+  applyPreprocessingPipeline,
+  splitTrainTest,
+  createSlidingWindows,
+  generateVixLogVolatility,
+  generateSpxLogVolatility,
   generateIntradayPrices,
-  seriesToCSV,
+  seriesToCsv,
+  preaverageReturns,
+  computeRealizedKernel,
+  debiasLogVolatility,
 } from './data/index.js';
+
 export {
-  brentMinimize,
-  nelderMead,
-  simulatedAnnealing,
-  differentialEvolution,
-  adaptiveGridSearch,
-  safeOptimizer,
+  Optimizer,
+  BrentOptimizer,
+  AdaptiveGridSearchOptimizer,
+  NelderMeadOptimizer,
+  SimulatedAnnealingOptimizer,
+  DifferentialEvolutionOptimizer,
+  runBrent,
+  runNelderMead,
+  runSimulatedAnnealing,
+  runDifferentialEvolution,
+  runAdaptiveGridSearch,
+  wrapSafeOptimizer,
   getOptimizer,
+  resolveOptimizer,
   registerOptimizer,
+  optimizerRegistry,
 } from './optimization/index.js';
+
+export {
+  Registry,
+  Sampler,
+  ReservoirSampler,
+  BlockPermutationSampler,
+  IdentitySampler,
+  defaultSampler,
+  KsObjective,
+  PairwiseKsObjective,
+  MultiScaleKsObjective,
+  WeightedMultiScaleKsObjective,
+  chooseKsObjective,
+  Kernel,
+  RiemannLiouvilleKernel,
+  TimeVaryingKernel,
+  StochasticModel,
+  Forecaster,
+  HypothesisTest,
+  KsSignificanceTest,
+  ConstancyTest,
+  CusumBreakTest,
+  BootstrapConfidenceInterval,
+} from './strategies/index.js';
+
+export type {
+  SimulationResult,
+  PriceResult,
+  KsSignificanceResult,
+  ConstancyResult,
+  CusumBreakResult,
+  BootstrapCiResult,
+} from './strategies.js';
