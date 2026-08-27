@@ -245,8 +245,10 @@ function DashboardView() {
           </div>
 
           <div className="space-y-2">
-            <Label>Path Length</Label>
+            <Label htmlFor="dashboard-path-length">Path Length</Label>
             <Input
+              id="dashboard-path-length"
+              aria-label="Path length"
               type="number"
               min={500}
               max={10000}
@@ -257,8 +259,10 @@ function DashboardView() {
           </div>
 
           <div className="space-y-2">
-            <Label>Window Size</Label>
+            <Label htmlFor="dashboard-window-size">Window Size</Label>
             <Input
+              id="dashboard-window-size"
+              aria-label="Sliding window size"
               type="number"
               min={100}
               max={5000}
@@ -269,8 +273,10 @@ function DashboardView() {
           </div>
 
           <div className="space-y-2">
-            <Label>Sample Size</Label>
+            <Label htmlFor="dashboard-sample-size">Sample Size</Label>
             <Input
+              id="dashboard-sample-size"
+              aria-label="Sample size"
               type="number"
               min={50}
               max={2000}
@@ -281,8 +287,10 @@ function DashboardView() {
           </div>
 
           <div className="space-y-2">
-            <Label>Iterations</Label>
+            <Label htmlFor="dashboard-iterations">Iterations</Label>
             <Input
+              id="dashboard-iterations"
+              aria-label="Variance-reduction iterations"
               type="number"
               min={1}
               max={64}
@@ -293,7 +301,7 @@ function DashboardView() {
           </div>
 
           <div className="space-y-2">
-            <Label>Optimizer</Label>
+            <Label htmlFor="dashboard-optimizer">Optimizer</Label>
             <Select
               value={optimizer}
               onValueChange={(v: string) => setOptimizer(v as typeof optimizer)}

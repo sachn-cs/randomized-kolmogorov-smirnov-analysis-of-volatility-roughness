@@ -102,8 +102,10 @@ function CommonFigureInputs({
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
       <div className="space-y-2">
-        <Label>True H</Label>
+        <Label htmlFor="figure-true-h">True H</Label>
         <Input
+          id="figure-true-h"
+          aria-label="True Hurst parameter"
           type="number"
           min={0.01}
           max={0.99}
@@ -113,8 +115,10 @@ function CommonFigureInputs({
         />
       </div>
       <div className="space-y-2">
-        <Label>Path Length</Label>
+        <Label htmlFor="figure-n">Path Length</Label>
         <Input
+          id="figure-n"
+          aria-label="Path length"
           type="number"
           min={500}
           max={10000}
@@ -124,8 +128,10 @@ function CommonFigureInputs({
         />
       </div>
       <div className="space-y-2">
-        <Label>Window Size</Label>
+        <Label htmlFor="figure-window">Window Size</Label>
         <Input
+          id="figure-window"
+          aria-label="Sliding window size"
           type="number"
           min={100}
           max={5000}
@@ -186,8 +192,10 @@ function Figure1() {
             {...{trueH, setTrueH, n, setN, windowSize, setWindowSize}}
           />
           <div className="space-y-2">
-            <Label>H Resolution</Label>
+            <Label htmlFor="fig2-res">H Resolution</Label>
             <Input
+              id="fig2-res"
+              aria-label="H resolution"
               type="number"
               min={0.001}
               max={0.05}
@@ -197,8 +205,10 @@ function Figure1() {
             />
           </div>
           <div className="space-y-2">
-            <Label>Scale A1</Label>
+            <Label htmlFor="fig2-a1">Scale A1</Label>
             <Input
+              id="fig2-a1"
+              aria-label="Scale A1"
               type="number"
               min={1}
               max={10}
@@ -207,8 +217,10 @@ function Figure1() {
             />
           </div>
           <div className="space-y-2">
-            <Label>Scale A2</Label>
+            <Label htmlFor="fig2-a2">Scale A2</Label>
             <Input
+              id="fig2-a2"
+              aria-label="Scale A2"
               type="number"
               min={2}
               max={100}
@@ -292,8 +304,10 @@ function Figure2() {
             {...{trueH, setTrueH, n, setN, windowSize, setWindowSize}}
           />
           <div className="space-y-2">
-            <Label>Scales (comma)</Label>
+            <Label htmlFor="fig3-scales">Scales (comma)</Label>
             <Input
+              id="fig3-scales"
+              aria-label="Multi-scale values (comma-separated)"
               value={scalesText}
               onChange={(e) => setScalesText(e.target.value)}
             />
@@ -356,8 +370,10 @@ function Figure3() {
             {...{trueH, setTrueH, n, setN, windowSize, setWindowSize}}
           />
           <div className="space-y-2">
-            <Label>Step</Label>
+            <Label htmlFor="fig3-step">Step</Label>
             <Input
+              id="fig3-step"
+              aria-label="Rolling step size"
               type="number"
               min={1}
               max={500}
@@ -366,8 +382,10 @@ function Figure3() {
             />
           </div>
           <div className="space-y-2">
-            <Label>Iterations</Label>
+            <Label htmlFor="fig3-iterations">Iterations</Label>
             <Input
+              id="fig3-iterations"
+              aria-label="Variance-reduction iterations"
               type="number"
               min={1}
               max={64}
@@ -458,16 +476,28 @@ function Figure4() {
       <CardContent className="space-y-6">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <div className="space-y-2">
-            <Label>H Values (comma)</Label>
-            <Input value={hsText} onChange={(e) => setHsText(e.target.value)} />
-          </div>
-          <div className="space-y-2">
-            <Label>Window Sizes (comma)</Label>
-            <Input value={wsText} onChange={(e) => setWsText(e.target.value)} />
-          </div>
-          <div className="space-y-2">
-            <Label>Trials per Config</Label>
+            <Label htmlFor="fig4-hs">H Values (comma)</Label>
             <Input
+              id="fig4-hs"
+              aria-label="H values to sweep (comma-separated)"
+              value={hsText}
+              onChange={(e) => setHsText(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="fig4-ws">Window Sizes (comma)</Label>
+            <Input
+              id="fig4-ws"
+              aria-label="Window sizes to sweep (comma-separated)"
+              value={wsText}
+              onChange={(e) => setWsText(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="fig4-trials">Trials per Config</Label>
+            <Input
+              id="fig4-trials"
+              aria-label="Trials per config"
               type="number"
               min={1}
               max={50}

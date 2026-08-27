@@ -126,6 +126,8 @@ function ExplorerView() {
             <Label>H Range</Label>
             <div className="flex gap-2">
               <Input
+                id="explorer-h-start"
+                aria-label="H range start"
                 type="number"
                 min={0.01}
                 max={0.99}
@@ -134,6 +136,8 @@ function ExplorerView() {
                 onChange={(e) => setHStart(parseFloat(e.target.value))}
               />
               <Input
+                id="explorer-h-end"
+                aria-label="H range end"
                 type="number"
                 min={0.01}
                 max={0.99}
@@ -142,6 +146,8 @@ function ExplorerView() {
                 onChange={(e) => setHEnd(parseFloat(e.target.value))}
               />
               <Input
+                id="explorer-h-step"
+                aria-label="H range step"
                 type="number"
                 min={0.01}
                 max={0.5}
@@ -153,16 +159,22 @@ function ExplorerView() {
           </div>
 
           <div className="space-y-2">
-            <Label>Window Sizes (comma-separated)</Label>
+            <Label htmlFor="explorer-wins">
+              Window Sizes (comma-separated)
+            </Label>
             <Input
+              id="explorer-wins"
+              aria-label="Window sizes (comma-separated)"
               value={winsText}
               onChange={(e) => setWinsText(e.target.value)}
             />
           </div>
 
           <div className="space-y-2">
-            <Label>Trials / Config</Label>
+            <Label htmlFor="explorer-trials">Trials / Config</Label>
             <Input
+              id="explorer-trials"
+              aria-label="Trials per config"
               type="number"
               min={1}
               max={20}
@@ -172,8 +184,10 @@ function ExplorerView() {
           </div>
 
           <div className="space-y-2">
-            <Label>Path Length</Label>
+            <Label htmlFor="explorer-pathlen">Path Length</Label>
             <Input
+              id="explorer-pathlen"
+              aria-label="Path length"
               type="number"
               min={500}
               max={5000}
