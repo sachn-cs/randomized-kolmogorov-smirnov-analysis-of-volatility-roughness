@@ -70,7 +70,10 @@ describe('runSimulatedAnnealing', function () {
 describe('runDifferentialEvolution', function () {
   it('finds minimum of parabola', function () {
     const f = (x) => (x[0] + 1) * (x[0] + 1);
-    const result = runDifferentialEvolution(f, [0], {maxIter: 200, popSize: 30});
+    const result = runDifferentialEvolution(f, [0], {
+      maxIter: 200,
+      popSize: 30,
+    });
     expect(result.x[0]).to.be.closeTo(-1, 0.5);
   });
 });

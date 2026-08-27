@@ -13,7 +13,10 @@ import {
 
 describe('PairwiseKsObjective', function () {
   it('returns 0 for identical rescaled samples at correct H', function () {
-    const samples = [new Float64Array([1, 2, 3, 4, 5]), new Float64Array([2, 4, 6, 8, 10])];
+    const samples = [
+      new Float64Array([1, 2, 3, 4, 5]),
+      new Float64Array([2, 4, 6, 8, 10]),
+    ];
     const obj = new PairwiseKsObjective();
     // Scales 1, 2; H=1 makes factor=1 for scale 1 and factor=0.5 for scale 2
     // Actually a^{-H}: 1^{-1}=1, 2^{-1}=0.5 -> [1,2,3,4,5]*1 = [1,2,3,4,5],
@@ -41,17 +44,14 @@ describe('MultiScaleKsObjective', function () {
       new Float64Array([1, 2, 3, 4, 5]),
     ];
     const obj = new MultiScaleKsObjective();
-    const d = obj.evaluate(samples, [1, 2, 3], 0.5);
+    const d = obj.evaluate(samples, [1, 2, 3], 0);
     expect(d).to.be.closeTo(0, 1e-9);
   });
 
   it('handles two scales as pairwise mean', function () {
-    const samples = [
-      new Float64Array([1, 2, 3]),
-      new Float64Array([1, 2, 3]),
-    ];
+    const samples = [new Float64Array([1, 2, 3]), new Float64Array([1, 2, 3])];
     const obj = new MultiScaleKsObjective();
-    const d = obj.evaluate(samples, [1, 2], 0.5);
+    const d = obj.evaluate(samples, [1, 2], 0);
     expect(d).to.equal(0);
   });
 });
@@ -73,7 +73,7 @@ describe('WeightedMultiScaleKsObjective', function () {
       new Float64Array([1, 2, 3]),
     ];
     const obj = new WeightedMultiScaleKsObjective([1, 1, 1]);
-    expect(obj.evaluate(samples, [1, 2, 3], 0.5)).to.equal(0);
+    expect(obj.evaluate(samples, [1, 2, 3], 0)).to.equal(0);
   });
 });
 
@@ -85,7 +85,9 @@ describe('chooseKsObjective', function () {
   });
 
   it('returns MultiScaleKsObjective for multi-scale without weights', function () {
-    expect(chooseKsObjective([1, 2, 3])).to.be.instanceOf(MultiScaleKsObjective);
+    expect(chooseKsObjective([1, 2, 3])).to.be.instanceOf(
+      MultiScaleKsObjective,
+    );
   });
 
   it('returns PairwiseKsObjective for two scales', function () {

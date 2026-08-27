@@ -148,7 +148,9 @@ describe('Data Loaders', function () {
   });
 
   it('throws for invalid downsampleSeries interval', function () {
-    expect(() => downsampleSeries([], 0)).to.throw('intervalMs must be positive');
+    expect(() => downsampleSeries([], 0)).to.throw(
+      'intervalMs must be positive',
+    );
   });
 });
 
@@ -168,7 +170,9 @@ describe('Preprocessing', function () {
   });
 
   it('throws for non-array prices', function () {
-    expect(() => computeRealizedVariance('bad')).to.throw('prices must be an array');
+    expect(() => computeRealizedVariance('bad')).to.throw(
+      'prices must be an array',
+    );
   });
 
   it('throws for too-short prices', function () {
@@ -176,7 +180,9 @@ describe('Preprocessing', function () {
   });
 
   it('throws for non-positive prices', function () {
-    expect(() => computeRealizedVariance([100, -1])).to.throw('positive finite');
+    expect(() => computeRealizedVariance([100, -1])).to.throw(
+      'positive finite',
+    );
   });
 
   it('throws for invalid interval', function () {
@@ -203,13 +209,16 @@ describe('Preprocessing', function () {
   });
 
   it('throws for invalid bar values', function () {
-    expect(() => computeRealizedVarianceParkinson([{high: -1, low: 1}])).to.throw(
-      'positive finite',
-    );
+    expect(() =>
+      computeRealizedVarianceParkinson([{high: -1, low: 1}]),
+    ).to.throw('positive finite');
   });
 
   it('aggregates daily RV', function () {
-    expect(aggregateDailyRealizedVariance([0.1, 0.2, 0.3])).to.be.closeTo(0.6, 1e-10);
+    expect(aggregateDailyRealizedVariance([0.1, 0.2, 0.3])).to.be.closeTo(
+      0.6,
+      1e-10,
+    );
     expect(aggregateDailyRealizedVariance([])).to.equal(0);
   });
 
@@ -256,7 +265,10 @@ describe('Preprocessing', function () {
 
   it('runs full preprocessing pipeline', function () {
     const prices = Array.from({length: 100}, (_, i) => 100 + i * 0.1);
-    const result = applyPreprocessingPipeline(prices, {interval: 5, center: true});
+    const result = applyPreprocessingPipeline(prices, {
+      interval: 5,
+      center: true,
+    });
     expect(result).to.be.an('array');
     expect(result.length).to.be.above(0);
     const mean = result.reduce((a, b) => a + b, 0) / result.length;
@@ -296,7 +308,9 @@ describe('Preprocessing', function () {
     expect(() => createSlidingWindows([1], 0, 1)).to.throw(
       'windowSize must be positive',
     );
-    expect(() => createSlidingWindows([1], 1, 0)).to.throw('step must be positive');
+    expect(() => createSlidingWindows([1], 1, 0)).to.throw(
+      'step must be positive',
+    );
   });
 });
 
@@ -325,8 +339,12 @@ describe('Synthetic Data', function () {
   });
 
   it('throws for invalid H', function () {
-    expect(() => generateVixLogVolatility(10, 0)).to.throw('h must be in (0, 1)');
-    expect(() => generateSpxLogVolatility(10, 1)).to.throw('h must be in (0, 1)');
+    expect(() => generateVixLogVolatility(10, 0)).to.throw(
+      'h must be in (0, 1)',
+    );
+    expect(() => generateSpxLogVolatility(10, 1)).to.throw(
+      'h must be in (0, 1)',
+    );
   });
 
   it('generates intraday prices', function () {

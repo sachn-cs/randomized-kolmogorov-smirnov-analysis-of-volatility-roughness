@@ -69,7 +69,11 @@ describe('FractionalOuModel', function () {
   });
 
   it('generates exact OU path', function () {
-    const result = model.simulate({nSteps: 100, h: 0.3, discretization: 'exact'});
+    const result = model.simulate({
+      nSteps: 100,
+      h: 0.3,
+      discretization: 'exact',
+    });
     expect(result.paths[0]).to.have.lengthOf(101);
     expect(result.times).to.have.lengthOf(101);
   });
@@ -79,7 +83,12 @@ describe('MultifractionalPreModel', function () {
   const model = new MultifractionalPreModel();
 
   it('generates MPRE path with local-holder discretization', function () {
-    const result = model.simulate({nSteps: 100, hMin: 0.05, hMax: 0.95, h0: 0.1});
+    const result = model.simulate({
+      nSteps: 100,
+      hMin: 0.05,
+      hMax: 0.95,
+      h0: 0.1,
+    });
     expect(result.paths[0]).to.have.lengthOf(101);
     expect(result.times).to.have.lengthOf(101);
   });

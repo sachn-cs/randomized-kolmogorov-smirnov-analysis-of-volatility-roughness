@@ -11,10 +11,7 @@ export declare class Registry<T> {
 }
 
 export declare abstract class Sampler {
-  abstract draw(
-    inc: number[] | Float64Array,
-    n: number,
-  ): number[];
+  abstract draw(inc: number[] | Float64Array, n: number): number[];
 }
 
 export declare class ReservoirSampler extends Sampler {

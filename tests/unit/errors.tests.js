@@ -17,19 +17,17 @@ describe('HurstifyError', function () {
   });
 
   it('is thrown for invalid constructor configuration', function () {
-    expect(() => new Hurstify({hMin: 0.5, hMax: 0.2})).to.throw(
-      HurstifyError,
-      /hMin/,
-    ).with.property('code', HurstifyErrorCode.INVALID_BOUNDS);
+    expect(() => new Hurstify({hMin: 0.5, hMax: 0.2}))
+      .to.throw(HurstifyError, /hMin/)
+      .with.property('code', HurstifyErrorCode.INVALID_BOUNDS);
     expect(() => new Hurstify({iterations: 0})).to.throw(HurstifyError);
     expect(() => new Hurstify({sampleSize: 0})).to.throw(HurstifyError);
   });
 
   it('is thrown for empty-window estimateSingle', function () {
     const h = new Hurstify();
-    expect(() => h.estimateSingle([])).to.throw(
-      HurstifyError,
-      /non-empty/,
-    ).with.property('code', HurstifyErrorCode.EMPTY_WINDOW);
+    expect(() => h.estimateSingle([]))
+      .to.throw(HurstifyError, /non-empty/)
+      .with.property('code', HurstifyErrorCode.EMPTY_WINDOW);
   });
 });

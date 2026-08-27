@@ -50,11 +50,14 @@ describe('HoltWintersForecaster', function () {
     expect(() => forecaster.predict([])).to.throw('series must be non-empty');
   });
 
-  it('validates alpha in [0,1]', function () {
-    expect(() => new HoltWintersForecaster({alpha: -0.1})).to.throw(
+  it('validates alpha in [0,1] on predict', function () {
+    const forecaster = new HoltWintersForecaster();
+    forecaster.alpha = -0.1;
+    expect(() => forecaster.predict([1, 2])).to.throw(
       'alpha must be in [0, 1]',
     );
-    expect(() => new HoltWintersForecaster({alpha: 1.1})).to.throw(
+    forecaster.alpha = 1.1;
+    expect(() => forecaster.predict([1, 2])).to.throw(
       'alpha must be in [0, 1]',
     );
   });

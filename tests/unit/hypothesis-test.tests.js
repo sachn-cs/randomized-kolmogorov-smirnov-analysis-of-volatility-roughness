@@ -46,7 +46,10 @@ describe('CusumBreakTest', function () {
   const test = new CusumBreakTest();
 
   it('flags a synthetic step change', function () {
-    const series = Array.from({length: 50}, (_, i) => 0.1 + (i > 25 ? 0.05 : 0));
+    const series = Array.from(
+      {length: 50},
+      (_, i) => 0.1 + (i > 25 ? 0.05 : 0),
+    );
     const r = test.run(series, {targetH: 0.1, threshold: 3.0});
     expect(r).to.have.all.keys('breakDetected', 'maxCusum', 'breakIndex');
   });
@@ -84,10 +87,7 @@ describe('BootstrapConfidenceInterval', function () {
   it('handles empty bootstrap (degenerate nBoot)', function () {
     setRandomSeed(1);
     const window = [1, 2, 3];
-    const r = test.run(
-      {window},
-      {estimator: () => 0.5, nBoot: 0, alpha: 0.05},
-    );
+    const r = test.run({window}, {estimator: () => 0.5, nBoot: 0, alpha: 0.05});
     expect(r.lower).to.equal(0.5);
     expect(r.upper).to.equal(0.5);
     resetRandomSeed();

@@ -31,8 +31,12 @@ describe('computeKsDistance', function () {
   });
 
   it('validates input types', function () {
-    expect(() => computeKsDistance(null, [1])).to.throw('sample1 must be an array');
-    expect(() => computeKsDistance([1], null)).to.throw('sample2 must be an array');
+    expect(() => computeKsDistance(null, [1])).to.throw(
+      'sample1 must be an array',
+    );
+    expect(() => computeKsDistance([1], null)).to.throw(
+      'sample2 must be an array',
+    );
   });
 
   it('validates non-empty arrays', function () {

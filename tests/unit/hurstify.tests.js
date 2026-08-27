@@ -55,7 +55,6 @@ describe('Hurstify', function () {
       const estimator = new Hurstify({
         scaleA1: 1,
         scaleA2: 50,
-,
         optimizerType: type,
       });
       const estimate = estimator.estimate(window);
@@ -375,19 +374,23 @@ describe('KS Objective', function () {
   });
 
   it('should throw for non-array inputs', function () {
-    expect(() => computeKsDistance(null, [1, 2])).to.throw('sample1 must be an array');
-    expect(() => computeKsDistance([1, 2], null)).to.throw('sample2 must be an array');
+    expect(() => computeKsDistance(null, [1, 2])).to.throw(
+      'sample1 must be an array',
+    );
+    expect(() => computeKsDistance([1, 2], null)).to.throw(
+      'sample2 must be an array',
+    );
   });
 
   it('should throw for empty arrays', function () {
     expect(() => computeKsDistance([], [1, 2])).to.throw(
-      'ksDistance requires non-empty arrays',
+      'computeKsDistance requires non-empty arrays',
     );
   });
 
   it('should throw for non-finite values', function () {
     expect(() => computeKsDistance([1, NaN], [1, 2])).to.throw(
-      'ksDistance requires finite values',
+      'computeKsDistance requires finite values',
     );
   });
 });
@@ -454,8 +457,12 @@ describe('fBM generation', function () {
   });
 
   it('should throw for invalid H', function () {
-    expect(() => generateFractionalBrownianMotion(100, 0)).to.throw('H must satisfy 0 < H < 1');
-    expect(() => generateFractionalBrownianMotion(100, 1)).to.throw('H must satisfy 0 < H < 1');
+    expect(() => generateFractionalBrownianMotion(100, 0)).to.throw(
+      'H must satisfy 0 < H < 1',
+    );
+    expect(() => generateFractionalBrownianMotion(100, 1)).to.throw(
+      'H must satisfy 0 < H < 1',
+    );
   });
 
   it('should return empty array for n <= 0', function () {

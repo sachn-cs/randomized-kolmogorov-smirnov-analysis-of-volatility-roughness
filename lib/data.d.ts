@@ -40,10 +40,7 @@ export interface NoiseOptions {
   bandwidth?: number | null;
 }
 
-export declare function parseCsv(
-  csv: string,
-  opts?: ParseOptions,
-): SeriesRow[];
+export declare function parseCsv(csv: string, opts?: ParseOptions): SeriesRow[];
 
 export declare function extractSeries(
   rows: SeriesRow[],
@@ -68,9 +65,7 @@ export declare function computeRealizedVariance(
   interval?: number,
 ): number[];
 
-export declare function computeRealizedVarianceParkinson(
-  bars: Bar[],
-): number[];
+export declare function computeRealizedVarianceParkinson(bars: Bar[]): number[];
 
 export declare function aggregateDailyRealizedVariance(
   intradayRVs: number[],

@@ -53,11 +53,17 @@ export function main() {
   };
 
   setRandomSeed(42);
-  const vixLogVol = generateVixLogVolatility(1500, 0.1, {seed: 42, noiseStd: 0.05});
+  const vixLogVol = generateVixLogVolatility(1500, 0.1, {
+    seed: 42,
+    noiseStd: 0.05,
+  });
   const vixResults = runRollingExperiment(vixLogVol, config, windowSize, step);
 
   setRandomSeed(123);
-  const spxLogVol = generateSpxLogVolatility(1500, 0.14, {seed: 123, noiseStd: 0.03});
+  const spxLogVol = generateSpxLogVolatility(1500, 0.14, {
+    seed: 123,
+    noiseStd: 0.03,
+  });
   const spxResults = runRollingExperiment(spxLogVol, config, windowSize, step);
 
   const output = {

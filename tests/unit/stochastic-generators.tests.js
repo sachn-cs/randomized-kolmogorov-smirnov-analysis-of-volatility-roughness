@@ -66,9 +66,15 @@ describe('generateFractionalNoise', function () {
   });
 
   it('throws for invalid H', function () {
-    expect(() => generateFractionalNoise(100, 0)).to.throw('H must satisfy 0 < H < 1');
-    expect(() => generateFractionalNoise(100, 1)).to.throw('H must satisfy 0 < H < 1');
-    expect(() => generateFractionalNoise(100, -0.1)).to.throw('H must satisfy 0 < H < 1');
+    expect(() => generateFractionalNoise(100, 0)).to.throw(
+      'H must satisfy 0 < H < 1',
+    );
+    expect(() => generateFractionalNoise(100, 1)).to.throw(
+      'H must satisfy 0 < H < 1',
+    );
+    expect(() => generateFractionalNoise(100, -0.1)).to.throw(
+      'H must satisfy 0 < H < 1',
+    );
   });
 
   it('throws for invalid n', function () {
