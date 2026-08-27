@@ -26,17 +26,24 @@ export function HeatmapGrid({
   const color = (v: number | null) => {
     if (v === null) return 'transparent';
     const t = (v - min) / (max - min || 1);
-    if (t < 0.25) return `hsl(220 38% ${20 + (1 - t) * 4}%)`;
-    if (t < 0.5) return `hsl(220 47% ${30 + (1 - t) * 10}%)`;
-    if (t < 0.75) return 'var(--color-chart-series-2)';
-    return 'var(--color-chart-series-1)';
+    // Warm ramp: light cream → rust.
+    if (t < 0.25) return `hsl(38 36% ${92 - (1 - t) * 6}%)`;
+    if (t < 0.5) return `hsl(30 38% ${82 - (1 - t) * 10}%)`;
+    if (t < 0.75) return `hsl(22 50% ${60 - (1 - t) * 10}%)`;
+    return `hsl(18 60% ${42 - (1 - t) * 6}%)`;
+  };
+
+  const textColor = (v: number | null) => {
+    if (v === null) return 'var(--color-muted-foreground)';
+    const t = (v - min) / (max - min || 1);
+    return t > 0.55 ? 'hsl(40 40% 98%)' : 'var(--color-foreground)';
   };
 
   return (
     <div
       role="img"
       aria-label={`Heatmap of KS distance across ${scales.length}×${scales.length} scale pairs`}
-      className="flex flex-col gap-2"
+      className="flex flex-col gap-3"
     >
       <div
         className="grid gap-1"
@@ -62,9 +69,9 @@ export function HeatmapGrid({
                 <div
                   key={`${i}-${j}`}
                   className={cn(
-                    'flex aspect-square items-center justify-center rounded font-mono text-xs font-semibold',
+                    'flex aspect-square items-center justify-center rounded font-mono text-xs font-semibold tabular-nums',
                   )}
-                  style={{background: color(v)}}
+                  style={{background: color(v), color: textColor(v)}}
                   title={`D = ${v === null ? '—' : v.toFixed(3)}`}
                 >
                   {v === null ? '—' : v.toFixed(2)}
@@ -76,8 +83,14 @@ export function HeatmapGrid({
       </div>
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <span>{label}</span>
-        <div className="h-2 w-40 rounded bg-gradient-to-r from-[hsl(220_38%_20%)] via-[var(--color-chart-series-2)] to-[var(--color-chart-series-1)]" />
-        <span className="font-mono">
+        <div
+          className="h-2 w-40 rounded"
+          style={{
+            backgroundImage:
+              'linear-gradient(90deg, hsl(38 36% 92%), hsl(30 38% 82%), hsl(22 50% 60%), hsl(18 60% 42%))',
+          }}
+        />
+        <span className="font-mono tabular-nums">
           {min.toFixed(2)} → {max.toFixed(2)}
         </span>
       </div>

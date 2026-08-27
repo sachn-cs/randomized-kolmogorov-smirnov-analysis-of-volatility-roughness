@@ -4,6 +4,7 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -42,20 +43,28 @@ export function OptimizerBar({
       className="h-[360px]"
     >
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{top: 8, left: 8, right: 0, bottom: 8}}>
+        <BarChart
+          data={data}
+          margin={{top: 8, left: 8, right: 8, bottom: 24}}
+          barCategoryGap="22%"
+        >
           <CartesianGrid
             stroke="var(--color-chart-grid)"
             strokeDasharray="2 4"
+            vertical={false}
           />
           <XAxis
             dataKey="optimizer"
             tick={{fontSize: 11, fill: 'var(--color-chart-axis)'}}
+            tickLine={false}
+            axisLine={{stroke: 'var(--color-chart-grid)'}}
             label={{
               value: 'Optimizer',
               position: 'insideBottom',
-              offset: -2,
+              offset: -8,
               fill: 'var(--color-chart-axis)',
               fontSize: 11,
+              fontFamily: 'var(--font-mono)',
             }}
           />
           <YAxis
@@ -63,31 +72,33 @@ export function OptimizerBar({
             scale="log"
             domain={['auto', 'auto']}
             tick={{fontSize: 11, fill: 'var(--color-chart-axis)'}}
+            tickLine={false}
+            axisLine={{stroke: 'var(--color-chart-grid)'}}
             width={48}
             label={{
               value: 'Mean RMSE',
               angle: -90,
               position: 'insideLeft',
+              offset: 8,
               fill: 'var(--color-chart-axis)',
               fontSize: 11,
+              fontFamily: 'var(--font-mono)',
             }}
           />
           <Tooltip
             contentStyle={{
               background: 'var(--color-chart-tooltip-bg)',
               border: '1px solid var(--color-chart-tooltip-border)',
-              fontFamily: 'var(--font-geist-mono)',
+              borderRadius: 8,
+              fontFamily: 'var(--font-mono)',
               fontSize: 11,
+              color: 'var(--color-foreground)',
             }}
+            cursor={{fill: 'var(--color-accent)', fillOpacity: 0.4}}
           />
-          <Bar dataKey="rmse">
+          <Bar dataKey="rmse" radius={[4, 4, 0, 0]} isAnimationActive={false}>
             {data.map((_, i) => (
-              <Bar
-                key={i}
-                dataKey="rmse"
-                fill={COLORS[i % COLORS.length]}
-                isAnimationActive={false}
-              />
+              <Cell key={i} fill={COLORS[i % COLORS.length]} />
             ))}
           </Bar>
         </BarChart>

@@ -45,22 +45,26 @@ export function RMSEByHChart({
       className="h-[360px]"
     >
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart margin={{top: 8, left: 8, right: 0, bottom: 8}}>
+        <LineChart margin={{top: 8, left: 8, right: 8, bottom: 24}}>
           <CartesianGrid
             stroke="var(--color-chart-grid)"
             strokeDasharray="2 4"
+            vertical={false}
           />
           <XAxis
             dataKey="trueH"
             type="number"
             domain={['auto', 'auto']}
             tick={{fontSize: 10, fill: 'var(--color-chart-axis)'}}
+            tickLine={false}
+            axisLine={{stroke: 'var(--color-chart-grid)'}}
             label={{
               value: 'True H',
               position: 'insideBottom',
-              offset: -2,
+              offset: -8,
               fill: 'var(--color-chart-axis)',
               fontSize: 11,
+              fontFamily: 'var(--font-mono)',
             }}
           />
           <YAxis
@@ -68,24 +72,32 @@ export function RMSEByHChart({
             scale="log"
             domain={['auto', 'auto']}
             tick={{fontSize: 10, fill: 'var(--color-chart-axis)'}}
+            tickLine={false}
+            axisLine={{stroke: 'var(--color-chart-grid)'}}
             width={48}
             label={{
               value: 'RMSE',
               angle: -90,
               position: 'insideLeft',
+              offset: 8,
               fill: 'var(--color-chart-axis)',
               fontSize: 11,
+              fontFamily: 'var(--font-mono)',
             }}
           />
           <Tooltip
             contentStyle={{
               background: 'var(--color-chart-tooltip-bg)',
               border: '1px solid var(--color-chart-tooltip-border)',
-              fontFamily: 'var(--font-geist-mono)',
+              borderRadius: 8,
+              fontFamily: 'var(--font-mono)',
               fontSize: 11,
+              color: 'var(--color-foreground)',
             }}
           />
-          <Legend wrapperStyle={{fontSize: 11}} />
+          <Legend
+            wrapperStyle={{fontSize: 11, fontFamily: 'var(--font-mono)'}}
+          />
           {traces.map((t) => (
             <Line
               key={t.windowSize}
@@ -95,7 +107,7 @@ export function RMSEByHChart({
               name={`W=${t.windowSize}`}
               stroke={t.color}
               strokeWidth={2}
-              dot={{r: 4, fill: t.color}}
+              dot={{r: 4, fill: t.color, strokeWidth: 0}}
             />
           ))}
         </LineChart>

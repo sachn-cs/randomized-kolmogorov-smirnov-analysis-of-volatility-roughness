@@ -39,22 +39,26 @@ export function BiasVarianceChart({
       className="h-[420px]"
     >
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart margin={{top: 8, left: 8, right: 8, bottom: 8}}>
+        <LineChart margin={{top: 8, left: 8, right: 8, bottom: 24}}>
           <CartesianGrid
             stroke="var(--color-chart-grid)"
             strokeDasharray="2 4"
+            vertical={false}
           />
           <XAxis
             dataKey="w"
             type="number"
             domain={['auto', 'auto']}
             tick={{fontSize: 11, fill: 'var(--color-chart-axis)'}}
+            tickLine={false}
+            axisLine={{stroke: 'var(--color-chart-grid)'}}
             label={{
-              value: 'Window Size',
+              value: 'Window size',
               position: 'insideBottom',
-              offset: -2,
+              offset: -8,
               fill: 'var(--color-chart-axis)',
               fontSize: 11,
+              fontFamily: 'var(--font-mono)',
             }}
           />
           <YAxis
@@ -62,24 +66,32 @@ export function BiasVarianceChart({
             scale="log"
             domain={['auto', 'auto']}
             tick={{fontSize: 11, fill: 'var(--color-chart-axis)'}}
+            tickLine={false}
+            axisLine={{stroke: 'var(--color-chart-grid)'}}
             width={48}
             label={{
               value: 'RMSE / |Bias|',
               angle: -90,
               position: 'insideLeft',
+              offset: 8,
               fill: 'var(--color-chart-axis)',
               fontSize: 11,
+              fontFamily: 'var(--font-mono)',
             }}
           />
           <Tooltip
             contentStyle={{
               background: 'var(--color-chart-tooltip-bg)',
               border: '1px solid var(--color-chart-tooltip-border)',
-              fontFamily: 'var(--font-geist-mono)',
+              borderRadius: 8,
+              fontFamily: 'var(--font-mono)',
               fontSize: 11,
+              color: 'var(--color-foreground)',
             }}
           />
-          <Legend wrapperStyle={{fontSize: 10}} />
+          <Legend
+            wrapperStyle={{fontSize: 10, fontFamily: 'var(--font-mono)'}}
+          />
           {series.flatMap((s, i) => {
             const c = COLORS[i % COLORS.length];
             return [
@@ -91,7 +103,7 @@ export function BiasVarianceChart({
                 type="monotone"
                 stroke={c}
                 strokeWidth={2}
-                dot={{r: 5, fill: c}}
+                dot={{r: 5, fill: c, strokeWidth: 0}}
                 isAnimationActive={false}
               />,
               <Line
@@ -103,7 +115,7 @@ export function BiasVarianceChart({
                 stroke={c}
                 strokeWidth={2}
                 strokeDasharray="4 4"
-                dot={{r: 5, fill: c}}
+                dot={{r: 5, fill: c, strokeWidth: 0}}
                 isAnimationActive={false}
               />,
             ];
