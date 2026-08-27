@@ -59,7 +59,7 @@ export function HTrajChart({
               strokeDasharray: '3 3',
               strokeOpacity: 0.3,
             }}
-            formatter={(v: number) => v.toFixed(4)}
+            formatter={(v) => (typeof v === 'number' ? v.toFixed(4) : '')}
           />
           <ReferenceLine
             y={trueH}
