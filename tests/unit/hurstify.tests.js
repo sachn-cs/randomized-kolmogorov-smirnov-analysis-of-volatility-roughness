@@ -14,11 +14,11 @@ import {
   runKalmanFilter,
   ksCriticalValue,
   ksPvalue,
-  runSignificanceTest,
-  runCusumTest,
+  KsSignificanceTest,
+  CusumBreakTest,
   detectCusumBreakpoints,
-  runConstancyTest,
-  bootstrapConfidenceInterval,
+  ConstancyTest,
+  BootstrapConfidenceInterval,
 } from '../../lib/inference.js';
 
 import {setRandomSeed, resetRandomSeed} from '../../lib/prng.js';
@@ -294,7 +294,10 @@ describe('Inference', function () {
   });
 
   it('should run significance test', function () {
-    const result = runSignificanceTest(0.05, 500, 500, 0.05);
+    const result = new KsSignificanceTest().run(
+      {D: 0.05, n: 500, m: 500},
+      {alpha: 0.05},
+    );
     expect(result).to.have.property('significant');
     expect(result).to.have.property('pValue');
     expect(result).to.have.property('statistic');
@@ -306,7 +309,10 @@ describe('Inference', function () {
       {length: 50},
       (_, i) => 0.1 + (i > 25 ? 0.05 : 0),
     );
-    const result = runCusumTest(hHistory, 0.1, 3.0);
+    const result = new CusumBreakTest().run(hHistory, {
+      targetH: 0.1,
+      threshold: 3.0,
+    });
     expect(result).to.have.property('breakDetected');
     expect(result).to.have.property('maxCusum');
     expect(result).to.have.property('breakIndex');
@@ -328,7 +334,7 @@ describe('Inference', function () {
 
   it('should run constancy test', function () {
     const obs = Array.from({length: 50}, () => 0.1 + Math.random() * 0.01);
-    const result = runConstancyTest(obs, {q: 0.01, r: 0.1});
+    const result = new ConstancyTest().run(obs, {q: 0.01, r: 0.1});
     expect(result).to.have.property('lrStat');
     expect(result).to.have.property('pValue');
     expect(result).to.have.property('constant');
@@ -337,11 +343,13 @@ describe('Inference', function () {
   it('should run bootstrap CI', function () {
     const estimator = new Hurstify({sampleSize: 200, iterations: 2});
     const window = generateFractionalBrownianMotion(512, 0.1).slice(0, 128);
-    const result = bootstrapConfidenceInterval(
-      (w) => estimator.estimateSingle(w),
-      window,
-      100,
-      0.05,
+    const result = new BootstrapConfidenceInterval().run(
+      {window},
+      {
+        estimator: (w) => estimator.estimateSingle(w),
+        nBoot: 100,
+        alpha: 0.05,
+      },
     );
     expect(result).to.have.property('lower');
     expect(result).to.have.property('upper');
