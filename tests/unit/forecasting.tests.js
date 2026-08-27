@@ -1,97 +1,114 @@
 /**
- * Forecasting model tests.
+ * Forecasting model strategy tests.
  */
 
 import {describe, it} from 'mocha';
 import {expect} from 'chai';
 import {
-  arfima,
-  holtWintersForecast,
-  createLSTM,
-  createAttentionModel,
-} from '../../lib/models/forecasting.js';
+  ArfimaForecaster,
+  HoltWintersForecaster,
+  LstmForecaster,
+  AttentionForecaster,
+  getForecaster,
+  listForecasters,
+} from '../../lib/models/index.js';
 
-describe('arfima', function () {
-  it('produces a forecast function', function () {
-    const fn = arfima({p: 1, d: 0.3, q: 1, window: 10});
-    expect(fn).to.be.a('function');
-  });
-
-  it('returns average for short series', function () {
-    const fn = arfima({window: 10});
+describe('ArfimaForecaster', function () {
+  it('produces a forecast within bounds', function () {
+    const forecaster = new ArfimaForecaster({p: 1, d: 0.3, q: 1, window: 10});
     const series = [0.1, 0.2, 0.15];
-    const val = fn(series);
+    const val = forecaster.predict(series);
     expect(val).to.be.within(0.01, 0.99);
   });
 
+  it('returns mean for short series', function () {
+    const forecaster = new ArfimaForecaster({window: 10});
+    const series = [0.1, 0.2, 0.15];
+    const val = forecaster.predict(series);
+    expect(val).to.be.closeTo(0.15, 1e-6);
+  });
+
   it('returns bounded prediction for longer series', function () {
-    const fn = arfima({window: 5});
+    const forecaster = new ArfimaForecaster({window: 5});
     const series = Array.from({length: 20}, () => 0.1 + Math.random() * 0.05);
-    const val = fn(series);
+    const val = forecaster.predict(series);
     expect(val).to.be.within(0.01, 0.99);
   });
 });
 
-describe('holtWintersForecast', function () {
+describe('HoltWintersForecaster', function () {
   it('produces a forecast', function () {
+    const forecaster = new HoltWintersForecaster({alpha: 0.3, beta: 0.1});
     const series = [1, 2, 3, 4, 5];
-    const forecast = holtWintersForecast(series, 0.3, 0.1);
+    const forecast = forecaster.predict(series);
     expect(forecast).to.be.a('number');
     expect(forecast).to.be.above(0);
   });
 
   it('throws for empty series', function () {
-    expect(() => holtWintersForecast([], 0.3, 0.1)).to.throw(
-      'series must be non-empty',
-    );
+    const forecaster = new HoltWintersForecaster();
+    expect(() => forecaster.predict([])).to.throw('series must be non-empty');
   });
 
   it('validates alpha in [0,1]', function () {
-    expect(() => holtWintersForecast([1, 2], -0.1, 0.1)).to.throw(
-      'alpha must be in [0,1]',
+    expect(() => new HoltWintersForecaster({alpha: -0.1})).to.throw(
+      'alpha must be in [0, 1]',
     );
-    expect(() => holtWintersForecast([1, 2], 1.1, 0.1)).to.throw(
-      'alpha must be in [0,1]',
+    expect(() => new HoltWintersForecaster({alpha: 1.1})).to.throw(
+      'alpha must be in [0, 1]',
     );
   });
 });
 
-describe('createLSTM', function () {
+describe('LstmForecaster', function () {
   it('creates a predictor with predict method', function () {
-    const lstm = createLSTM({hiddenSize: 8});
-    expect(lstm).to.have.property('predict');
-    expect(lstm.predict).to.be.a('function');
+    const forecaster = new LstmForecaster({hiddenSize: 8});
+    expect(forecaster.predict).to.be.a('function');
   });
 
-  it('produces hidden state of correct size', function () {
-    const lstm = createLSTM({hiddenSize: 8});
-    const hidden = lstm.predict([0.1, 0.2, 0.3, 0.4]);
-    expect(hidden).to.have.lengthOf(8);
-    expect(hidden.every((v) => Number.isFinite(v))).to.equal(true);
+  it('produces a finite scalar prediction', function () {
+    const forecaster = new LstmForecaster({hiddenSize: 8});
+    const prediction = forecaster.predict([0.1, 0.2, 0.3, 0.4]);
+    expect(prediction).to.be.a('number');
+    expect(Number.isFinite(prediction)).to.equal(true);
   });
 
   it('throws for empty series', function () {
-    const lstm = createLSTM();
-    expect(() => lstm.predict([])).to.throw('series must be non-empty');
+    const forecaster = new LstmForecaster();
+    expect(() => forecaster.predict([])).to.throw('series must be non-empty');
   });
 });
 
-describe('createAttentionModel', function () {
+describe('AttentionForecaster', function () {
   it('creates a predictor with predict method', function () {
-    const attn = createAttentionModel({hiddenSize: 8, numHeads: 2});
-    expect(attn).to.have.property('predict');
-    expect(attn.predict).to.be.a('function');
+    const forecaster = new AttentionForecaster({hiddenSize: 8});
+    expect(forecaster.predict).to.be.a('function');
   });
 
-  it('produces hidden state of correct size', function () {
-    const attn = createAttentionModel({hiddenSize: 8, numHeads: 2});
-    const hidden = attn.predict([0.1, 0.2, 0.3, 0.4]);
-    expect(hidden).to.have.lengthOf(8);
-    expect(hidden.every((v) => Number.isFinite(v))).to.equal(true);
+  it('produces a finite scalar prediction', function () {
+    const forecaster = new AttentionForecaster({hiddenSize: 8});
+    const prediction = forecaster.predict([0.1, 0.2, 0.3, 0.4]);
+    expect(prediction).to.be.a('number');
+    expect(Number.isFinite(prediction)).to.equal(true);
   });
 
   it('throws for empty series', function () {
-    const attn = createAttentionModel();
-    expect(() => attn.predict([])).to.throw('series must be non-empty');
+    const forecaster = new AttentionForecaster();
+    expect(() => forecaster.predict([])).to.throw('series must be non-empty');
+  });
+});
+
+describe('Forecaster Registry', function () {
+  it('lists built-in forecasters', function () {
+    const list = listForecasters();
+    expect(list).to.include('arfima');
+    expect(list).to.include('holtWinters');
+    expect(list).to.include('lstm');
+    expect(list).to.include('attention');
+  });
+
+  it('retrieves forecasters by name', function () {
+    const fc = getForecaster('arfima');
+    expect(fc).to.be.instanceOf(ArfimaForecaster);
   });
 });

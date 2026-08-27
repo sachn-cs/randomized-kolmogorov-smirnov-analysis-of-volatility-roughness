@@ -7,47 +7,47 @@ import {describe, it} from 'mocha';
 import {expect} from 'chai';
 
 import {Hurstify} from '../../lib/hurstify.js';
-import {generateFBM} from '../../lib/fbm.js';
+import {generateFractionalBrownianMotion} from '../../lib/stochastic-generators.js';
 import {
-  asymptoticVariance,
-  confidenceInterval,
-  kalmanFilter,
+  getAsymptoticVariance,
+  getConfidenceInterval,
+  runKalmanFilter,
   ksCriticalValue,
   ksPvalue,
-  significanceTest,
-  cusumTest,
-  detectBreakpoints,
-  constancyTest,
-  bootstrapCI,
+  runSignificanceTest,
+  runCusumTest,
+  detectCusumBreakpoints,
+  runConstancyTest,
+  bootstrapConfidenceInterval,
 } from '../../lib/inference.js';
 
-import {setSeed, resetSeed} from '../../lib/prng.js';
+import {setRandomSeed, resetRandomSeed} from '../../lib/prng.js';
 import {
-  ksDistance,
-  shuffle,
-  randomSample,
-  blockPermutation,
+  computeKsDistance,
+  shuffleArray,
+  getRandomSample,
+  permuteBlocks,
 } from '../../lib/stats.js';
 
 describe('Hurstify', function () {
   this.timeout(10000);
 
   it('should estimate H close to true value for synthetic fBM', function () {
-    setSeed(42);
+    setRandomSeed(42);
     const H0 = 0.1;
-    const fbm = generateFBM(2048, H0);
+    const fbm = generateFractionalBrownianMotion(2048, H0);
     const estimator = new Hurstify({scaleA1: 1, scaleA2: 50, sampleSize: 500});
     const window = fbm.slice(0, 512);
     const estimate = estimator.estimate(window);
 
     expect(estimate).to.be.within(0, 1);
     expect(Math.abs(estimate - H0)).to.be.below(0.3);
-    resetSeed();
+    resetRandomSeed();
   });
 
   it('should support multiple optimizer types', function () {
-    setSeed(123);
-    const fbm = generateFBM(1024, 0.1);
+    setRandomSeed(123);
+    const fbm = generateFractionalBrownianMotion(1024, 0.1);
     const window = fbm.slice(0, 256);
 
     const optimizers = ['brent', 'nelder-mead', 'annealing', 'ags'];
@@ -55,6 +55,7 @@ describe('Hurstify', function () {
       const estimator = new Hurstify({
         scaleA1: 1,
         scaleA2: 50,
+,
         optimizerType: type,
       });
       const estimate = estimator.estimate(window);
@@ -64,12 +65,12 @@ describe('Hurstify', function () {
         `Optimizer ${type} produced invalid H=${estimate}`,
       );
     }
-    resetSeed();
+    resetRandomSeed();
   });
 
   it('should compute rolling estimates', function () {
-    setSeed(1);
-    const fbm = generateFBM(2048, 0.1);
+    setRandomSeed(1);
+    const fbm = generateFractionalBrownianMotion(2048, 0.1);
     const estimator = new Hurstify({
       scaleA1: 1,
       scaleA2: 50,
@@ -84,12 +85,12 @@ describe('Hurstify', function () {
       expect(r).to.have.property('H');
       expect(r.H).to.satisfy((h) => h === null || (h > 0 && h < 1));
     }
-    resetSeed();
+    resetRandomSeed();
   });
 
-  it('should support multi-scale estimation', function () {
-    setSeed(2);
-    const fbm = generateFBM(2048, 0.15);
+  it('should support multi-scale strategy', function () {
+    setRandomSeed(2);
+    const fbm = generateFractionalBrownianMotion(2048, 0.15);
     const estimator = new Hurstify({
       scales: [1, 2, 5, 10],
       weights: [1.0, 0.8, 0.5, 0.3],
@@ -98,12 +99,12 @@ describe('Hurstify', function () {
     const estimate = estimator.estimateSingle(fbm.slice(0, 512));
 
     expect(estimate).to.be.within(0, 1);
-    resetSeed();
+    resetRandomSeed();
   });
 
   it('should use variance reduction', function () {
-    setSeed(3);
-    const fbm = generateFBM(1024, 0.1);
+    setRandomSeed(3);
+    const fbm = generateFractionalBrownianMotion(1024, 0.1);
     const estimator = new Hurstify({iterations: 8});
 
     const single = estimator.estimateSingle(fbm.slice(0, 256));
@@ -111,12 +112,12 @@ describe('Hurstify', function () {
 
     expect(single).to.be.a('number');
     expect(averaged).to.be.a('number');
-    resetSeed();
+    resetRandomSeed();
   });
 
   it('should respect configurable hMin and hMax bounds', function () {
-    setSeed(4);
-    const fbm = generateFBM(1024, 0.1);
+    setRandomSeed(4);
+    const fbm = generateFractionalBrownianMotion(1024, 0.1);
     const estimator = new Hurstify({
       hMin: 0.05,
       hMax: 0.5,
@@ -126,12 +127,12 @@ describe('Hurstify', function () {
     const estimate = estimator.estimate(fbm.slice(0, 256));
 
     expect(estimate).to.be.within(0.05, 0.5);
-    resetSeed();
+    resetRandomSeed();
   });
 
   it('should support block random permutation', function () {
-    setSeed(5);
-    const fbm = generateFBM(1024, 0.1);
+    setRandomSeed(5);
+    const fbm = generateFractionalBrownianMotion(1024, 0.1);
     const estimator = new Hurstify({
       blockSize: 16,
       sampleSize: 200,
@@ -140,7 +141,7 @@ describe('Hurstify', function () {
     const estimate = estimator.estimate(fbm.slice(0, 256));
 
     expect(estimate).to.be.within(0, 1);
-    resetSeed();
+    resetRandomSeed();
   });
 
   it('should handle empty or short windows gracefully', function () {
@@ -160,8 +161,8 @@ describe('Hurstify', function () {
   });
 
   it('should return diagnostics from estimateSingleWithDiagnostics', function () {
-    setSeed(6);
-    const fbm = generateFBM(1024, 0.1);
+    setRandomSeed(6);
+    const fbm = generateFractionalBrownianMotion(1024, 0.1);
     const estimator = new Hurstify({scaleA1: 1, scaleA2: 50, sampleSize: 200});
     const result = estimator.estimateSingleWithDiagnostics(fbm.slice(0, 256));
 
@@ -171,7 +172,7 @@ describe('Hurstify', function () {
     expect(result.minimizedD).to.be.a('number');
     expect(result.H).to.be.within(0, 1);
     expect(result.minimizedD).to.be.within(0, 1);
-    resetSeed();
+    resetRandomSeed();
   });
 
   it('should produce no trailing zeros in getIncrementsMulti', function () {
@@ -189,8 +190,8 @@ describe('Hurstify', function () {
   });
 
   it('should run rollingMultiScale', function () {
-    setSeed(7);
-    const fbm = generateFBM(1024, 0.1);
+    setRandomSeed(7);
+    const fbm = generateFractionalBrownianMotion(1024, 0.1);
     const estimator = new Hurstify({sampleSize: 200, iterations: 4});
     const scales = [1, 5, 10];
     const weights = [1, 0.8, 0.5];
@@ -203,7 +204,7 @@ describe('Hurstify', function () {
       expect(r).to.have.property('profile');
       expect(r.profile).to.be.an('array');
     }
-    resetSeed();
+    resetRandomSeed();
   });
 
   it('should return empty for short series in rollingMultiScale', function () {
@@ -219,8 +220,8 @@ describe('Hurstify', function () {
   });
 
   it('should estimate batch', function () {
-    setSeed(8);
-    const fbm = generateFBM(1024, 0.1);
+    setRandomSeed(8);
+    const fbm = generateFractionalBrownianMotion(1024, 0.1);
     const estimator = new Hurstify({sampleSize: 200, iterations: 4});
     const windows = [
       fbm.slice(0, 256),
@@ -234,7 +235,7 @@ describe('Hurstify', function () {
       expect(r).to.have.property('H');
       expect(r).to.have.property('error');
     }
-    resetSeed();
+    resetRandomSeed();
   });
 
   it('should handle invalid windows in batch', function () {
@@ -244,17 +245,26 @@ describe('Hurstify', function () {
     expect(results[0].error).to.not.equal(null);
     expect(results[1].error).to.not.equal(null);
   });
+
+  it('should reject invalid configuration in constructor', function () {
+    expect(() => new Hurstify({hMin: 0.5, hMax: 0.2})).to.throw(/hMin/);
+    expect(() => new Hurstify({iterations: 0})).to.throw(/iterations/);
+    expect(() => new Hurstify({sampleSize: 0})).to.throw(/sampleSize/);
+    expect(() => new Hurstify({scales: [1, 2], weights: [1]})).to.throw(
+      /weights/,
+    );
+  });
 });
 
 describe('Inference', function () {
   it('should compute asymptotic variance with corrected formula', function () {
-    const varH = asymptoticVariance(1, 50, 500, 500);
+    const varH = getAsymptoticVariance(1, 50, 500, 500);
     expect(varH).to.be.above(0);
     expect(varH).to.be.below(1);
   });
 
   it('should compute confidence interval', function () {
-    const ci = confidenceInterval(0.1, 1, 50, 500, 500, 0.05);
+    const ci = getConfidenceInterval(0.1, 1, 50, 500, 500, 0.05);
     expect(ci.lower).to.be.below(0.1);
     expect(ci.upper).to.be.above(0.1);
   });
@@ -264,7 +274,7 @@ describe('Inference', function () {
       {length: 100},
       () => 0.1 + Math.random() * 0.02,
     );
-    const result = kalmanFilter(hHistory, {q: 0.01, r: 0.1});
+    const result = runKalmanFilter(hHistory, {q: 0.01, r: 0.1});
     expect(result.filtered).to.have.lengthOf(hHistory.length);
     expect(result.predictions).to.have.lengthOf(hHistory.length);
   });
@@ -285,10 +295,10 @@ describe('Inference', function () {
   });
 
   it('should run significance test', function () {
-    const result = significanceTest(0.05, 500, 500, 0.05);
+    const result = runSignificanceTest(0.05, 500, 500, 0.05);
     expect(result).to.have.property('significant');
     expect(result).to.have.property('pValue');
-    expect(result).to.have.property('D');
+    expect(result).to.have.property('statistic');
     expect(result).to.have.property('criticalValue');
   });
 
@@ -297,7 +307,7 @@ describe('Inference', function () {
       {length: 50},
       (_, i) => 0.1 + (i > 25 ? 0.05 : 0),
     );
-    const result = cusumTest(hHistory, 0.1, 3.0);
+    const result = runCusumTest(hHistory, 0.1, 3.0);
     expect(result).to.have.property('breakDetected');
     expect(result).to.have.property('maxCusum');
     expect(result).to.have.property('breakIndex');
@@ -308,7 +318,7 @@ describe('Inference', function () {
       {length: 100},
       (_, i) => 0.1 + (i > 50 ? 0.05 : 0),
     );
-    const breakpoints = detectBreakpoints(hHistory, 20, 3.0);
+    const breakpoints = detectCusumBreakpoints(hHistory, 20, 3.0);
     expect(breakpoints).to.be.an('array');
     if (breakpoints.length > 0) {
       expect(breakpoints[0]).to.have.property('index');
@@ -319,7 +329,7 @@ describe('Inference', function () {
 
   it('should run constancy test', function () {
     const obs = Array.from({length: 50}, () => 0.1 + Math.random() * 0.01);
-    const result = constancyTest(obs, {q: 0.01, r: 0.1});
+    const result = runConstancyTest(obs, {q: 0.01, r: 0.1});
     expect(result).to.have.property('lrStat');
     expect(result).to.have.property('pValue');
     expect(result).to.have.property('constant');
@@ -327,8 +337,8 @@ describe('Inference', function () {
 
   it('should run bootstrap CI', function () {
     const estimator = new Hurstify({sampleSize: 200, iterations: 2});
-    const window = generateFBM(512, 0.1).slice(0, 128);
-    const result = bootstrapCI(
+    const window = generateFractionalBrownianMotion(512, 0.1).slice(0, 128);
+    const result = bootstrapConfidenceInterval(
       (w) => estimator.estimateSingle(w),
       window,
       100,
@@ -348,35 +358,35 @@ describe('KS Objective', function () {
     const s2 = new Array(100).fill(0).map(() => Math.random());
     s1.sort((a, b) => a - b);
     s2.sort((a, b) => a - b);
-    const dist = ksDistance(s1, s2, true);
+    const dist = computeKsDistance(s1, s2, true);
     expect(dist).to.be.within(0, 1);
   });
 
   it('should return 0 for identical samples', function () {
     const s1 = [1, 2, 3, 4, 5];
     const s2 = [1, 2, 3, 4, 5];
-    expect(ksDistance(s1, s2, false)).to.equal(0);
+    expect(computeKsDistance(s1, s2, false)).to.equal(0);
   });
 
   it('should return 1 for disjoint samples', function () {
     const s1 = [1, 2, 3];
     const s2 = [10, 11, 12];
-    expect(ksDistance(s1, s2, false)).to.equal(1);
+    expect(computeKsDistance(s1, s2, false)).to.equal(1);
   });
 
   it('should throw for non-array inputs', function () {
-    expect(() => ksDistance(null, [1, 2])).to.throw('sample1 must be an array');
-    expect(() => ksDistance([1, 2], null)).to.throw('sample2 must be an array');
+    expect(() => computeKsDistance(null, [1, 2])).to.throw('sample1 must be an array');
+    expect(() => computeKsDistance([1, 2], null)).to.throw('sample2 must be an array');
   });
 
   it('should throw for empty arrays', function () {
-    expect(() => ksDistance([], [1, 2])).to.throw(
+    expect(() => computeKsDistance([], [1, 2])).to.throw(
       'ksDistance requires non-empty arrays',
     );
   });
 
   it('should throw for non-finite values', function () {
-    expect(() => ksDistance([1, NaN], [1, 2])).to.throw(
+    expect(() => computeKsDistance([1, NaN], [1, 2])).to.throw(
       'ksDistance requires finite values',
     );
   });
@@ -385,14 +395,14 @@ describe('KS Objective', function () {
 describe('Shuffle and Random Sample', function () {
   it('should shuffle arrays preserving elements', function () {
     const arr = [1, 2, 3, 4, 5];
-    const shuffled = shuffle(arr);
+    const shuffled = shuffleArray(arr);
     expect(shuffled).to.have.lengthOf(arr.length);
     expect(shuffled.sort((a, b) => a - b)).to.deep.equal(arr);
   });
 
   it('should sample without replacement', function () {
     const arr = Array.from({length: 100}, (_, i) => i);
-    const sample = randomSample(arr, 10);
+    const sample = getRandomSample(arr, 10);
     expect(sample).to.have.lengthOf(10);
     const unique = new Set(sample);
     expect(unique.size).to.equal(10);
@@ -400,55 +410,55 @@ describe('Shuffle and Random Sample', function () {
 
   it('should return full array when n >= length', function () {
     const arr = [1, 2, 3];
-    expect(randomSample(arr, 5)).to.have.lengthOf(3);
+    expect(getRandomSample(arr, 5)).to.have.lengthOf(3);
   });
 
   it('should return empty array when n <= 0', function () {
-    expect(randomSample([1, 2, 3], 0)).to.deep.equal([]);
+    expect(getRandomSample([1, 2, 3], 0)).to.deep.equal([]);
   });
 });
 
 describe('Block Permutation', function () {
   it('should permute blocks preserving elements', function () {
     const data = Array.from({length: 20}, (_, i) => i);
-    const perm = blockPermutation(data, 5);
+    const perm = permuteBlocks(data, 5);
     expect(perm).to.have.lengthOf(data.length);
     expect(perm.sort((a, b) => a - b)).to.deep.equal(data);
   });
 
   it('should support random phase offset', function () {
     const data = Array.from({length: 21}, (_, i) => i);
-    const perm = blockPermutation(data, 5, true);
+    const perm = permuteBlocks(data, 5, true);
     expect(perm).to.have.lengthOf(data.length);
   });
 
   it('should throw for invalid blockSize', function () {
-    expect(() => blockPermutation([1, 2], 0)).to.throw(
+    expect(() => permuteBlocks([1, 2], 0)).to.throw(
       'blockSize must be positive',
     );
-    expect(() => blockPermutation([1, 2], 5)).to.throw(
+    expect(() => permuteBlocks([1, 2], 5)).to.throw(
       'blockSize must be positive and not exceed data length',
     );
   });
 
   it('should throw for non-array input', function () {
-    expect(() => blockPermutation(null, 2)).to.throw('data must be an array');
+    expect(() => permuteBlocks(null, 2)).to.throw('data must be an array');
   });
 });
 
 describe('fBM generation', function () {
   it('should generate valid fBM paths', function () {
-    const fbm = generateFBM(512, 0.1);
+    const fbm = generateFractionalBrownianMotion(512, 0.1);
     expect(fbm).to.have.lengthOf(512);
     expect(fbm.every((v) => Number.isFinite(v))).to.equal(true);
   });
 
   it('should throw for invalid H', function () {
-    expect(() => generateFBM(100, 0)).to.throw('H must satisfy 0 < H < 1');
-    expect(() => generateFBM(100, 1)).to.throw('H must satisfy 0 < H < 1');
+    expect(() => generateFractionalBrownianMotion(100, 0)).to.throw('H must satisfy 0 < H < 1');
+    expect(() => generateFractionalBrownianMotion(100, 1)).to.throw('H must satisfy 0 < H < 1');
   });
 
   it('should return empty array for n <= 0', function () {
-    expect(generateFBM(0, 0.5)).to.have.lengthOf(0);
+    expect(generateFractionalBrownianMotion(0, 0.5)).to.have.lengthOf(0);
   });
 });

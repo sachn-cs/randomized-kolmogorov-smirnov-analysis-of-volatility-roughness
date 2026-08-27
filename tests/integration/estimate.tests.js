@@ -1,11 +1,11 @@
 import {strict as assert} from 'node:assert';
 import {describe, it} from 'mocha';
-import {Hurstify, generateFBM} from '../../lib/index.js';
+import {Hurstify, generateFractionalBrownianMotion} from '../../lib/index.js';
 
 describe('integration: end-to-end Hurst estimate', () => {
   it('recovers known H from a long fBm path within tolerance', () => {
     const trueH = 0.1;
-    const path = generateFBM(2000, trueH);
+    const path = generateFractionalBrownianMotion(2000, trueH);
     const r = new Hurstify({
       scaleA1: 1,
       scaleA2: 25,
