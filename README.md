@@ -5,7 +5,6 @@
     <a href="#installation"><img src="https://img.shields.io/badge/node-26%2B-brightgreen" alt="Node"></a>
     <a href="https://github.com/sachncs/hurstify/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/sachncs/hurstify/ci.yml?branch=master" alt="Build Status"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
-    <a href="https://www.npmjs.com/package/hurstify"><img src="https://img.shields.io/npm/v/hurstify" alt="npm"></a>
     <a href="https://github.com/sachncs/hurstify/actions"><img src="https://img.shields.io/github/actions/workflow/status/sachncs/hurstify/ci.yml?branch=master" alt="CI"></a>
     <a href="https://github.com/sachncs/hurstify/stargazers"><img src="https://img.shields.io/github/stars/sachncs/hurstify" alt="Stars"></a>
   </p>
@@ -83,18 +82,8 @@ type `git --version` in your terminal.
 
 ## Installation
 
-Pick whichever option fits your setup:
-
-### Option 1 — npm (fastest)
-
-```bash
-npm install hurstify
-```
-
-No `git clone`, no build step. Works as soon as the package is
-published to npm.
-
-### Option 2 — From source (recommended for development)
+The package is consumed directly from the source tree — there is no
+npm release. Clone the repo and install dependencies:
 
 A "virtual environment" equivalent in Node is just installing
 dependencies per project — Node resolves modules automatically, so
@@ -122,6 +111,19 @@ npm run dev:demo
 ```
 
 Then open the URL it prints (typically `http://localhost:5173`).
+
+To import hurstify from your own project, link the cloned checkout:
+
+```bash
+# In the hurstify checkout
+npm link
+
+# In your project
+npm link hurstify
+```
+
+Then `import {Hurstify} from 'hurstify'` resolves to the linked
+source tree.
 
 ---
 

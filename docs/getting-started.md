@@ -10,14 +10,8 @@ Hurst parameter of a log-volatility series in a few lines of code.
 
 ## Installation
 
-### As a Dependency
-
-```bash
-npm install hurstify
-```
-
-Zero runtime dependencies. Ships ESM, CJS, and IIFE bundles under
-`dist/`.
+The package is consumed directly from the source tree — there is no
+npm release.
 
 ### From Source
 
@@ -26,6 +20,22 @@ git clone https://github.com/sachncs/hurstify.git
 cd hurstify
 npm install
 ```
+
+Zero runtime dependencies. The Rollup build ships ESM, CJS, and IIFE
+bundles under `dist/`.
+
+### Linking From Another Project
+
+```bash
+# In the hurstify checkout
+npm link
+
+# In your project
+npm link hurstify
+```
+
+Then `import {Hurstify} from 'hurstify'` resolves to the linked
+source tree.
 
 ## Basic Usage
 
