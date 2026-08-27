@@ -4,6 +4,7 @@ import './globals.css';
 import {ThemeProvider} from '@/components/theme-provider';
 import {Toaster} from '@/components/ui/sonner';
 import {TooltipProvider} from '@/components/ui/tooltip';
+import {siteUrl} from '@/lib/site-url';
 
 const geistSans = Geist({subsets: ['latin'], variable: '--font-geist-sans'});
 const instrumentSerif = Instrument_Serif({
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
   description:
     'hurstify — randomized Kolmogorov–Smirnov estimator for rough-volatility Hurst parameters. Pure JavaScript, zero dependencies.',
   applicationName: 'hurstify',
-  metadataBase: new URL('https://hurstify.dev'),
+  metadataBase: new URL(siteUrl),
   themeColor: [
     {media: '(prefers-color-scheme: light)', color: '#f0a030'},
     {media: '(prefers-color-scheme: dark)', color: '#0a0e17'},
