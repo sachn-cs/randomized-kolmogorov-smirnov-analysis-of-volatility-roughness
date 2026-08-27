@@ -26,6 +26,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **README rewrite**: Restructured the top-level README around a problem/answer elevator pitch, a "Who is this for?" accessibility section, multi-option installation (`npm` vs. from-source), annotated quick-start code blocks, and a "Where to go next" navigation map. The "Configuration" and "API Reference" tables now use a "Plain English" column. The hurstify-specific content (Methodology, Project Structure, Tech Stack, Roadmap, Observatory, References) is preserved and folded into the new layout.
 
+### Fixed
+
+- **CI `npm ci` peer-dependency conflict**: `typescript@^7.0.2` was incompatible with the `typescript@"">=4.8.4 <6.1.0"` peer requirement declared by `@typescript-eslint/eslint-plugin@8.68.0` and `@typescript-eslint/parser@8.68.0` (typescript-eslint 8.x does not yet support TypeScript 7 — see [issue #10940](https://github.com/typescript-eslint/typescript-eslint/issues/10940)). Removed the three unused packages (`@typescript-eslint/eslint-plugin`, `@typescript-eslint/parser`, `typescript-eslint`) from `devDependencies` and dropped the `lint:demo:ts` script. `demo/eslint.config.mjs` is preserved as a stub for the day upstream ships TS 7 support.
+
 ## [2.0.0] - 2026-08-26
 
 ### Rebrand: `rksavr` → `hurstify`
