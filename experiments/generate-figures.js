@@ -12,9 +12,9 @@
  */
 
 import {Hurstify} from '../lib/hurstify.js';
-import {generateFBM} from '../lib/fbm.js';
-import {confidenceInterval} from '../lib/inference.js';
-import {setSeed} from '../lib/prng.js';
+import {generateFractionalBrownianMotion} from '../lib/stochastic-generators.js';
+import {getConfidenceInterval} from '../lib/inference.js';
+import {setRandomSeed} from '../lib/prng.js';
 import {writeFileSync} from 'fs';
 import {fileURLToPath} from 'url';
 import {dirname, join} from 'path';
@@ -26,10 +26,10 @@ const __dirname = dirname(__filename);
  * Generates data for Figure 1: a synthetic fBM path with estimated H.
  */
 export function generateFigure1() {
-  setSeed(42);
+  setRandomSeed(42);
   const H0 = 0.1;
   const n = 2048;
-  const path = generateFBM(n, H0);
+  const path = generateFractionalBrownianMotion(n, H0);
 
   const estimator = new Hurstify({
     scaleA1: 1,
@@ -66,12 +66,12 @@ export function generateFigure1() {
  * Generates data for Figure 2: rolling estimates with confidence intervals.
  */
 export function generateFigure2() {
-  setSeed(123);
+  setRandomSeed(123);
   const H0 = 0.14;
   const n = 1500;
   const windowSize = 512;
   const step = 20;
-  const path = generateFBM(n, H0);
+  const path = generateFractionalBrownianMotion(n, H0);
 
   const estimator = new Hurstify({
     scaleA1: 1,
@@ -84,9 +84,8 @@ export function generateFigure2() {
   const rolling = estimator.rolling(path, windowSize, step);
   const estimates = rolling.filter((r) => r.H !== null);
 
-  // Add confidence intervals
   const withCI = estimates.map((r) => {
-    const ci = confidenceInterval(r.H, 1, 50, 500, 500, 0.05);
+    const ci = getConfidenceInterval(r.H, 1, 50, 500, 500, 0.05);
     return {
       t: r.t,
       H: r.H,
@@ -121,10 +120,10 @@ export function generateFigure2() {
  * Generates data for Figure 3: multi-scale scaling profile.
  */
 export function generateFigure3() {
-  setSeed(456);
+  setRandomSeed(456);
   const H0 = 0.1;
   const n = 1024;
-  const path = generateFBM(n, H0);
+  const path = generateFractionalBrownianMotion(n, H0);
 
   const scales = [1, 2, 5, 10, 20, 50];
   const weights = [1.0, 0.9, 0.7, 0.5, 0.3, 0.1];

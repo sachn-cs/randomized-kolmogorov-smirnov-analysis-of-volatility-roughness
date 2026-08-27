@@ -10,8 +10,11 @@
  */
 
 import {Hurstify} from '../lib/hurstify.js';
-import {generateVIXLogVol, generateSPXLogVol} from '../lib/data/synthetic.js';
-import {setSeed} from '../lib/prng.js';
+import {
+  generateVixLogVolatility,
+  generateSpxLogVolatility,
+} from '../lib/data/synthetic.js';
+import {setRandomSeed} from '../lib/prng.js';
 import {writeFileSync} from 'fs';
 import {fileURLToPath} from 'url';
 import {dirname, join} from 'path';
@@ -49,14 +52,12 @@ export function main() {
     hMax: 0.5,
   };
 
-  // VIX-style experiment
-  setSeed(42);
-  const vixLogVol = generateVIXLogVol(1500, 0.1, {seed: 42, noiseStd: 0.05});
+  setRandomSeed(42);
+  const vixLogVol = generateVixLogVolatility(1500, 0.1, {seed: 42, noiseStd: 0.05});
   const vixResults = runRollingExperiment(vixLogVol, config, windowSize, step);
 
-  // S&P 500 RV-style experiment
-  setSeed(123);
-  const spxLogVol = generateSPXLogVol(1500, 0.14, {seed: 123, noiseStd: 0.03});
+  setRandomSeed(123);
+  const spxLogVol = generateSpxLogVolatility(1500, 0.14, {seed: 123, noiseStd: 0.03});
   const spxResults = runRollingExperiment(spxLogVol, config, windowSize, step);
 
   const output = {
@@ -82,14 +83,15 @@ export function main() {
   );
   writeFileSync(outPath, JSON.stringify(output, null, 2));
   console.log(`Rolling estimates written to ${outPath}`);
+  const vixValid = vixResults.filter((r) => r.H !== null);
+  const spxValid = spxResults.filter((r) => r.H !== null);
   console.log(
-    `VIX avg H: ${vixResults.filter((r) => r.H !== null).reduce((a, b) => a + b.H, 0) / vixResults.filter((r) => r.H !== null).length}`,
+    `VIX avg H: ${vixValid.reduce((a, b) => a + b.H, 0) / vixValid.length}`,
   );
   console.log(
-    `SPX avg H: ${spxResults.filter((r) => r.H !== null).reduce((a, b) => a + b.H, 0) / spxResults.filter((r) => r.H !== null).length}`,
+    `SPX avg H: ${spxValid.reduce((a, b) => a + b.H, 0) / spxValid.length}`,
   );
 
-  // Write CSV for easy plotting
   const csvPath = join(
     __dirname,
     '..',

@@ -10,10 +10,13 @@
  */
 
 import {Hurstify} from '../lib/hurstify.js';
-import {constancyTest} from '../lib/inference.js';
-import {generateVIXLogVol, generateSPXLogVol} from '../lib/data/synthetic.js';
-import {generateFBM} from '../lib/fbm.js';
-import {setSeed} from '../lib/prng.js';
+import {runConstancyTest} from '../lib/inference.js';
+import {
+  generateVixLogVolatility,
+  generateSpxLogVolatility,
+} from '../lib/data/synthetic.js';
+import {generateFractionalBrownianMotion} from '../lib/stochastic-generators.js';
+import {setRandomSeed} from '../lib/prng.js';
 import {writeFileSync} from 'fs';
 import {fileURLToPath} from 'url';
 import {dirname, join} from 'path';
@@ -44,7 +47,7 @@ export function runConstancyExperiment(
     .filter((r) => r.H !== null)
     .map((r) => r.H);
 
-  const constancy = constancyTest(estimates, kalmanOpts);
+  const constancy = runConstancyTest(estimates, kalmanOpts);
   return {estimates, constancy};
 }
 
@@ -66,9 +69,8 @@ export function main() {
 
   const kalmanOpts = {q: 0.01, r: 0.1};
 
-  // VIX-style
-  setSeed(42);
-  const vixLogVol = generateVIXLogVol(1500, 0.1, {seed: 42});
+  setRandomSeed(42);
+  const vixLogVol = generateVixLogVolatility(1500, 0.1, {seed: 42});
   const vixResult = runConstancyExperiment(
     vixLogVol,
     config,
@@ -77,9 +79,8 @@ export function main() {
     kalmanOpts,
   );
 
-  // SPX-style
-  setSeed(123);
-  const spxLogVol = generateSPXLogVol(1500, 0.14, {seed: 123});
+  setRandomSeed(123);
+  const spxLogVol = generateSpxLogVolatility(1500, 0.14, {seed: 123});
   const spxResult = runConstancyExperiment(
     spxLogVol,
     config,
@@ -88,12 +89,10 @@ export function main() {
     kalmanOpts,
   );
 
-  // Time-varying H (non-constant) for contrast
-  setSeed(999);
+  setRandomSeed(999);
   const n = 1500;
-  // Two fBM segments with different H values to simulate regime change
-  const fbm1 = generateFBM(Math.floor(n / 2), 0.1);
-  const fbm2 = generateFBM(Math.ceil(n / 2), 0.3);
+  const fbm1 = generateFractionalBrownianMotion(Math.floor(n / 2), 0.1);
+  const fbm2 = generateFractionalBrownianMotion(Math.ceil(n / 2), 0.3);
   const mixedLogVol = [...fbm1, ...fbm2].map((v) => 1.5 + v * 0.4);
   const mixedResult = runConstancyExperiment(
     mixedLogVol,
