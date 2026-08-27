@@ -20,7 +20,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {Hurstify, generateFractionalBrownianMotion, setRandomSeed, resetRandomSeed} from '../../../lib/index.js';
+import {
+  Hurstify,
+  generateFractionalBrownianMotion,
+  setRandomSeed,
+  resetRandomSeed,
+} from '../../../lib/index.js';
 import {fmt} from '@/lib/format';
 import {HTrajChart} from '@/components/observatory/charts/h-traj-chart';
 import {HeatmapGrid} from '@/components/observatory/charts/heatmap-grid';
@@ -150,11 +155,11 @@ function Figure1() {
     setRandomSeed(42);
     const path = generateFractionalBrownianMotion(n, trueH);
     resetRandomSeed();
-    const slice = path.slice(0, windowSize);
+    const slice = Array.from(path.slice(0, windowSize));
     const inc1 = Hurstify.getIncrements(slice, a1);
     const inc2 = Hurstify.getIncrements(slice, a2);
-    const s1 = inc1.slice().sort((a, b) => a - b);
-    const s2 = inc2.slice().sort((a, b) => a - b);
+    const s1 = Array.from(inc1).sort((a, b) => a - b);
+    const s2 = Array.from(inc2).sort((a, b) => a - b);
     const hs: number[] = [];
     const ds: number[] = [];
     for (let h = 0.01; h <= 0.99; h += res) {
@@ -242,8 +247,11 @@ function Figure2() {
     setRandomSeed(42);
     const path = generateFractionalBrownianMotion(n, trueH);
     resetRandomSeed();
-    const slice = path.slice(0, windowSize);
-    const estimator = new Hurstify({scales, sampleSize: Math.min(300, windowSize)});
+    const slice = Array.from(path.slice(0, windowSize));
+    const estimator = new Hurstify({
+      scales,
+      sampleSize: Math.min(300, windowSize),
+    });
     const raw = estimator.profile(slice, {scales});
     const cells: Array<{i: number; j: number; value: number | null}> = [];
     for (let i = 0; i < scales.length; i++) {
@@ -253,7 +261,12 @@ function Figure2() {
         else if (j < i) {
           const fi = Math.pow(raw.scaleValues[i], -raw.H);
           const fj = Math.pow(raw.scaleValues[j], -raw.H);
-          v = ksRescaled(raw.sortedSamples[i], raw.sortedSamples[j], fi, fj);
+          v = ksRescaled(
+            Array.from(raw.sortedSamples[i]),
+            Array.from(raw.sortedSamples[j]),
+            fi,
+            fj,
+          );
         } else {
           v = null;
         }
@@ -309,13 +322,13 @@ function Figure3() {
   const [windowSize, setWindowSize] = React.useState(500);
   const [step, setStep] = React.useState(25);
   const [iterations, setIterations] = React.useState(8);
-  const [rolling, setRolling] = React.useState<Array<{t: number; H: number}>>(
-    [],
-  );
+  const [rolling, setRolling] = React.useState<
+    Array<{t: number; H: number | null}>
+  >([]);
 
   const render = React.useCallback(() => {
     setRandomSeed(42);
-    const path = generateFractionalBrownianMotion(n, trueH);
+    const path = Array.from(generateFractionalBrownianMotion(n, trueH));
     resetRandomSeed();
     const estimator = new Hurstify({
       scaleA1: 1,
@@ -403,7 +416,9 @@ function Figure4() {
         const errors: number[] = [];
         for (let t = 0; t < trials; t++) {
           setRandomSeed(t + 1);
-          const path = generateFractionalBrownianMotion(Math.min(2000, w), h);
+          const path = Array.from(
+            generateFractionalBrownianMotion(Math.min(2000, w), h),
+          );
           resetRandomSeed();
           const estimator = new Hurstify({sampleSize: Math.min(300, w)});
           try {

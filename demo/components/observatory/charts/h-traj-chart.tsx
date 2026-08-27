@@ -15,18 +15,18 @@ export function HTrajChart({
   rolling,
   trueH,
 }: {
-  rolling: Array<{ t: number; H: number }>;
+  rolling: Array<{t: number; H: number | null}>;
   trueH: number;
 }) {
-  const data = rolling.map((r) => ({ t: r.t, H: r.H }));
+  const data = rolling.map((r) => ({t: r.t, H: r.H}));
   return (
     <ResponsiveContainer width="100%" height={320}>
-      <LineChart data={data} margin={{ top: 8, left: 8, right: 0, bottom: 4 }}>
+      <LineChart data={data} margin={{top: 8, left: 8, right: 0, bottom: 4}}>
         <CartesianGrid stroke="hsl(220 22% 28% / 0.4)" strokeDasharray="2 4" />
-        <XAxis dataKey="t" tick={{ fontSize: 10, fill: 'hsl(220 18% 70%)' }} />
+        <XAxis dataKey="t" tick={{fontSize: 10, fill: 'hsl(220 18% 70%)'}} />
         <YAxis
           domain={[0, 0.6]}
-          tick={{ fontSize: 10, fill: 'hsl(220 18% 70%)' }}
+          tick={{fontSize: 10, fill: 'hsl(220 18% 70%)'}}
           width={40}
         />
         <Tooltip

@@ -1,3 +1,1 @@
-export default function ExplorerPage() {
-  return null;
-}
+export {default} from '@/components/observatory/explorer-view';

@@ -1,3 +1,1 @@
-export default function FiguresPage() {
-  return null;
-}
+export {default} from '@/components/observatory/figures-view';
