@@ -92,14 +92,17 @@ export declare function detectCusumBreakpoints(
   threshold?: number,
 ): Array<{index: number; H_before: number; H_after: number}>;
 
-export declare function runConstancyTest(
-  series: number[],
-  options?: {q?: number; r?: number},
-): ConstancyResult;
+export declare class ConstancyTest {
+  run(series: number[], options?: {q?: number; r?: number}): ConstancyResult;
+}
 
-export declare function bootstrapConfidenceInterval(
-  estimator: (data: number[]) => number,
-  window: number[],
-  nBoot?: number,
-  alpha?: number,
-): BootstrapCiResult;
+export declare class BootstrapConfidenceInterval {
+  run(
+    data: {window: number[]},
+    options: {
+      estimator: (data: number[]) => number;
+      nBoot?: number;
+      alpha?: number;
+    },
+  ): BootstrapCiResult;
+}

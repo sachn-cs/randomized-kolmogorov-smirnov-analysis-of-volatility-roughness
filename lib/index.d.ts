@@ -46,11 +46,11 @@ export {
   runKalmanFilter,
   ksCriticalValue,
   ksPvalue,
-  runSignificanceTest,
-  runCusumTest,
   detectCusumBreakpoints,
-  runConstancyTest,
-  bootstrapConfidenceInterval,
+  KsSignificanceTest,
+  ConstancyTest,
+  CusumBreakTest,
+  BootstrapConfidenceInterval,
 } from './inference.js';
 
 export {
