@@ -10,6 +10,7 @@
 // or in the JSDoc tooling itself.
 
 import {FlatCompat} from '@eslint/eslintrc';
+import jsdoc from 'eslint-plugin-jsdoc';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
@@ -110,6 +111,59 @@ export default [
           varsIgnorePattern: '^_',
         },
       ],
+    },
+  },
+
+  // JSDoc enforcement for the public library surface. We configure
+  // eslint-plugin-jsdoc to match Google's JSDoc conventions:
+  //   - `@fileoverview` (not `@file`)
+  //   - `@return` (not `@returns`)
+  //   - `Object`, `Number`, `String`, `Boolean` as capitalized primitives
+  // The historical `valid-jsdoc` rule from eslint-config-google covered
+  // these checks, but it was removed in ESLint v9.0.0. This block is
+  // the replacement so docstring drift is caught at lint time.
+  {
+    files: ['lib/**/*.js'],
+    plugins: {jsdoc},
+    settings: {
+      jsdoc: {
+        // Google's JSDoc style uses these tag names; do not warn on them.
+        tagNamePreference: {
+          file: 'fileoverview',
+          returns: 'return',
+          augments: 'extends',
+          constant: 'const',
+        },
+      },
+    },
+    rules: {
+      'jsdoc/check-param-names': 'error',
+      'jsdoc/check-tag-names': [
+        'error',
+        {
+          definedTags: [
+            'fileoverview',
+            'return',
+            'override',
+            'abstract',
+            'enum',
+            'template',
+            'typedef',
+            'throws',
+            'example',
+            'extends',
+            'const',
+          ],
+        },
+      ],
+      'jsdoc/check-types': 'off',
+      'jsdoc/no-undefined-types': 'off',
+      'jsdoc/require-param': 'error',
+      'jsdoc/require-returns': 'off',
+      'jsdoc/require-return-description': 'off',
+      'jsdoc/require-param-description': 'off',
+      'jsdoc/valid-types': 'off',
+      'jsdoc/require-description': 'off',
     },
   },
 
